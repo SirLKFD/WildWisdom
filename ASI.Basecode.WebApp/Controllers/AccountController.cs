@@ -87,12 +87,12 @@ namespace ASI.Basecode.WebApp.Controllers
 
             User user = new() { Id = 0, UserId = "0", Name = "Name", Password = "Password" };
             
-            await this._signInManager.SignInAsync(user);
-            this._session.SetString("UserName", model.UserId);
+            //await this._signInManager.SignInAsync(user);
+            //this._session.SetString("UserName", model.UserId);
 
-            return RedirectToAction("Index", "Home");
+            //return RedirectToAction("Index", "Home");
 
-            /*var loginResult = _userService.AuthenticateUser(model.UserId, model.Password, ref user);
+            var loginResult = _userService.AuthenticateUser(model.UserId, model.Password, ref user);
             if (loginResult == LoginResult.Success)
             {
                 // 認証OK
@@ -106,7 +106,7 @@ namespace ASI.Basecode.WebApp.Controllers
                 TempData["ErrorMessage"] = "Incorrect UserId or Password";
                 return View();
             }
-            return View();*/
+            return View();
         }
 
         [HttpGet]

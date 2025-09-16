@@ -93,9 +93,32 @@ namespace ASI.Basecode.WebApp
             services.AddControllersWithViews();
             services.AddRazorPages().AddRazorRuntimeCompilation();
 
+            // Add Swagger/OpenAPI support with JWT Bearer authentication
+            services.AddSwaggerGen(c =>
+            {
+                c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo { Title = "API", Version = "v1" });
+                var securityScheme = new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+                {
+                    Name = "Authorization",
+                    Type = Microsoft.OpenApi.Models.SecuritySchemeType.Http,
+                    Scheme = "bearer",
+                    BearerFormat = "JWT",
+                    In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+                    Description = "JWT Authorization header using the Bearer scheme. Example: 'Bearer {token}'"
+                };
+                c.AddSecurityDefinition("Bearer", securityScheme);
+                c.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
+                {
+                    {
+                        securityScheme,
+                        new string[] {}
+                    }
+                });
+            });
+
             //Configuration
             services.Configure<TokenAuthentication>(Configuration.GetSection("TokenAuthentication"));
-            
+
             // Session
             services.AddSession(options =>
             {
@@ -142,6 +165,14 @@ namespace ASI.Basecode.WebApp
 
             this._app.UseHttpsRedirection();
             this._app.UseStaticFiles();
+
+            // Enable Swagger middleware
+            this._app.UseSwagger();
+            this._app.UseSwaggerUI(c =>
+            {
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "API V1");
+                c.RoutePrefix = "swagger"; // Access at /swagger
+            });
 
             // Localization
             var options = this._app.ApplicationServices.GetService<IOptions<RequestLocalizationOptions>>();

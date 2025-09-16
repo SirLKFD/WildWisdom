@@ -117,4 +117,16 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="Added" xml:space="preserve">
+    <value>Record(s) successfully added.</value>
+  </data>
+  <data name="AddFailed" xml:space="preserve">
+    <value>Record(s) could not be added.</value>
+  </data>
+  <data name="DuplicateExists" xml:space="preserve">
+    <value>Record(s) duplicate already exists.</value>
+  </data>
+  <data name="ItemNotAdded" xml:space="preserve">
+    <value>Record(s) could not be added.</value>
+  </data>
 </root>

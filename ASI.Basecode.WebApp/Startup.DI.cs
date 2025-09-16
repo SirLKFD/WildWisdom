@@ -1,4 +1,5 @@
 ﻿using ASI.Basecode.Data;
+using ASI.Basecode.Data.EFCore;
 using ASI.Basecode.Data.Interfaces;
 using ASI.Basecode.Data.Repositories;
 using ASI.Basecode.Services.Interfaces;
@@ -30,15 +31,21 @@ namespace ASI.Basecode.WebApp
             this._services.AddScoped<TokenProvider>();
             this._services.TryAddSingleton<TokenProviderOptionsFactory>();
             this._services.TryAddSingleton<TokenValidationParametersFactory>();
-            this._services.AddScoped<IUnitOfWork, UnitOfWork>();
+            this._services.AddScoped<IUnitOfWork>(provider =>
+            {
+                var context = provider.GetRequiredService<AsiBasecodeDBContext>();
+                return new UnitOfWork<AsiBasecodeDBContext>(context, context);
+            });
 
             // Services
             this._services.TryAddSingleton<TokenValidationParametersFactory>();
             this._services.AddScoped<IUserService, UserService>();
+            this._services.AddScoped<IMenuService, MenuService>();
           
 
             // Repositories
             this._services.AddScoped<IUserRepository, UserRepository>();
+            this._services.AddScoped<IMenuRepository, MenuRepository>();
 
             // Manager Class
             this._services.AddScoped<SignInManager>();

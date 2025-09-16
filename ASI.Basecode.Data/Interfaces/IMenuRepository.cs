@@ -1,0 +1,18 @@
+﻿using ASI.Basecode.Data.Models;
+using System.Collections.Generic;
+
+namespace ASI.Basecode.Data.Interfaces
+{
+    public interface IMenuRepository
+    {
+        public IEnumerable<Menu> GetAllMenu();
+
+        public void AddMenu(Menu entity);
+
+        public int CheckUniqueMenu(int id, string menuName);
+
+        public bool CheckDocumentRequestInput(int id);
+
+        public IEnumerable<int> AddLogList(List<LogMenu> entities);
+    }
+}

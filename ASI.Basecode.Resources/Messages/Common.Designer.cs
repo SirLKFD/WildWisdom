@@ -59,5 +59,41 @@ namespace ASI.Basecode.Resources.Messages {
                 resourceCulture = value;
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Record(s) successfully added..
+        /// </summary>
+        public static string Added {
+            get {
+                return ResourceManager.GetString("Added", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Record(s) could not be added..
+        /// </summary>
+        public static string AddFailed {
+            get {
+                return ResourceManager.GetString("AddFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Record(s) duplicate already exists..
+        /// </summary>
+        public static string DuplicateExists {
+            get {
+                return ResourceManager.GetString("DuplicateExists", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Record(s) could not be added..
+        /// </summary>
+        public static string ItemNotAdded {
+            get {
+                return ResourceManager.GetString("ItemNotAdded", resourceCulture);
+            }
+        }
     }
 }
