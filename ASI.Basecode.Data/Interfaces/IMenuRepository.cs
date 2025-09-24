@@ -7,6 +7,10 @@ namespace ASI.Basecode.Data.Interfaces
     {
         public IEnumerable<Menu> GetAllMenu();
 
+        public IEnumerable<Menu> GetRecordsByIds(IEnumerable<int> ids);
+
+        public void DeleteDocument(Menu entity);
+
         public void AddMenu(Menu entity);
 
         public int CheckUniqueMenu(int id, string menuName);

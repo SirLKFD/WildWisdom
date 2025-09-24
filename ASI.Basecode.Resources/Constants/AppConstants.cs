@@ -5,6 +5,11 @@
     /// </summary>
     public static class AppConstants
     {
+        public const string Add = "add";
+        public const string Delete = "delete";
+        public const string Update = "update";
+        public const string Space = " ";
+
         public static class Controllers
         {
             public const string Menu = "api/menu";

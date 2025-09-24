@@ -12,7 +12,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System;
+using System.Linq;
 using System.Net;
+using System.Text;
 
 namespace ASI.Basecode.WebApp.Controllers
 {
@@ -66,9 +68,9 @@ namespace ASI.Basecode.WebApp.Controllers
         }
 
         /// <summary>
-        /// Login Method
+        /// Get All Menu Method
         /// </summary>
-        /// <returns>Created response view</returns>
+        /// <returns>List of all Menus.</returns>
         [HttpGet]
         //[AllowAnonymous]
         public IActionResult GetAllMenus()
@@ -77,6 +79,11 @@ namespace ASI.Basecode.WebApp.Controllers
             return StatusCode((int)HttpStatusCode.OK, new ResponseModel(returnList, string.Empty));
         }
 
+        /// <summary>
+        /// Add Menu Method
+        /// </summary>
+        /// <param name="menuRequestViewModel"></param>
+        /// <returns>Response Model for the Add/Insertion operation.</returns>
         [HttpPost(Name = nameof(AddMenu))]
         public IActionResult AddMenu([FromBody] MenuRequestViewModel menuRequestViewModel)
         {
@@ -90,6 +97,24 @@ namespace ASI.Basecode.WebApp.Controllers
             {
                 _logger.LogError(ex, ex.Message);
                 return StatusCode((int)HttpStatusCode.InternalServerError, new ResponseModel(string.Empty, Resources.Messages.Common.ItemNotAdded));
+            }
+        }
+
+        [HttpDelete(Name = nameof(BatchDeleteMenu))]
+        public IActionResult BatchDeleteMenu([FromBody] int[] ids)
+        {
+            try
+            {
+                var returnValues = menuService.BatchDeleteDocument(ids, 1); //TODO: Get userId from session
+                var messages = CommonHelper.GetResultCount(returnValues, AppConstants.Delete);
+                var sb = new StringBuilder().AppendJoin(AppConstants.Space, messages).ToString().Trim();
+                var returnCode = returnValues.Contains(AppConstants.CrudStatusCodes.DoesNotExist) ? (int)HttpStatusCode.BadRequest : (int)HttpStatusCode.OK;
+                return StatusCode(returnCode, new ResponseModel(null, sb));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, ex.Message);
+                return StatusCode((int)HttpStatusCode.InternalServerError, new ResponseModel(string.Empty, Resources.Messages.Common.ListNotDeleted));
             }
         }
     }

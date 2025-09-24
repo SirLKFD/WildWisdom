@@ -61,6 +61,15 @@ namespace ASI.Basecode.Resources.Messages {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Record(s) could not be added: duplicate exists..
+        /// </summary>
+        public static string AddDuplicateExist {
+            get {
+                return ResourceManager.GetString("AddDuplicateExist", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Record(s) successfully added..
         /// </summary>
         public static string Added {
@@ -79,6 +88,60 @@ namespace ASI.Basecode.Resources.Messages {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Record(s) were not added: record does not exist..
+        /// </summary>
+        public static string BatchItemDoesNotExist {
+            get {
+                return ResourceManager.GetString("BatchItemDoesNotExist", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Record(s) cannot be added: record is already in use..
+        /// </summary>
+        public static string BatchItemInUse {
+            get {
+                return ResourceManager.GetString("BatchItemInUse", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Record(s) successfully deleted..
+        /// </summary>
+        public static string Deleted {
+            get {
+                return ResourceManager.GetString("Deleted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Record(s) could not be deleted. Record does not exist..
+        /// </summary>
+        public static string DeleteDoesNotExist {
+            get {
+                return ResourceManager.GetString("DeleteDoesNotExist", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Record(s) could not be deleted..
+        /// </summary>
+        public static string DeleteFailed {
+            get {
+                return ResourceManager.GetString("DeleteFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Record(s) could not be deleted. The item is currently in use. Please ensure that the item is no longer being used before attempting to delete it..
+        /// </summary>
+        public static string DeleteFailedInUse {
+            get {
+                return ResourceManager.GetString("DeleteFailedInUse", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Record(s) duplicate already exists..
         /// </summary>
         public static string DuplicateExists {
@@ -88,11 +151,74 @@ namespace ASI.Basecode.Resources.Messages {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Error. Invalid Input {0}.
+        /// </summary>
+        public static string InvalidInput {
+            get {
+                return ResourceManager.GetString("InvalidInput", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Record(s) could not be added..
         /// </summary>
         public static string ItemNotAdded {
             get {
                 return ResourceManager.GetString("ItemNotAdded", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} list was not deleted..
+        /// </summary>
+        public static string ListNotDeleted {
+            get {
+                return ResourceManager.GetString("ListNotDeleted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Record(s) successfully updated..
+        /// </summary>
+        public static string Updated {
+            get {
+                return ResourceManager.GetString("Updated", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Record(s) update failed. Record does not exist..
+        /// </summary>
+        public static string UpdateDoesNotExist {
+            get {
+                return ResourceManager.GetString("UpdateDoesNotExist", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Record(s) update failed..
+        /// </summary>
+        public static string UpdateFailed {
+            get {
+                return ResourceManager.GetString("UpdateFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Record(s) update failed. The item is currently in use. Please ensure that the item is no longer being used before attempting to update it..
+        /// </summary>
+        public static string UpdateFailedInUse {
+            get {
+                return ResourceManager.GetString("UpdateFailedInUse", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Record(s) update failed. There is an existing record for a unique field in the database..
+        /// </summary>
+        public static string UpdateFieldUniqueExists {
+            get {
+                return ResourceManager.GetString("UpdateFieldUniqueExists", resourceCulture);
             }
         }
     }

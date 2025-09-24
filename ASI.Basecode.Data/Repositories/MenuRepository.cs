@@ -21,6 +21,11 @@ namespace ASI.Basecode.Data.Repositories
             return this.GetDbSet<Menu>().Where(x => !x.IsDeleted).ToList();
         }
 
+        public IEnumerable<Menu> GetRecordsByIds(IEnumerable<int> ids)
+        {
+            return this.GetDbSet<Menu>().Where(x => ids.Contains(x.MenuID)).ToList();
+        }
+
         public void AddMenu(Menu entity)
         {
             using (var transaction = UnitOfWork.CreateTransaction())
@@ -37,6 +42,16 @@ namespace ASI.Basecode.Data.Repositories
                     throw;
                 }
             }
+        }
+
+        /// <summary>
+        /// Deletes a Menu record.
+        /// </summary>
+        /// <param name="entity">The Menu entity to be deleted.</param>
+        public void DeleteDocument(Menu entity)
+        {
+            this.GetDbSet<Menu>().Update(entity);
+            UnitOfWork.SaveChanges();
         }
 
         public int CheckUniqueMenu(int id, string menuName)

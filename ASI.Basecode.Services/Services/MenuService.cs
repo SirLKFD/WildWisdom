@@ -7,6 +7,7 @@ using ASI.Basecode.Services.Manager;
 using ASI.Basecode.Services.ServiceModels;
 using AutoMapper;
 using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Tokens;
 using System;
 using System.Collections.Generic;
 using System.Data.Entity.Core.Common.CommandTrees.ExpressionBuilder;
@@ -32,11 +33,21 @@ namespace ASI.Basecode.Services.Services
             this.uow = uow;
         }
 
+        /// <summary>
+        /// Retrieves all menu.
+        /// </summary>
+        /// <returns>Returns IEnumerable menu.</returns>
         public IEnumerable<MenuReturnViewModel> GetAllMenu()
         {
             return _mapper.Map<List<MenuReturnViewModel>>(menuRepository.GetAllMenu());
         }
 
+        /// <summary>
+        /// Insertion method for menu.
+        /// </summary>
+        /// <param name="inputRequest"></param>
+        /// <param name="userId"></param>
+        /// <returns>Status Code</returns>
         public int AddMenu(MenuRequestViewModel inputRequest, int userId)
         {
             try
@@ -75,6 +86,56 @@ namespace ASI.Basecode.Services.Services
                 {
                     return AppConstants.CrudStatusCodes.DoesNotExist;
                 }
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, ex.Message);
+                throw;
+            }
+            finally
+            {
+                uow.Dispose();
+            }
+        }
+
+        public int[] BatchDeleteDocument(IEnumerable<int> inputDocumentIds, int userId)
+        {
+            try
+            {
+                // Find the entities to be deleted
+                var entities = menuRepository.GetRecordsByIds(inputDocumentIds);
+
+                // Initialize the return values to be at the entities count or least the count of input IDs
+                var returnValue = new int[entities.Any() ? entities.Count() : inputDocumentIds.Count()];
+                var i = 0;
+
+                // Check the if entity list is not empty to prevent unnecessary process.
+                if (entities == null || !entities.Any())
+                {
+                    Array.Fill(returnValue, AppConstants.CrudStatusCodes.DoesNotExist);
+                }
+                else
+                {
+                    // Loop through the entities to be deleted
+                    foreach (var entity in entities)
+                    {
+
+                        // Update the IsDeleted property
+                        entity.IsDeleted = true;
+
+                        // Save changes to batch delete
+                        menuRepository.DeleteDocument(entity);
+
+                        // Save changes to logs
+                        var logs = CreateLogMenu(userId, entity, AppConstants.LogTypes.LogDelete, null);
+                        menuRepository.AddLogList(logs);
+                        returnValue[i] = AppConstants.CrudStatusCodes.Success;
+
+                        i++;
+                    }
+                }
+
+                return returnValue;
             }
             catch (Exception ex)
             {
