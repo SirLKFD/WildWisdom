@@ -1,0 +1,401 @@
+﻿@{
+    ViewData["Title"] = "WildWisdom";
+    ViewBag.LoginView = true;
+    Layout = null; // Using custom layout for landing page AKA NOT FROM _Header.cshtml
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+    <link rel="stylesheet" href="~/css/landingpage.css" asp-append-version="true" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Custom Header for Landing Page -->
+    <header class="landing-header">
+        <div class="header-container">
+            <div class="logo-section">
+                <img src="~/img/WildWisdom-main-logo.png" alt="WildWisdom" class="header-logo" />
+            </div>
+
+            <nav class="nav-menu">
+                <ul>
+                    <li><a href="#home" class="active">Home</a></li>
+                    <li><a href="#features">Features</a></li>
+                    <li><a href="#testimonials">Testimonials</a></li>
+                    <li><a href="#about">About us</a></li>
+                </ul>
+            </nav>
+
+            <div class="login-section">
+                <a asp-controller="Account" asp-action="Login" class="login-btn">Login</a>
+            </div>
+
+            <!-- Mobile Menu Toggle -->
+            <button class="mobile-menu-toggle" id="mobileMenuToggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Mobile Navigation -->
+    <div class="mobile-nav" id="mobileNav">
+        <ul>
+            <li><a href="#home" class="active">Home</a></li>
+            <li><a href="#features">Features</a></li>
+            <li><a href="#testimonials">Testimonials</a></li>
+            <li><a href="#about">About us</a></li>
+            <li><a asp-controller="Account" asp-action="Login" class="mobile-login">Login</a></li>
+        </ul>
+    </div>
+
+    <!-- Home Content -->
+    <main class="landing-main" id="home">
+        <div class="hero-section">
+            <div class="hero-content">
+                <div class="hero-text">
+                    <h1 class="hero-title">
+                        <span class="hero-title-line nowrap">Your Wild Journey through</span>
+                        <span class="hero-title-line nowrap"><span class="highlight">Wisdom</span> starts Here</span>
+                    </h1>
+
+                    <p class="hero-description">
+                        Can't decide which book to read? You don't need to search any further.<br>
+                        Discover, borrow and rate on the books you love.
+                    </p>
+
+                    <a asp-controller="Account" asp-action="Register" class="cta-button">
+                        Sign up here!
+                    </a>
+                </div>
+
+                <div class="hero-image">
+                    <div class="book-stack-container">
+                        <div class="hand-holding">
+                            <img src="~/img/landing-image-1.png" alt="Hand holding books" class="hand-image" />                          
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Services Section -->
+    <section class="services-section" id="features">
+        <h2 class="section-title">Our Services</h2>
+        <div class="services-grid">
+            <div class="service-card">
+                <img src="https://img.icons8.com/ios-filled/100/8B5A2B/search--v1.png" alt="Search & Discover">
+                <h3>Search & Discover</h3>
+                <p>Find books quickly with filters by title, author, genre, or availability.</p>
+            </div>
+            <div class="service-card">
+                <img src="https://img.icons8.com/ios-filled/100/8B5A2B/star--v1.png" alt="Book Recommendations">
+                <h3>Book Recommendations</h3>
+                <p>Get suggestions based on your reading history, ratings, and trending titles.</p>
+            </div>
+            <div class="service-card">
+                <img src="https://img.icons8.com/ios-filled/100/8B5A2B/bookmark-ribbon--v1.png" alt="Borrow & Return">
+                <h3>Borrow & Return</h3>
+                <p>Borrow and return with ease, and stay updated on limits and overdue items.</p>
+            </div>
+            <div class="service-card">
+                <img src="https://img.icons8.com/ios-filled/100/8B5A2B/todo-list--v1.png" alt="Reading History">
+                <h3>Reading History & Reviews</h3>
+                <p>Track your reads and share ratings and reviews to help other readers.</p>
+            </div>
+            <div class="service-card">
+                <img src="https://img.icons8.com/ios-filled/100/8B5A2B/appointment-reminders--v1.png" alt="Smart Notifications">
+                <h3>Smart Notifications</h3>
+                <p>Get reminders for due dates, overdue books, and wishlist availability.</p>
+            </div>
+            <div class="service-card">
+                <img src="https://img.icons8.com/ios-filled/100/8B5A2B/combo-chart--v1.png" alt="Admin & Reports">
+                <h3>Admin & Reports</h3>
+                <p>Manage books and users with tools for insights and detailed reports.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials Section -->
+    <section class="testimonials-section" id="testimonials">
+        <div class="testimonials-header">
+            <h2 class="section-title">What Our Readers Say</h2>
+            <p class="section-subtitle">Discover how our system makes finding, borrowing, and enjoying books easier for everyone.</p>
+        </div>
+
+        <div class="testimonials-controls">
+            <button class="pager-btn" id="prevTestimonials" aria-label="Previous">&lt; Previous</button>
+            <button class="pager-btn primary" id="nextTestimonials" aria-label="Next">Next &gt;</button>
+        </div>
+
+        <div class="testimonials-grid" id="testimonialsGrid">
+            <!-- Page 1 -->
+            <article class="testimonial-card" data-page="1">
+                <div class="avatar"><img src="https://i.pravatar.cc/80?img=1" alt="Floyd Miles"></div>
+                <h3>Floyd Miles</h3>
+                <div class="stars" aria-label="4 stars">★★★★★</div>
+                <p>“The search and filter feature makes it effortless to find books. Quick availability checks save me trips to the library!”</p>
+            </article>
+            <article class="testimonial-card" data-page="1">
+                <div class="avatar"><img src="https://i.pravatar.cc/80?img=12" alt="Ronald Richards"></div>
+                <h3>Ronald Richards</h3>
+                <div class="stars">★★★★★</div>
+                <p>“Borrowing is smooth and reminders are spot on. I never miss return dates anymore.”</p>
+            </article>
+            <article class="testimonial-card" data-page="1">
+                <div class="avatar"><img src="https://i.pravatar.cc/80?img=20" alt="Savannah Nguyen"></div>
+                <h3>Savannah Nguyen</h3>
+                <div class="stars">★★★★☆</div>
+                <p>“Recommendations feel tailored to me. I’ve discovered authors I now love.”</p>
+            </article>
+
+            <!-- Page 2 -->
+            <article class="testimonial-card" data-page="2">
+                <div class="avatar"><img src="https://i.pravatar.cc/80?img=5" alt="Courtney Henry"></div>
+                <h3>Courtney Henry</h3>
+                <div class="stars">★★★★★</div>
+                <p>“Clean design and fast search. Finding books for my course takes seconds.”</p>
+            </article>
+            <article class="testimonial-card" data-page="2">
+                <div class="avatar"><img src="https://i.pravatar.cc/80?img=7" alt="Marvin McKinney"></div>
+                <h3>Marvin McKinney</h3>
+                <div class="stars">★★★★★</div>
+                <p>“Notifications are super helpful. The due-date alerts keep me on track.”</p>
+            </article>
+            <article class="testimonial-card" data-page="2">
+                <div class="avatar"><img src="https://i.pravatar.cc/80?img=8" alt="Bessie Cooper"></div>
+                <h3>Bessie Cooper</h3>
+                <div class="stars">★★★★☆</div>
+                <p>“Love the reading history. It’s easy to revisit favorites and share ratings.”</p>
+            </article>
+
+            <!-- Page 3 -->
+            <article class="testimonial-card" data-page="3">
+                <div class="avatar"><img src="https://i.pravatar.cc/80?img=15" alt="Jerome Bell"></div>
+                <h3>Jerome Bell</h3>
+                <div class="stars">★★★★★</div>
+                <p>“Borrow and return just works. The whole process is stress-free.”</p>
+            </article>
+            <article class="testimonial-card" data-page="3">
+                <div class="avatar"><img src="https://i.pravatar.cc/80?img=32" alt="Theresa Webb"></div>
+                <h3>Theresa Webb</h3>
+                <div class="stars">★★★★★</div>
+                <p>“Great picks every week. The system seems to know what I’ll enjoy.”</p>
+            </article>
+            <article class="testimonial-card" data-page="3">
+                <div class="avatar"><img src="https://i.pravatar.cc/80?img=44" alt="Guy Hawkins"></div>
+                <h3>Guy Hawkins</h3>
+                <div class="stars">★★★★☆</div>
+                <p>“Simple, fast, and reliable. I recommend it to fellow students.”</p>
+            </article>
+        </div>
+
+        <div class="pager-dots" id="testimonialDots" aria-hidden="true">
+            <span class="dot active" data-page="1"></span>
+            <span class="dot" data-page="2"></span>
+            <span class="dot" data-page="3"></span>
+        </div>
+    </section>
+
+    <!-- About the Devs Section -->
+    <section class="about-section" id="about">
+        <div class="about-header">
+            <h2 class="section-title">About Us</h2>
+            <p class="section-subtitle">Meet the team behind WildWisdom — passionate builders focused on delightful, accessible library experiences.</p>
+        </div>
+
+        <div class="about-card" id="aboutCard">
+            <div class="about-info">
+                <h3 id="devName">Developer Name</h3>
+                <p class="dev-role" id="devRole">Role</p>
+                <div class="dev-bio" id="devBio"></div>
+            </div>
+            <div class="about-photo">
+                <img id="devPhoto" src="https://i.pravatar.cc/380?img=11" alt="Developer photo">
+                <button class="about-nav prev" id="prevDev" aria-label="Previous developer">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M15 6L9 12L15 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </button>
+                <button class="about-nav next" id="nextDev" aria-label="Next developer">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M9 6L15 12L9 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </button>
+            </div>
+        </div>
+        <div class="about-controls">
+            <div class="pager-dots" id="aboutDots"></div>
+        </div>
+    </section>
+
+        <!-- Wave Footer -->
+    <footer class="wave-footer">
+        <div class="wave-top" aria-hidden="true">
+            <svg viewBox="0 0 1440 120" preserveAspectRatio="none">
+                <path d="M0,64 C240,160 480,-16 720,32 C960,80 1200,160 1440,80 L1440,120 L0,120 Z" fill="#E9D9C7"></path>
+                <path d="M0,72 C240,144 480,0 720,40 C960,80 1200,144 1440,64 L1440,120 L0,120 Z" fill="#F5F0E8" opacity="0.7"></path>
+            </svg>
+        </div>
+        <div class="footer-inner">
+            <div class="footer-brand">
+                <img src="~/img/WildWisdom-main-logo.png" alt="WildWisdom" />
+                <p>Discover, borrow, and rate the books you love.</p>
+            </div>
+            <div class="footer-links">
+                <a href="#home">Home</a>
+                <a href="#features">Features</a>
+                <a href="#testimonials">Testimonials</a>
+                <a href="#about">About us</a>
+            </div>
+            <div class="footer-copy">© @DateTime.Now.Year WildWisdom. All rights reserved.</div>
+        </div>
+    </footer>
+
+
+    <script>
+        // Mobile menu toggle functionality
+        document.getElementById('mobileMenuToggle').addEventListener('click', function() {
+            this.classList.toggle('active');
+            document.getElementById('mobileNav').classList.toggle('active');
+            document.body.classList.toggle('menu-open');
+        });
+
+        // Close mobile menu when clicking on a link
+        document.querySelectorAll('.mobile-nav a').forEach(link => {
+            link.addEventListener('click', function() {
+                document.getElementById('mobileMenuToggle').classList.remove('active');
+                document.getElementById('mobileNav').classList.remove('active');
+                document.body.classList.remove('menu-open');
+            });
+        });
+
+               const sections = document.querySelectorAll("section, main");
+        const navLinks = document.querySelectorAll(".nav-menu a");
+
+        window.addEventListener("scroll", () => {
+            let current = "";
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop - 120; // adjust for header height
+                const sectionHeight = section.clientHeight;
+                if (pageYOffset >= sectionTop && pageYOffset < sectionTop + sectionHeight) {
+                    current = section.getAttribute("id");
+                }
+            });
+
+            navLinks.forEach(link => {
+                link.classList.remove("active");
+                if (link.getAttribute("href").includes(current)) {
+                    link.classList.add("active");
+                }
+            });
+        });
+
+        // Testimonials pagination (3 cards per page, 3 pages = 9 items)
+        const cards = Array.from(document.querySelectorAll('.testimonial-card'));
+        const dots = Array.from(document.querySelectorAll('#testimonialDots .dot'));
+        const prevBtn = document.getElementById('prevTestimonials');
+        const nextBtn = document.getElementById('nextTestimonials');
+        const totalPages = 3;
+        let currentPage = 1;
+
+        function renderTestimonials(page) {
+            cards.forEach(card => {
+                const shouldShow = Number(card.dataset.page) === page;
+                card.style.display = shouldShow ? 'flex' : 'none';
+            });
+            dots.forEach(dot => dot.classList.toggle('active', Number(dot.dataset.page) === page));
+            currentPage = page;
+        }
+
+        prevBtn.addEventListener('click', () => {
+            const next = currentPage - 1 < 1 ? totalPages : currentPage - 1;
+            renderTestimonials(next);
+        });
+
+        nextBtn.addEventListener('click', () => {
+            const next = currentPage + 1 > totalPages ? 1 : currentPage + 1;
+            renderTestimonials(next);
+        });
+
+        dots.forEach(dot => dot.addEventListener('click', () => renderTestimonials(Number(dot.dataset.page))));
+
+        // initial render
+        renderTestimonials(1);
+
+        // About the Devs data and slider
+        const devs = [
+            {
+                name: 'John Augustine L. Lapinig',
+                role: 'Frontend Developer',
+                photo: 'https://i.pravatar.cc/380?img=66',
+                bio: `At WildWisdom System, as a frontend developer, I believe that technology should not only look good but also feel natural and easy to use. My focus is on building interfaces that are simple, accessible, and responsive across different devices.`
+            },
+            {
+                name: 'Dan Vincent Y. Adlawan',
+                role: 'Backend Developer',
+                photo: 'https://i.pravatar.cc/380?img=14',
+                bio: 'Designs robust APIs and data flows to keep everything fast and reliable. Loves clean architecture and coffee-fueled code sessions.'
+            },
+            {
+                name: 'Lord Kent F. Dinampo',
+                role: 'Full‑Stack Engineer',
+                photo: 'https://i.pravatar.cc/380?img=48',
+                bio: 'Bridges UI and server concerns to deliver seamless features end-to-end. Passionate about DX and thoughtful UX.'
+            },
+            {
+                name: 'Theo Ryan D. Roz',
+                role: 'UI/UX Designer',
+                photo: 'https://i.pravatar.cc/380?img=31',
+                bio: 'Crafts beautiful, accessible interfaces and thoughtful micro-interactions that make reading a joy.'
+            },
+            {
+                name: 'Jead Rick C. Belande',
+                role: 'QA Engineer',
+                photo: 'https://i.pravatar.cc/380?img=10',
+                bio: 'Ensures quality with meticulous testing and automation, so every release feels rock solid.'
+            }
+        ];
+
+        const devName = document.getElementById('devName');
+        const devRole = document.getElementById('devRole');
+        const devBio = document.getElementById('devBio');
+        const devPhoto = document.getElementById('devPhoto');
+        const aboutDots = document.getElementById('aboutDots');
+        const prevDev = document.getElementById('prevDev');
+        const nextDev = document.getElementById('nextDev');
+
+        function renderDev(index) {
+            const d = devs[index];
+            devName.textContent = d.name;
+            devRole.textContent = d.role;
+            devBio.textContent = d.bio;
+            devPhoto.src = d.photo;
+            Array.from(aboutDots.children).forEach((dot, i) => dot.classList.toggle('active', i === index));
+            currentDev = index;
+        }
+
+        // build dots
+        aboutDots.innerHTML = devs.map((_, i) => `<span class="dot${i === 0 ? 'active' : ''}" data-idx="${i}"></span>`).join('');
+        aboutDots.querySelectorAll('.dot').forEach(dot => dot.addEventListener('click', (e) => {
+            renderDev(Number(e.currentTarget.getAttribute('data-idx')));
+        }));
+
+        let currentDev = 0;
+        renderDev(currentDev);
+
+        prevDev.addEventListener('click', () => {
+            const next = currentDev - 1 < 0 ? devs.length - 1 : currentDev - 1;
+            renderDev(next);
+        });
+        nextDev.addEventListener('click', () => {
+            const next = currentDev + 1 > devs.length - 1 ? 0 : currentDev + 1;
+            renderDev(next);
+        });
+    </script>
+</body>
+</html>
