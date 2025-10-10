@@ -1,64 +1,75 @@
 ﻿@model LoginViewModel
 @using static ASI.Basecode.Resources.Views.Screen
 @section styles {
-    <link rel="stylesheet" href="~/css/login.css" />
+    <link rel="stylesheet" href="~/css/auth.css" />
 }
 @{
     ViewBag.LoginView = true;
-    ViewData["Title"] = "Login Page";
+    ViewData["Title"] = "Login - WildWisdom";
+    Layout = null;
 }
-<div>
-    @Html.AntiForgeryToken()
-</div>
-<div class="container py-5" style="display:flex; align-content:center;height:calc(100vh - 64px)">
-    <div class="row d-flex justify-content-center align-items-center h-100">
-        <div class="col-xl-10">
-            <div class="card rounded-3 text-black">
-                <div class="row g-0 w-1000px">
-                    <div class="col-lg-6">
-                        <div class="card-body p-md-5 mx-md-4">
-                            <div class="text-center">
-                                <img src="~/img/asi-logo-invert.svg"
-                                     style="width: 185px;" alt="logo">
-                            </div>
-                            <form method="post" action="/Account/Login" id="loginForm">
-                                <div class="form-outline mb-4">
-                                    <label class="form-label" for="form2Example11">@UserId</label>
-                                    <input type="text" id="form2Example11" class="form-control"
-                                           asp-for="UserId" placeholder="Enter userid" />
-                                    <span asp-validation-for="UserId" class="text-danger"></span>
-                                </div>
-                                <div class="form-outline mb-4">
-                                    <label class="form-label" for="form2Example22">@Password</label>
-                                    <input type="password" id="form2Example22" class="form-control"
-                                           asp-for="Password" placeholder="Enter password" />
-                                    <span asp-validation-for="Password" class="text-danger"></span>
-                                </div>
-                                <div class="text-center pt-1 mb-5 pb-1 d-flex flex-column align-items-center">
-                                    <button class="btn btn-primary btn-block login-btn gradient-custom-2 mb-3" type="submit">
-                                        @Login
-                                    </button>
-                                    <div>
-                                        <a class="text-muted" href="#!">@ForgotPass</a>
-                                    </div>
-                                </div>
-                                <div class="d-flex align-items-center justify-content-center pb-4">
-                                    <p class="mb-0 me-2 mr-1">@DontHaveAcc</p>
-                                    <a asp-controller="Account" asp-action="Register" class="btn btn-outline-danger">@CreateNew</a>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                    <div class="col-lg-6 d-flex">
-                        <img style="width:400px"src="~/img/LiveIT.png" />
-                    </div>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+    <link rel="stylesheet" href="~/css/auth.css" asp-append-version="true" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="auth-container">
+        @Html.AntiForgeryToken()
+        <div class="auth-card">
+            <div class="auth-logo">
+                <img src="~/img/WildWisdom-main-logo.png" alt="WildWisdom Logo">
+            </div>
+
+            <h1 class="auth-title">Welcome Back</h1>
+            <p class="auth-subtitle">Sign in to continue your reading journey</p>
+
+            <form method="post" action="/Account/Login" id="loginForm">
+                <div class="form-group">
+                    <label class="form-label" for="userId">@UserId</label>
+                    <input type="text" 
+                           id="userId" 
+                           class="form-control"
+                           asp-for="UserId" 
+                           placeholder="Enter your user ID" />
+                    <span asp-validation-for="UserId" class="text-danger"></span>
                 </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="password">@Password</label>
+                    <input type="password" 
+                           id="password" 
+                           class="form-control"
+                           asp-for="Password" 
+                           placeholder="Enter your password" />
+                    <span asp-validation-for="Password" class="text-danger"></span>
+                </div>
+
+                <div class="auth-links" style="text-align: right; margin-bottom: 20px;">
+                    <a href="#!" class="auth-link">@ForgotPass</a>
+                </div>
+
+                <button class="btn-auth" type="submit">
+                    @Login
+                </button>
+            </form>
+
+            <div class="auth-footer">
+                <p>@DontHaveAcc</p>
+                <a asp-controller="Account" asp-action="Register" class="btn-secondary-auth">@CreateNew</a>
             </div>
         </div>
     </div>
-</div>
 
-@section scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" />
     <script>
         // Check for error message and display Toastr notification
         var errorMessage = '@TempData["ErrorMessage"]';
@@ -66,4 +77,5 @@
             toastr.error(errorMessage);
         }
     </script>
-}
+</body>
+</html>
