@@ -9,9 +9,14 @@ namespace ASI.Basecode.Data.Models
         public string UserId { get; set; }
         public string Name { get; set; }
         public string Password { get; set; }
+        public int Role { get; set; } // 0 = User, 1 = Admin
+        public int? OrganizationId { get; set; }
+        public string ProfilePicture { get; set; }
         public string CreatedBy { get; set; }
         public DateTime CreatedTime { get; set; }
         public string UpdatedBy { get; set; }
         public DateTime UpdatedTime { get; set; }
+
+        public virtual Organization Organization { get; set; }
     }
 }

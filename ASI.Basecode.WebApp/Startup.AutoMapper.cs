@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using ASI.Basecode.Data.Models;
 using ASI.Basecode.Services.ServiceModels;
+using ASI.Basecode.Services.Utils.DtoMapper;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace ASI.Basecode.WebApp
@@ -13,21 +14,12 @@ namespace ASI.Basecode.WebApp
         /// </summary>
         private void ConfigureAutoMapper()
         {
-            var mapperConfiguration = new MapperConfiguration(config =>
-            {
-                config.AddProfile(new AutoMapperProfileConfiguration());
-            });
-
-            this._services.AddSingleton<IMapper>(sp => mapperConfiguration.CreateMapper());
-        }
-
-        private class AutoMapperProfileConfiguration : Profile
-        {
-            public AutoMapperProfileConfiguration()
-            {
-                CreateMap<UserViewModel, User>();
-
-            }
+            // Use MapConfigurationFactory to scan and discover all ICustomMap implementations
+            var mapper = MapConfigurationFactory.Scan<UserViewModel>(
+                assemblyFilter: a => a.FullName.StartsWith("ASI.Basecode")
+            );
+            
+            this._services.AddSingleton<IMapper>(mapper);
         }
     }
 }

@@ -33,5 +33,19 @@ namespace ASI.Basecode.Data.Repositories
             UnitOfWork.SaveChanges();
         }
 
+        public IQueryable<User> GetUsersByRole(int role)
+        {
+            return this.GetDbSet<User>().Where(x => x.Role == role);
+        }
+
+        public void UpdateUserRole(string userId, int role)
+        {
+            var user = this.GetDbSet<User>().FirstOrDefault(x => x.UserId == userId);
+            if (user != null)
+            {
+                user.Role = role;
+                UnitOfWork.SaveChanges();
+            }
+        }
     }
 }

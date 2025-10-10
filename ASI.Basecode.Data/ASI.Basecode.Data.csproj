@@ -27,4 +27,8 @@
 	  <Folder Include="Migrations\" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <ProjectReference Include="..\ASI.Basecode.Resources\ASI.Basecode.Resources.csproj" />
+	</ItemGroup>
+
 </Project>
