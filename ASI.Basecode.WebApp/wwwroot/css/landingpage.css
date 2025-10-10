@@ -589,14 +589,23 @@ body.menu-open {
 
 .about-header {
     text-align: center;
-    margin-bottom: 24px;
+    margin-bottom: 32px;
+}
+
+/* Tighter spacing between title and subtitle for about section */
+.about-section .section-title {
+    margin-bottom: 8px;
+}
+
+.about-section .section-subtitle {
+    margin-bottom: 0;
 }
 
 .about-card {
     display: grid;
     grid-template-columns: 1.2fr 1fr;
-    gap: 32px;
-    padding: 28px;
+    gap: 40px;
+    padding: 36px;
     background: linear-gradient(180deg, rgba(255,255,255,0.88) 0%, rgba(255,255,255,0.82) 100%);
     border: 1px solid rgba(0,0,0,0.05);
     border-radius: 16px;
@@ -604,25 +613,29 @@ body.menu-open {
 }
 
 .about-info h3 {
-    font-size: 26px;
+    font-size: 28px;
     color: #2C2C2C;
+    margin-bottom: 8px;
 }
 
 .dev-role {
     color: #A66D3F;
     font-weight: 600;
-    margin-bottom: 12px;
+    margin-bottom: 18px;
+    font-size: 16px;
 }
 
 .dev-bio {
     color: #3e3e3e;
     line-height: 1.75;
+    font-size: 15px;
 }
 
 .about-photo img {
     width: 100%;
-    height: auto;
+    height: 450px;
     object-fit: cover;
+    object-position: center;
     border-radius: 12px;
 }
 
@@ -657,17 +670,58 @@ body.menu-open {
     align-items: center;
     justify-content: center;
     gap: 16px;
-    margin-top: 16px;
+    margin-top: 24px;
 }
 
 .about-controls .pager-dots .dot {
-    width: 8px;
-    height: 8px;
+    width: 10px;
+    height: 10px;
+    cursor: pointer;
 }
 
 @media (max-width: 992px) {
     .about-card {
         grid-template-columns: 1fr;
+        gap: 32px;
+        padding: 28px;
+    }
+
+    .about-photo img {
+        height: 380px;
+    }
+}
+
+@media (max-width: 768px) {
+    .about-card {
+        padding: 24px;
+        gap: 24px;
+    }
+
+    .about-photo img {
+        height: 320px;
+    }
+
+    .about-info h3 {
+        font-size: 24px;
+    }
+
+    .dev-bio {
+        font-size: 14px;
+    }
+}
+
+@media (max-width: 480px) {
+    .about-card {
+        padding: 20px;
+        gap: 20px;
+    }
+
+    .about-photo img {
+        height: 280px;
+    }
+
+    .about-info h3 {
+        font-size: 22px;
     }
 }
 
