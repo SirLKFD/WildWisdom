@@ -1,0 +1,90 @@
+@model LoginViewModel
+@using static ASI.Basecode.Resources.Views.Screen
+@section styles {
+    <link rel="stylesheet" href="~/css/auth.css" />
+}
+@{
+    ViewBag.LoginView = true;
+    ViewData["Title"] = "Admin Login - WildWisdom";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+    <link rel="stylesheet" href="~/css/auth.css" asp-append-version="true" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="auth-container">
+        @Html.AntiForgeryToken()
+        <div class="auth-card">
+            <div class="auth-logo">
+                <img src="~/img/WildWisdom-main-logo.png" alt="WildWisdom Logo">
+            </div>
+
+            <div style="text-align: center; margin-bottom: 10px;">
+                <span style="display: inline-block; background: #8B5A2B; color: white; padding: 6px 16px; border-radius: 20px; font-size: 14px; font-weight: 600;">Admin Login</span>
+            </div>
+
+            <h1 class="auth-title">Administrator Access</h1>
+            <p class="auth-subtitle">Sign in to manage your library system</p>
+
+            <form method="post" action="/Account/LoginAdmin" id="loginForm">
+                <div class="form-group">
+                    <label class="form-label" for="userId">Admin Username</label>
+                    <input type="text" 
+                           id="userId" 
+                           class="form-control"
+                           asp-for="UserId" 
+                           placeholder="Enter your admin username" />
+                    <span asp-validation-for="UserId" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="password">Admin Password</label>
+                    <input type="password" 
+                           id="password" 
+                           class="form-control"
+                           asp-for="Password" 
+                           placeholder="Enter your admin password" />
+                    <span asp-validation-for="Password" class="text-danger"></span>
+                </div>
+
+                <div class="auth-links" style="text-align: right; margin-bottom: 20px;">
+                    <a href="#!" class="auth-link">Forgot Password?</a>
+                </div>
+
+                <button class="btn-auth" type="submit">
+                    Sign In as Admin
+                </button>
+            </form>
+
+            <div class="auth-footer">
+                <p>Don't have an admin account?</p>
+                <a asp-controller="Account" asp-action="RegisterAdmin" class="btn-secondary-auth">Register Organization</a>
+            </div>
+
+            <div style="text-align: center; margin-top: 20px; padding-top: 20px; border-top: 1px solid #E5E5E5;">
+                <p style="color: #666; font-size: 14px;">Login as User? <a asp-controller="Account" asp-action="LoginUser" class="auth-link">Click here</a></p>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" />
+    <script>
+        // Check for error message and display Toastr notification
+        var errorMessage = '@TempData["ErrorMessage"]';
+        if (errorMessage) {
+            toastr.error(errorMessage);
+        }
+    </script>
+</body>
+</html>
+

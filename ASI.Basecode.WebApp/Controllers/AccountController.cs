@@ -1,4 +1,4 @@
-﻿using ASI.Basecode.Data.Models;
+using ASI.Basecode.Data.Models;
 using ASI.Basecode.Services.Interfaces;
 using ASI.Basecode.Services.Manager;
 using ASI.Basecode.Services.ServiceModels;
@@ -26,6 +26,8 @@ namespace ASI.Basecode.WebApp.Controllers
         private readonly TokenProviderOptionsFactory _tokenProviderOptionsFactory;
         private readonly IConfiguration _appConfiguration;
         private readonly IUserService _userService;
+        private readonly IAdminService _adminService;
+        private readonly IOrganizationService _organizationService;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="AccountController"/> class.
@@ -46,6 +48,8 @@ namespace ASI.Basecode.WebApp.Controllers
                             IConfiguration configuration,
                             IMapper mapper,
                             IUserService userService,
+                            IAdminService adminService,
+                            IOrganizationService organizationService,
                             TokenValidationParametersFactory tokenValidationParametersFactory,
                             TokenProviderOptionsFactory tokenProviderOptionsFactory) : base(httpContextAccessor, loggerFactory, configuration, mapper)
         {
@@ -55,16 +59,34 @@ namespace ASI.Basecode.WebApp.Controllers
             this._tokenValidationParametersFactory = tokenValidationParametersFactory;
             this._appConfiguration = configuration;
             this._userService = userService;
+            this._adminService = adminService;
+            this._organizationService = organizationService;
         }
 
         /// <summary>
-        /// Login Method
+        /// User Login Method
         /// </summary>
         /// <returns>Created response view</returns>
         [HttpGet]
         [AllowAnonymous]
-        public ActionResult Login()
+        public ActionResult LoginUser()
         {
+            // Redirect if already logged in
+            var hasSession = this._session.GetString("HasSession");
+            var userRole = this._session.GetString("UserRole");
+            
+            if (!string.IsNullOrEmpty(hasSession))
+            {
+                if (userRole == "Admin")
+                {
+                    return RedirectToAction("Index", "AdminHome");
+                }
+                else if (userRole == "User")
+                {
+                    return RedirectToAction("Index", "UserHome");
+                }
+            }
+            
             TempData["returnUrl"] = System.Net.WebUtility.UrlDecode(HttpContext.Request.Query["ReturnUrl"]);
             this._sessionManager.Clear();
             this._session.SetString("SessionId", System.Guid.NewGuid().ToString());
@@ -79,51 +101,175 @@ namespace ASI.Basecode.WebApp.Controllers
         /// <returns> Created response view </returns>
         [HttpPost]
         [AllowAnonymous]
-        public async Task<IActionResult> Login(LoginViewModel model, string returnUrl)
+        public async Task<IActionResult> LoginUser(LoginViewModel model, string returnUrl)
         {
             this._session.SetString("HasSession", "Exist");
 
-            //User user = null;
-
-            User user = new() { Id = 0, UserId = "0", Name = "Name", Password = "Password" };
-            
-            //await this._signInManager.SignInAsync(user);
-            //this._session.SetString("UserName", model.UserId);
-
-            //return RedirectToAction("Index", "Home");
+            User user = new User();
 
             var loginResult = _userService.AuthenticateUser(model.UserId, model.Password, ref user);
             if (loginResult == LoginResult.Success)
             {
-                // 認証OK
+                // Authentication successful
                 await this._signInManager.SignInAsync(user);
                 this._session.SetString("UserName", user.Name);
-                return RedirectToAction("Index", "Home");
+                this._session.SetInt32("UserRole", 0); // 0 = User
+                this._session.SetInt32("OrganizationId", user.OrganizationId ?? 0);
+                return RedirectToAction("Index", "UserHome");
             }
             else
             {
-                // 認証NG
+                // Authentication failed
                 TempData["ErrorMessage"] = "Incorrect UserId or Password";
                 return View();
             }
-            return View();
         }
 
         [HttpGet]
         [AllowAnonymous]
-        public IActionResult Register()
+        public IActionResult RegisterUser()
         {
+            // Redirect if already logged in
+            var hasSession = this._session.GetString("HasSession");
+            var userRole = this._session.GetString("UserRole");
+            
+            if (!string.IsNullOrEmpty(hasSession))
+            {
+                if (userRole == "Admin")
+                {
+                    return RedirectToAction("Index", "AdminHome");
+                }
+                else if (userRole == "User")
+                {
+                    return RedirectToAction("Index", "UserHome");
+                }
+            }
+            
             return View();
         }
 
         [HttpPost]
         [AllowAnonymous]
-        public IActionResult Register(UserViewModel model)
+        public IActionResult RegisterUser(UserViewModel model)
         {
             try
             {
                 _userService.AddUser(model);
-                return RedirectToAction("Login", "Account");
+                return RedirectToAction("LoginUser", "Account");
+            }
+            catch(InvalidDataException ex)
+            {
+                TempData["ErrorMessage"] = ex.Message;
+            }
+            catch(Exception ex)
+            {
+                TempData["ErrorMessage"] = Resources.Messages.Errors.ServerError;
+            }
+            return View(model);
+        }
+
+        /// <summary>
+        /// Admin Login Method
+        /// </summary>
+        /// <returns>Created response view</returns>
+        [HttpGet]
+        [AllowAnonymous]
+        public ActionResult LoginAdmin()
+        {
+            // Redirect if already logged in
+            var hasSession = this._session.GetString("HasSession");
+            var userRole = this._session.GetString("UserRole");
+            
+            if (!string.IsNullOrEmpty(hasSession))
+            {
+                if (userRole == "Admin")
+                {
+                    return RedirectToAction("Index", "AdminHome");
+                }
+                else if (userRole == "User")
+                {
+                    return RedirectToAction("Index", "UserHome");
+                }
+            }
+            
+            TempData["returnUrl"] = System.Net.WebUtility.UrlDecode(HttpContext.Request.Query["ReturnUrl"]);
+            this._sessionManager.Clear();
+            this._session.SetString("SessionId", System.Guid.NewGuid().ToString());
+            return this.View();
+        }
+
+        /// <summary>
+        /// Authenticate admin and signs the admin in when successful.
+        /// </summary>
+        /// <param name="model">The model.</param>
+        /// <param name="returnUrl">The return URL.</param>
+        /// <returns> Created response view </returns>
+        [HttpPost]
+        [AllowAnonymous]
+        public async Task<IActionResult> LoginAdmin(LoginViewModel model, string returnUrl)
+        {
+            this._session.SetString("HasSession", "Exist");
+
+            Data.Models.Admin admin = new Data.Models.Admin();
+
+            var loginResult = _adminService.AuthenticateAdmin(model.UserId, model.Password, ref admin);
+            if (loginResult == LoginResult.Success)
+            {
+                // Authentication successful
+                // Create a user object for sign-in (reusing existing infrastructure)
+                var user = new User
+                { 
+                    Id = admin.Id, 
+                    UserId = admin.AdminUsername, 
+                    Name = admin.AdminUsername, 
+                    Password = admin.AdminPassword,
+                    Role = 1
+                };
+                await this._signInManager.SignInAsync(user);
+                this._session.SetString("UserName", admin.AdminUsername);
+                this._session.SetInt32("UserRole", 1); // 1 = Admin
+                this._session.SetInt32("OrganizationId", admin.OrganizationId ?? 0);
+                return RedirectToAction("Index", "AdminHome");
+            }
+            else
+            {
+                // Authentication failed
+                TempData["ErrorMessage"] = "Incorrect Admin Username or Password";
+                return View();
+            }
+        }
+
+        [HttpGet]
+        [AllowAnonymous]
+        public IActionResult RegisterAdmin()
+        {
+            // Redirect if already logged in
+            var hasSession = this._session.GetString("HasSession");
+            var userRole = this._session.GetString("UserRole");
+            
+            if (!string.IsNullOrEmpty(hasSession))
+            {
+                if (userRole == "Admin")
+                {
+                    return RedirectToAction("Index", "AdminHome");
+                }
+                else if (userRole == "User")
+                {
+                    return RedirectToAction("Index", "UserHome");
+                }
+            }
+            
+            return View();
+        }
+
+        [HttpPost]
+        [AllowAnonymous]
+        public IActionResult RegisterAdmin(AdminViewModel model)
+        {
+            try
+            {
+                _adminService.AddAdmin(model);
+                return RedirectToAction("LoginAdmin", "Account");
             }
             catch(InvalidDataException ex)
             {
@@ -143,8 +289,21 @@ namespace ASI.Basecode.WebApp.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> SignOutUser()
         {
+            // Get the user role before signing out
+            var userRole = this._session.GetInt32("UserRole");
+            
             await this._signInManager.SignOutAsync();
-            return RedirectToAction("Login", "Account");
+            this._sessionManager.Clear();
+            
+            // Redirect based on role (1 = Admin, 0 = User)
+            if (userRole == 1)
+            {
+                return RedirectToAction("LoginAdmin", "Account");
+            }
+            else
+            {
+                return RedirectToAction("LoginUser", "Account");
+            }
         }
     }
 }

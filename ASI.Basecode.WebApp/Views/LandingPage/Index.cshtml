@@ -33,7 +33,7 @@
             </nav>
 
             <div class="login-section">
-                <a asp-controller="Account" asp-action="Login" class="login-btn">Login</a>
+                <a asp-controller="Account" asp-action="LoginUser" class="login-btn">Login</a>
             </div>
 
             <!-- Mobile Menu Toggle -->
@@ -52,7 +52,7 @@
             <li><a href="#features">Features</a></li>
             <li><a href="#testimonials">Testimonials</a></li>
             <li><a href="#about">About us</a></li>
-            <li><a asp-controller="Account" asp-action="Login" class="mobile-login">Login</a></li>
+            <li><a asp-controller="Account" asp-action="LoginUser" class="mobile-login">Login</a></li>
         </ul>
     </div>
 
@@ -71,7 +71,7 @@
                         Discover, borrow and rate on the books you love.
                     </p>
 
-                    <a asp-controller="Account" asp-action="Register" class="cta-button">
+                    <a asp-controller="Account" asp-action="RegisterUser" class="cta-button">
                         Sign up here!
                     </a>
                 </div>
@@ -330,10 +330,10 @@
         // About the Devs data and slider
         const devs = [
             {
-                name: 'John Augustine L. Lapinig',
-                role: 'Frontend Developer',
-                photo: 'https://i.pravatar.cc/380?img=66',
-                bio: `At WildWisdom System, as a frontend developer, I believe that technology should not only look good but also feel natural and easy to use. My focus is on building interfaces that are simple, accessible, and responsive across different devices.`
+                name: 'Lord Kent F. Dinampo',
+                role: 'Full‑Stack Engineer',
+                photo: '/img/dev-1.png',
+                bio: 'Bridges UI and server concerns to deliver seamless features end-to-end. Passionate about DX and thoughtful UX.'
             },
             {
                 name: 'Dan Vincent Y. Adlawan',
@@ -342,10 +342,10 @@
                 bio: 'Designs robust APIs and data flows to keep everything fast and reliable. Loves clean architecture and coffee-fueled code sessions.'
             },
             {
-                name: 'Lord Kent F. Dinampo',
-                role: 'Full‑Stack Engineer',
-                photo: 'https://i.pravatar.cc/380?img=48',
-                bio: 'Bridges UI and server concerns to deliver seamless features end-to-end. Passionate about DX and thoughtful UX.'
+             name: 'John Augustine L. Lapinig',
+             role: 'Frontend Developer',
+             photo: '/img/dev-2.png',
+             bio: `At WildWisdom System, as a frontend developer, I believe that technology should not only look good but also feel natural and easy to use. My focus is on building interfaces that are simple, accessible, and responsive across different devices.`
             },
             {
                 name: 'Theo Ryan D. Roz',
@@ -380,7 +380,7 @@
         }
 
         // build dots
-        aboutDots.innerHTML = devs.map((_, i) => `<span class="dot${i === 0 ? 'active' : ''}" data-idx="${i}"></span>`).join('');
+        aboutDots.innerHTML = devs.map((_, i) => `<span class="dot ${i === 0 ? 'active' : ''}" data-idx="${i}"></span>`).join('');
         aboutDots.querySelectorAll('.dot').forEach(dot => dot.addEventListener('click', (e) => {
             renderDev(Number(e.currentTarget.getAttribute('data-idx')));
         }));
