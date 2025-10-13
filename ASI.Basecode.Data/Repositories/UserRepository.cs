@@ -2,6 +2,7 @@
 using ASI.Basecode.Data.Interfaces;
 using ASI.Basecode.Data.Models;
 using Basecode.Data.Repositories;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -44,6 +45,36 @@ namespace ASI.Basecode.Data.Repositories
             if (user != null)
             {
                 user.Role = role;
+                UnitOfWork.SaveChanges();
+            }
+        }
+
+        public User GetById(int id)
+        {
+            return this.GetDbSet<User>()
+                .Include(u => u.Organization)
+                .FirstOrDefault(x => x.Id == id);
+        }
+
+        public User GetByUserId(string userId)
+        {
+            return this.GetDbSet<User>()
+                .Include(u => u.Organization)
+                .FirstOrDefault(x => x.UserId == userId);
+        }
+
+        public void UpdateUser(User user)
+        {
+            this.GetDbSet<User>().Update(user);
+            UnitOfWork.SaveChanges();
+        }
+
+        public void DeleteUser(int id)
+        {
+            var user = this.GetDbSet<User>().FirstOrDefault(x => x.Id == id);
+            if (user != null)
+            {
+                this.GetDbSet<User>().Remove(user);
                 UnitOfWork.SaveChanges();
             }
         }

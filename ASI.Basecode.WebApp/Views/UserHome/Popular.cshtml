@@ -1,0 +1,171 @@
+@model List<ASI.Basecode.Services.ServiceModels.OrgBooksViewModel>
+
+@{
+    ViewData["Title"] = "Popular Books - WildWisdom";
+    Layout = null;
+    var searchTerm = ViewBag.SearchTerm as string ?? "";
+    var currentPage = ViewBag.CurrentPage as int? ?? 1;
+    var pageSize = ViewBag.PageSize as int? ?? 10;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+    <link rel="stylesheet" href="~/css/userhome.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+@Html.Partial("_UserHomeHeader")
+
+<div class="userhome-content">
+    <div class="container-fluid px-4 py-4">
+        <!-- Page Header -->
+        <div class="page-header mb-4">
+            <h2 class="userhome-section-title">
+                <i class="fas fa-fire"></i> Popular Books
+            </h2>
+            <p class="userhome-section-subtitle">Most borrowed and highly rated books</p>
+        </div>
+
+        <!-- Search Section -->
+        <div class="search-section mb-4">
+            <form method="get" asp-action="Popular" class="search-form">
+                <div class="search-input-wrapper">
+                    <input type="text" 
+                           id="searchInput"
+                           name="search" 
+                           value="@searchTerm"
+                           class="form-control search-input" 
+                           placeholder="Search popular books..."
+                           autocomplete="off" />
+                    <button type="submit" class="btn search-btn">
+                        <i class="fas fa-search"></i> Search
+                    </button>
+                    
+                    <!-- Search Suggestions Dropdown -->
+                    <div id="searchSuggestions" class="search-suggestions" style="display: none;">
+                        <!-- Suggestions will be populated here -->
+                    </div>
+                </div>
+                <input type="hidden" name="page" value="1" />
+                <input type="hidden" name="pageSize" value="@pageSize" />
+            </form>
+        </div>
+
+        <!-- Books Grid - Placeholder -->
+        <div class="books-grid">
+            <div class="placeholder-content">
+                <i class="fas fa-fire placeholder-icon"></i>
+                <h3>Popular Books Coming Soon</h3>
+                <p>We're curating the most popular books based on borrowing history and ratings.</p>
+                @if (!string.IsNullOrEmpty(searchTerm))
+                {
+                    <p class="mt-3"><strong>Search term:</strong> @searchTerm</p>
+                }
+            </div>
+        </div>
+
+        <!-- Pagination Controls -->
+        <div class="pagination-wrapper">
+            <div class="pagination-controls">
+                <!-- Page Numbers -->
+                <div class="page-numbers">
+                    <button class="page-btn active">1</button>
+                    <button class="page-btn">2</button>
+                    <button class="page-btn">3</button>
+                    <button class="page-btn">4</button>
+                    <button class="page-btn page-next">Next</button>
+                </div>
+
+                <!-- Items per Page -->
+                <div class="items-per-page">
+                    <select class="form-control page-size-select">
+                        <option value="10" selected>10 / page</option>
+                        <option value="20">20 / page</option>
+                        <option value="50">50 / page</option>
+                        <option value="100">100 / page</option>
+                    </select>
+                </div>
+
+                <!-- Go to Page -->
+                <div class="go-to-page">
+                    <span class="go-to-label">Go to</span>
+                    <input type="number" class="form-control page-input" min="1" value="1" />
+                    <span class="go-to-label">Page</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Search suggestions (YouTube-style)
+    const searchInput = document.getElementById('searchInput');
+    const suggestionsBox = document.getElementById('searchSuggestions');
+    
+    // Sample popular book titles for suggestions
+    const popularBooks = [
+        'The Great Gatsby',
+        'To Kill a Mockingbird',
+        'Pride and Prejudice',
+        '1984 by George Orwell',
+        'Harry Potter Series',
+        'The Hobbit'
+    ];
+
+    searchInput.addEventListener('input', function(e) {
+        const value = e.target.value.toLowerCase().trim();
+        
+        if (value.length > 0) {
+            const matches = popularBooks.filter(item => 
+                item.toLowerCase().includes(value)
+            ).slice(0, 5);
+            
+            if (matches.length > 0) {
+                suggestionsBox.innerHTML = matches.map(match => 
+                    `<div class="suggestion-item">${match}</div>`
+                ).join('');
+                suggestionsBox.style.display = 'block';
+                
+                // Add click handlers to suggestions
+                document.querySelectorAll('.suggestion-item').forEach(item => {
+                    item.addEventListener('click', function() {
+                        searchInput.value = this.textContent;
+                        suggestionsBox.style.display = 'none';
+                    });
+                });
+            } else {
+                suggestionsBox.style.display = 'none';
+            }
+        } else {
+            suggestionsBox.style.display = 'none';
+        }
+    });
+
+    // Hide suggestions when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.search-input-wrapper')) {
+            suggestionsBox.style.display = 'none';
+        }
+    });
+
+    // Submit on Enter key
+    searchInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            suggestionsBox.style.display = 'none';
+            this.closest('form').submit();
+        }
+    });
+</script>
+
+</body>
+</html>
+

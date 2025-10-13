@@ -53,5 +53,61 @@ namespace ASI.Basecode.Services.Services
                 throw new InvalidDataException(Resources.Messages.Errors.UserExists);
             }
         }
+
+        public UserSettingsViewModel GetUserById(int id)
+        {
+            var user = _repository.GetById(id);
+            if (user == null)
+            {
+                return null;
+            }
+            return _mapper.Map<UserSettingsViewModel>(user);
+        }
+
+        public UserSettingsViewModel GetUserByUserId(string userId)
+        {
+            var user = _repository.GetByUserId(userId);
+            if (user == null)
+            {
+                return null;
+            }
+            return _mapper.Map<UserSettingsViewModel>(user);
+        }
+
+        public void UpdateUser(UserSettingsViewModel model, string currentUserId)
+        {
+            var user = _repository.GetById(model.Id);
+            if (user == null)
+            {
+                throw new InvalidDataException("User not found.");
+            }
+
+            // Update basic info
+            user.Name = model.Name;
+            user.UserId = model.UserId;
+            user.OrganizationId = model.OrganizationId;
+            user.ProfilePicture = model.ProfilePicture;
+            user.UpdatedBy = currentUserId;
+            user.UpdatedTime = DateTime.Now;
+
+            // Update password if provided
+            if (!string.IsNullOrEmpty(model.NewPassword))
+            {
+                user.Password = PasswordManager.EncryptPassword(model.NewPassword);
+            }
+
+            _repository.UpdateUser(user);
+        }
+
+        public void DeleteUser(int id)
+        {
+            var user = _repository.GetById(id);
+            if (user == null)
+            {
+                throw new InvalidDataException("User not found.");
+            }
+
+            _repository.DeleteUser(id);
+        }
     }
 }

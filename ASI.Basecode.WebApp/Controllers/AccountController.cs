@@ -113,8 +113,16 @@ namespace ASI.Basecode.WebApp.Controllers
                 // Authentication successful
                 await this._signInManager.SignInAsync(user);
                 this._session.SetString("UserName", user.Name);
+                this._session.SetString("UserId", user.UserId); // Store UserId for user lookup
                 this._session.SetInt32("UserRole", 0); // 0 = User
                 this._session.SetInt32("OrganizationId", user.OrganizationId ?? 0);
+                
+                // Store profile picture in session
+                if (!string.IsNullOrEmpty(user.ProfilePicture))
+                {
+                    this._session.SetString("ProfilePicture", user.ProfilePicture);
+                }
+                
                 return RedirectToAction("Index", "UserHome");
             }
             else

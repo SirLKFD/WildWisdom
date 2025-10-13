@@ -1,174 +1,325 @@
 ﻿@model List<ASI.Basecode.Services.ServiceModels.OrgBooksViewModel>
 
 @{
-    ViewData["Title"] = "Book Catalog";
+    ViewData["Title"] = "Home - WildWisdom";
+    Layout = null;
+    var searchTerm = ViewBag.SearchTerm as string ?? "";
+    var selectedCategory = ViewBag.SelectedCategory as string ?? "";
+    var selectedGenre = ViewBag.SelectedGenre as string ?? "";
+    var selectedAvailability = ViewBag.SelectedAvailability as string ?? "";
+    var currentPage = ViewBag.CurrentPage as int? ?? 1;
+    var pageSize = ViewBag.PageSize as int? ?? 25;
+    var categories = ViewBag.Categories as List<string> ?? new List<string>();
+    var genres = ViewBag.Genres as List<string> ?? new List<string>();
 }
 
-<style>
-    .book-card {
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-        cursor: pointer;
-        height: 100%;
-        border: 1px solid #e0e0e0;
-        text-decoration: none;
-        color: inherit;
-        display: block;
-    }
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+    <link rel="stylesheet" href="~/css/userhome.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
 
-    .book-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-        text-decoration: none;
-        color: inherit;
-    }
+@Html.Partial("_UserHomeHeader")
 
-    .book-cover-container {
-        width: 100%;
-        height: 280px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: #f8f9fa;
-        overflow: hidden;
-        border-bottom: 1px solid #e0e0e0;
-    }
-
-    .book-cover {
-        max-width: 100%;
-        max-height: 100%;
-        object-fit: cover;
-    }
-
-    .book-cover-placeholder {
-        font-size: 80px;
-        color: #6c757d;
-    }
-
-    .book-title {
-        font-weight: 600;
-        font-size: 1.1rem;
-        color: #2c3e50;
-        margin-bottom: 0.5rem;
-        height: 2.6rem;
-        overflow: hidden;
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
-    }
-
-    .book-author {
-        color: #7f8c8d;
-        font-size: 0.9rem;
-        margin-bottom: 0.5rem;
-    }
-
-    .book-meta {
-        margin-top: auto;
-    }
-
-    .availability-badge {
-        font-size: 0.85rem;
-        padding: 0.35rem 0.6rem;
-    }
-
-    .search-container {
-        margin-bottom: 2rem;
-    }
-
-    .page-header {
-        margin-bottom: 2rem;
-        padding-bottom: 1rem;
-        border-bottom: 2px solid #e0e0e0;
-    }
-
-    .empty-state {
-        text-align: center;
-        padding: 4rem 2rem;
-        color: #6c757d;
-    }
-
-    .empty-state i {
-        font-size: 5rem;
-        margin-bottom: 1rem;
-        color: #dee2e6;
-    }
-</style>
-
-<div class="container-fluid px-4 py-4">
-    <div class="page-header">
-        <h1 class="display-5 mb-3">
-            <i class="fas fa-book-reader text-primary"></i> Book Catalog
-        </h1>
-        <p class="lead text-muted mb-0">Browse books from all libraries and organizations</p>
-    </div>
-
-    @if (Model != null && Model.Any())
-    {
+<div class="userhome-content">
+    <div class="container-fluid">
         <div class="row">
-            @foreach (var book in Model)
-            {
-                <div class="col-lg-2 col-md-3 col-sm-4 col-6 mb-4">
-                    <a href="#" onclick="return false;" class="book-card card">
-                        <div class="book-cover-container">
-                            @if (!string.IsNullOrEmpty(book.CoverImage))
+            <!-- Left Sidebar - Search Filter -->
+            <div class="col-lg-2 col-md-3">
+                <div class="filter-sidebar">
+                    <h3 class="filter-title">SEARCH FILTER</h3>
+                    
+                    <form method="get" asp-action="Index">
+                        <div class="filter-section">
+                            <label class="filter-label">Category</label>
+                            <select name="category" class="form-control filter-input">
+                                <option value="">All Categories</option>
+                                @foreach (var cat in categories)
+                                {
+                                    <option value="@cat" @@(cat == selectedCategory ? "selected" : "")>@cat</option>
+                                }
+                            </select>
+                        </div>
+
+                        <div class="filter-section">
+                            <label class="filter-label">Genre</label>
+                            <select name="genre" class="form-control filter-input">
+                                <option value="">All Genres</option>
+                                @foreach (var gen in genres)
+                                {
+                                    <option value="@gen" @@(gen == selectedGenre ? "selected" : "")>@gen</option>
+                                }
+                            </select>
+                        </div>
+
+                        <div class="filter-section">
+                            <label class="filter-label">Availability</label>
+                            <select name="availability" class="form-control filter-input">
+                                <option value="">All</option>
+                                <option value="available" @@(selectedAvailability == "available" ? "selected" : "")>Available</option>
+                                <option value="checkedout" @@(selectedAvailability == "checkedout" ? "selected" : "")>Checked Out</option>
+                            </select>
+                        </div>
+
+                        <input type="hidden" name="search" value="@searchTerm" />
+                        <input type="hidden" name="page" value="1" />
+                        <input type="hidden" name="pageSize" value="@pageSize" />
+
+                        <button type="submit" class="btn btn-filter">
+                            <i class="fas fa-filter"></i> Apply Filter
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Main Content - Books Grid -->
+            <div class="col-lg-10 col-md-9">
+                <div class="books-container">
+                    @{
+                        // Filter books based on all criteria
+                        var filteredBooks = Model;
+                        
+                        if (Model != null)
+                        {
+                            // Apply search filter
+                            if (!string.IsNullOrEmpty(searchTerm))
                             {
-                                <img src="@book.CoverImage" alt="@book.Title" class="book-cover" />
+                                filteredBooks = filteredBooks.Where(b => 
+                                    b.Title.ToLower().Contains(searchTerm.ToLower()) || 
+                                    b.Author.ToLower().Contains(searchTerm.ToLower())
+                                ).ToList();
+                            }
+                            
+                            // Apply category filter
+                            if (!string.IsNullOrEmpty(selectedCategory))
+                            {
+                                filteredBooks = filteredBooks.Where(b => 
+                                    b.Category == selectedCategory
+                                ).ToList();
+                            }
+                            
+                            // Apply genre filter
+                            if (!string.IsNullOrEmpty(selectedGenre))
+                            {
+                                filteredBooks = filteredBooks.Where(b => 
+                                    b.Genre == selectedGenre
+                                ).ToList();
+                            }
+                            
+                            // Apply availability filter
+                            if (!string.IsNullOrEmpty(selectedAvailability))
+                            {
+                                if (selectedAvailability == "available")
+                                {
+                                    filteredBooks = filteredBooks.Where(b => b.CopiesAvailable > 0).ToList();
+                                }
+                                else if (selectedAvailability == "checkedout")
+                                {
+                                    filteredBooks = filteredBooks.Where(b => b.CopiesAvailable == 0).ToList();
+                                }
+                            }
+                        }
+                        
+                        var hasActiveFilters = !string.IsNullOrEmpty(searchTerm) || 
+                                              !string.IsNullOrEmpty(selectedCategory) || 
+                                              !string.IsNullOrEmpty(selectedGenre) || 
+                                              !string.IsNullOrEmpty(selectedAvailability);
+                        
+                        // Calculate pagination
+                        var totalBooks = filteredBooks?.Count() ?? 0;
+                        var totalPages = (int)Math.Ceiling(totalBooks / (double)pageSize);
+                        currentPage = Math.Max(1, Math.Min(currentPage, totalPages == 0 ? 1 : totalPages));
+                        
+                        var paginatedBooks = filteredBooks?
+                            .Skip((currentPage - 1) * pageSize)
+                            .Take(pageSize)
+                            .ToList() ?? new List<ASI.Basecode.Services.ServiceModels.OrgBooksViewModel>();
+                        
+                        var startBook = totalBooks == 0 ? 0 : (currentPage - 1) * pageSize + 1;
+                        var endBook = Math.Min(currentPage * pageSize, totalBooks);
+                    }
+
+                    @if (hasActiveFilters)
+                    {
+                        <div class="search-result-info">
+                            <p>
+                                Showing filtered results (@totalBooks books found)
+                                @if (!string.IsNullOrEmpty(searchTerm))
+                                {
+                                    <span> - Search: <strong>@searchTerm</strong></span>
+                                }
+                                @if (!string.IsNullOrEmpty(selectedCategory))
+                                {
+                                    <span> - Category: <strong>@selectedCategory</strong></span>
+                                }
+                                @if (!string.IsNullOrEmpty(selectedGenre))
+                                {
+                                    <span> - Genre: <strong>@selectedGenre</strong></span>
+                                }
+                                @if (!string.IsNullOrEmpty(selectedAvailability))
+                                {
+                                    <span> - Availability: <strong>@(selectedAvailability == "available" ? "Available" : "Checked Out")</strong></span>
+                                }
+                            </p>
+                            <a asp-action="Index" class="btn btn-sm btn-outline-secondary">Clear All Filters</a>
+                        </div>
+                    }
+
+                    @if (totalBooks > 0)
+                    {
+                        <div class="pagination-info">
+                            <p>Showing <strong>@startBook - @endBook</strong> of <strong>@totalBooks</strong> books</p>
+                        </div>
+                    }
+
+                    @if (paginatedBooks != null && paginatedBooks.Any())
+                    {
+                        <div class="row books-grid">
+                            @foreach (var book in paginatedBooks)
+                            {
+                                <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6 col-6 mb-4">
+                                    <div class="book-card-simple">
+                                        <div class="book-cover-wrapper">
+                                            @if (!string.IsNullOrEmpty(book.CoverImage))
+                                            {
+                                                <img src="@book.CoverImage" alt="@book.Title" class="book-cover-img" />
+                                            }
+                                            else
+                                            {
+                                                <div class="book-cover-placeholder">
+                                                    <i class="fas fa-book"></i>
+                                                </div>
+                                            }
+                                        </div>
+                                        <h6 class="book-card-title">@book.Title</h6>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+
+                        <!-- Pagination Controls -->
+                        @if (totalPages > 1)
+                        {
+                            <div class="pagination-wrapper">
+                                <div class="pagination-controls">
+                                    <!-- Page Numbers -->
+                                    <div class="page-numbers">
+                                        @{
+                                            var startPage = Math.Max(1, currentPage - 2);
+                                            var endPage = Math.Min(totalPages, currentPage + 2);
+                                            
+                                            // Adjust if we're near the start or end
+                                            if (endPage - startPage < 4)
+                                            {
+                                                if (startPage == 1)
+                                                {
+                                                    endPage = Math.Min(totalPages, startPage + 4);
+                                                }
+                                                else if (endPage == totalPages)
+                                                {
+                                                    startPage = Math.Max(1, endPage - 4);
+                                                }
+                                            }
+                                        }
+
+                                        @if (currentPage > 1)
+                                        {
+                                            <a href="?page=@(currentPage - 1)&pageSize=@pageSize&search=@searchTerm&category=@selectedCategory&genre=@selectedGenre&availability=@selectedAvailability" class="page-btn page-prev">Previous</a>
+                                        }
+
+                                        @if (startPage > 1)
+                                        {
+                                            <a href="?page=1&pageSize=@pageSize&search=@searchTerm&category=@selectedCategory&genre=@selectedGenre&availability=@selectedAvailability" class="page-btn">1</a>
+                                            @if (startPage > 2)
+                                            {
+                                                <span class="page-ellipsis">...</span>
+                                            }
+                                        }
+
+                                        @for (var i = startPage; i <= endPage; i++)
+                                        {
+                                            var pageNum = i;
+                                            <a href="?page=@pageNum&pageSize=@pageSize&search=@searchTerm&category=@selectedCategory&genre=@selectedGenre&availability=@selectedAvailability" 
+                                               class="page-btn @(pageNum == currentPage ? "active" : "")">@pageNum</a>
+                                        }
+
+                                        @if (endPage < totalPages)
+                                        {
+                                            @if (endPage < totalPages - 1)
+                                            {
+                                                <span class="page-ellipsis">...</span>
+                                            }
+                                            <a href="?page=@totalPages&pageSize=@pageSize&search=@searchTerm&category=@selectedCategory&genre=@selectedGenre&availability=@selectedAvailability" class="page-btn">@totalPages</a>
+                                        }
+
+                                        @if (currentPage < totalPages)
+                                        {
+                                            <a href="?page=@(currentPage + 1)&pageSize=@pageSize&search=@searchTerm&category=@selectedCategory&genre=@selectedGenre&availability=@selectedAvailability" class="page-btn page-next">Next</a>
+                                        }
+                                    </div>
+
+                                    <!-- Items per Page -->
+                                    <div class="items-per-page">
+                                        <select class="form-control page-size-select" onchange="window.location.href='?page=1&pageSize=' + this.value + '&search=@searchTerm&category=@selectedCategory&genre=@selectedGenre&availability=@selectedAvailability'">
+                                            <option value="25" @@(pageSize == 25 ? "selected" : "")>25 / page</option>
+                                            <option value="50" @@(pageSize == 50 ? "selected" : "")>50 / page</option>
+                                            <option value="100" @@(pageSize == 100 ? "selected" : "")>100 / page</option>
+                                            <option value="200" @@(pageSize == 200 ? "selected" : "")>200 / page</option>
+                                        </select>
+                                    </div>
+
+                                    <!-- Go to Page -->
+                                    <div class="go-to-page">
+                                        <span class="go-to-label">Go to</span>
+                                        <input type="number" class="form-control page-input" min="1" max="@totalPages" value="@currentPage" id="gotoPageInput" />
+                                        <span class="go-to-label">Page</span>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="empty-state">
+                            @if (hasActiveFilters)
+                            {
+                                <i class="fas fa-search"></i>
+                                <h3>No Results Found</h3>
+                                <p>No books match your selected filters. Try adjusting your search criteria.</p>
+                                <a asp-action="Index" class="btn btn-primary mt-3">Clear All Filters</a>
                             }
                             else
                             {
-                                <i class="fas fa-book book-cover-placeholder"></i>
+                                <i class="fas fa-book-open"></i>
+                                <h3>No Books Available</h3>
+                                <p>There are currently no books in the catalog. Please check back later!</p>
                             }
                         </div>
-                        <div class="card-body d-flex flex-column">
-                            <h5 class="book-title" title="@book.Title">@book.Title</h5>
-                            <p class="book-author mb-2">
-                                <i class="fas fa-user-edit"></i> @book.Author
-                            </p>
-                            
-                            @if (!string.IsNullOrEmpty(book.OrganizationName))
-                            {
-                                <p class="text-muted mb-2" style="font-size: 0.85rem;">
-                                    <i class="fas fa-university"></i> @book.OrganizationName
-                                </p>
-                            }
-                            
-                            <div class="book-meta">
-                                @if (!string.IsNullOrEmpty(book.Category))
-                                {
-                                    <span class="badge badge-info mb-2 mr-1">@book.Category</span>
-                                }
-                                @if (!string.IsNullOrEmpty(book.Genre))
-                                {
-                                    <span class="badge badge-secondary mb-2 mr-1">@book.Genre</span>
-                                }
-                                
-                                <div class="mt-2">
-                                    @if (book.CopiesAvailable > 0)
-                                    {
-                                        <span class="badge badge-success availability-badge">
-                                            <i class="fas fa-check-circle"></i> @book.CopiesAvailable Available
-                                        </span>
-                                    }
-                                    else
-                                    {
-                                        <span class="badge badge-danger availability-badge">
-                                            <i class="fas fa-times-circle"></i> Not Available
-                                        </span>
-                                    }
-                                </div>
-                            </div>
-                        </div>
-                    </a>
+                    }
                 </div>
-            }
+            </div>
         </div>
-    }
-    else
-    {
-        <div class="empty-state">
-            <i class="fas fa-book-open"></i>
-            <h3>No Books Available</h3>
-            <p class="text-muted">There are currently no active books in the catalog. Please check back later!</p>
-        </div>
-    }
+    </div>
 </div>
+
+<script>
+    // Go to page functionality
+    document.getElementById('gotoPageInput')?.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            const page = Math.max(1, Math.min(parseInt(this.value) || 1, @totalPages));
+            window.location.href = '?page=' + page + '&pageSize=@pageSize&search=@searchTerm&category=@selectedCategory&genre=@selectedGenre&availability=@selectedAvailability';
+        }
+    });
+</script>
+
+</body>
+</html>
