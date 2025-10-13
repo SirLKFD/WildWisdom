@@ -1,14 +1,18 @@
 ﻿@using Microsoft.AspNetCore.Http
 @inject IHttpContextAccessor HttpContextAccessor
+@{
+    var userRole = HttpContextAccessor.HttpContext.Session.GetString("UserRole");
+    var homeController = userRole == "Admin" ? "AdminHome" : "UserHome";
+}
 <header class="@((ViewBag.LoginView == true) ? "hide-navbar" : "")">
     <div class="logosec hover-pointer">
-        <img src="~/img/asi-logo-invert.svg"
+        <img src="~/img/WildWisdom-main-logo.png"
              style="width: 185px;" alt="logo"
-             onclick="window.location.href = '@Url.Action("Index", "Home")';">
+             onclick="window.location.href = '@Url.Action("Index", homeController)';">
     </div>
     <div class="logosec">
         @HttpContextAccessor.HttpContext.Session.GetString("UserName")
-        <div class="mr-20 hover-pointer" style="position: relative">
+        <div class="hover-pointer mr-20" style="position: relative">
             <div class="dp">
                 <img src="~/img/profile-logo.png"
                      class="dpicn hover-pointer"

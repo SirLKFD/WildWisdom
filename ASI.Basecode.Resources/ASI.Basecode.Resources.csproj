@@ -7,10 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="AutoMapper" Version="13.0.1" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Compile Update="Messages\Errors.Designer.cs">
       <DependentUpon>Errors.resx</DependentUpon>
       <DesignTime>True</DesignTime>

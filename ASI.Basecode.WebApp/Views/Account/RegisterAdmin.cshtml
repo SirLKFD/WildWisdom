@@ -1,0 +1,116 @@
+@using ASI.Basecode.Services.ServiceModels
+@model AdminViewModel
+@{
+    ViewBag.LoginView = true;
+    ViewData["Title"] = "Admin Registration - WildWisdom";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+    <link rel="stylesheet" href="~/css/auth.css" asp-append-version="true" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="auth-logo">
+                <img src="~/img/WildWisdom-main-logo.png" alt="WildWisdom Logo">
+            </div>
+
+            <div style="text-align: center; margin-bottom: 10px;">
+                <span style="display: inline-block; background: #8B5A2B; color: white; padding: 6px 16px; border-radius: 20px; font-size: 14px; font-weight: 600;">Admin Registration</span>
+            </div>
+
+            <h1 class="auth-title">Register Organization</h1>
+            <p class="auth-subtitle">Create an admin account for your library</p>
+
+            <form method="post" action="/Account/RegisterAdmin">
+                <div class="form-group">
+                    <label class="form-label" for="adminUsername">Admin Username</label>
+                    <input type="text" 
+                           id="adminUsername" 
+                           class="form-control"
+                           asp-for="AdminUsername" 
+                           placeholder="Choose a unique admin username" />
+                    <span asp-validation-for="AdminUsername" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="organizationName">Organization Name</label>
+                    <input type="text" 
+                           id="organizationName" 
+                           class="form-control"
+                           asp-for="OrganizationName" 
+                           placeholder="Enter your organization name" />
+                    <span asp-validation-for="OrganizationName" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="organizationType">Organization Type</label>
+                    <select id="organizationType" 
+                            class="form-control"
+                            asp-for="OrganizationType">
+                        <option value="">-- Select Organization Type --</option>
+                        <option value="University">University</option>
+                        <option value="Private Library">Private Library</option>
+                        <option value="Public Library">Public Library</option>
+                        <option value="Others">Others</option>
+                    </select>
+                    <span asp-validation-for="OrganizationType" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="adminPassword">Admin Password</label>
+                    <input type="password" 
+                           id="adminPassword" 
+                           class="form-control"
+                           asp-for="AdminPassword" 
+                           placeholder="Create a strong password" />
+                    <span asp-validation-for="AdminPassword" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="confirmPassword">Confirm Password</label>
+                    <input type="password" 
+                           id="confirmPassword" 
+                           class="form-control" 
+                           asp-for="ConfirmPassword" 
+                           placeholder="Re-enter your password" />
+                    <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+                </div>
+
+                <button class="btn-auth" type="submit">
+                    Register Organization
+                </button>
+            </form>
+
+            <div class="auth-footer">
+                <p>Already have an admin account?</p>
+                <a asp-controller="Account" asp-action="LoginAdmin" class="btn-secondary-auth">Sign In</a>
+            </div>
+
+            <div style="text-align: center; margin-top: 20px; padding-top: 20px; border-top: 1px solid #E5E5E5;">
+                <p style="color: #666; font-size: 14px;">Register as User? <a asp-controller="Account" asp-action="RegisterUser" class="auth-link">Click here</a></p>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" />
+    <script>
+        // Check for error message and display Toastr notification
+        var errorMessage = '@TempData["ErrorMessage"]';
+        if (errorMessage) {
+            toastr.error(errorMessage);
+        }
+    </script>
+</body>
+</html>
+
