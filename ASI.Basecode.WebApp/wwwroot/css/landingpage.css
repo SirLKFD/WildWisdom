@@ -203,7 +203,8 @@ body.menu-open {
     background-repeat: no-repeat;
     padding-top: 100px;
     position: relative;
-    overflow: hidden;
+    overflow: visible;
+    padding-bottom: 0;
 }
 
     .landing-main::before {
@@ -389,7 +390,58 @@ body.menu-open {
     animation: pulse 2s infinite;
 }
 
+/* Wave Dividers */
+.section-wave {
+    --wave-fill: #F5F0E8;
+    --wave-bg: transparent;
+    width: 100%;
+    line-height: 0;
+    position: relative;
+    z-index: 1;
+    background-color: var(--wave-bg);
+}
+
+.section-wave svg {
+    display: block;
+    width: 100%;
+    height: 120px;
+}
+
+.section-wave .wave-back,
+.section-wave .wave-front {
+    fill: var(--wave-fill);
+}
+
+.section-wave .wave-front {
+    opacity: 0.6;
+}
+
+.section-wave.wave-up svg {
+    transform: rotate(180deg);
+}
+
+.section-wave.wave-fill-cream { --wave-fill: #F8EFE4; }
+.section-wave.wave-fill-clay { --wave-fill: #F2E4D4; }
+.section-wave.wave-fill-sand { --wave-fill: #E9D9C7; }
+.section-wave.wave-bg-cream { --wave-bg: #F8EFE4; }
+.section-wave.wave-bg-clay { --wave-bg: #F2E4D4; }
+.section-wave.wave-bg-sand { --wave-bg: #E9D9C7; }
+
+/* Home Wave - positioned at bottom of home section */
+.home-wave {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 3;
+}
+
 /* Services Section */
+.services-wrapper {
+    background-color: #F8EFE4;
+    width: 100%;
+}
+
 .services-section {
     position: relative;
     z-index: 2;
@@ -459,6 +511,11 @@ body.menu-open {
 }
 
 /* Testimonials */
+.testimonials-wrapper {
+    background-color: #F2E4D4;
+    width: 100%;
+}
+
 .testimonials-section {
     position: relative;
     z-index: 2;
@@ -579,6 +636,11 @@ body.menu-open {
 }
 
 /* About the Devs */
+.about-wrapper {
+    background-color: #F8EFE4;
+    width: 100%;
+}
+
 .about-section {
     position: relative;
     z-index: 2;
@@ -725,27 +787,47 @@ body.menu-open {
     }
 }
 
+/* Responsive Wave Adjustments */
+@media (max-width: 768px) {
+    .section-wave svg {
+        height: 80px;
+    }
+}
+
+@media (max-width: 480px) {
+    .section-wave svg {
+        height: 60px;
+    }
+}
+
 /* Wave Footer */
 .wave-footer {
     position: relative;
-    background: #E9D9C7;
+    --wave-footer-fill: #E9D9C7;
+    background: var(--wave-footer-fill);
     color: #5a4638;
-    margin-top: 40px;
+    margin-top: 0;
     z-index: 0;
 }
 
-.wave-footer .wave-top {
+.footer-wave {
     position: relative;
     z-index: 0;
-    line-height: 0;
 }
 
-.wave-footer .wave-top svg {
+.footer-wave svg {
     display: block;
     width: 100%;
-    height: 120px;
-    /* Nudge down to eliminate anti-alias seam between wave and footer */
-    transform: translateY(1px);
+    height: 140px;
+}
+
+.footer-wave .wave-back,
+.footer-wave .wave-front {
+    fill: var(--wave-fill);
+}
+
+.footer-wave .wave-front {
+    opacity: 0.6;
 }
 
 .wave-footer .footer-inner {
@@ -803,12 +885,12 @@ body.menu-open {
     }
 
     .hero-text {
-        order: 2;
+        order: 1;
+        margin-bottom: 40px;
     }
 
     .hero-image {
-        order: 1;
-        margin-bottom: 40px;
+        order: 2;
     }
 
     .book-stack-container {
