@@ -2,6 +2,7 @@ using ASI.Basecode.Data.EFCore;
 using ASI.Basecode.Data.Interfaces;
 using ASI.Basecode.Data.Models;
 using Basecode.Data.Repositories;
+using Microsoft.EntityFrameworkCore;
 using System.Linq;
 
 namespace ASI.Basecode.Data.Repositories
@@ -14,22 +15,29 @@ namespace ASI.Basecode.Data.Repositories
 
         public IQueryable<OrgBooks> GetAll()
         {
-            return this.GetDbSet<OrgBooks>();
+            return this.GetDbSet<OrgBooks>()
+                .Include(x => x.Organization);
         }
 
         public IQueryable<OrgBooks> GetBooksByOrganization(int orgId)
         {
-            return this.GetDbSet<OrgBooks>().Where(x => x.OrganizationId == orgId && x.IsActive);
+            return this.GetDbSet<OrgBooks>()
+                .Include(x => x.Organization)
+                .Where(x => x.OrganizationId == orgId && x.IsActive);
         }
 
         public IQueryable<OrgBooks> GetAllBooksByOrganization(int orgId)
         {
-            return this.GetDbSet<OrgBooks>().Where(x => x.OrganizationId == orgId);
+            return this.GetDbSet<OrgBooks>()
+                .Include(x => x.Organization)
+                .Where(x => x.OrganizationId == orgId);
         }
 
         public IQueryable<OrgBooks> GetAvailableBooks(int orgId)
         {
-            return this.GetDbSet<OrgBooks>().Where(x => x.OrganizationId == orgId && x.IsActive && x.CopiesAvailable > 0);
+            return this.GetDbSet<OrgBooks>()
+                .Include(x => x.Organization)
+                .Where(x => x.OrganizationId == orgId && x.IsActive && x.CopiesAvailable > 0);
         }
 
         public void AddBook(OrgBooks book)
@@ -66,7 +74,9 @@ namespace ASI.Basecode.Data.Repositories
 
         public OrgBooks GetById(int id)
         {
-            return this.GetDbSet<OrgBooks>().FirstOrDefault(x => x.Id == id);
+            return this.GetDbSet<OrgBooks>()
+                .Include(x => x.Organization)
+                .FirstOrDefault(x => x.Id == id);
         }
 
         public bool BookExists(string isbn, int orgId)

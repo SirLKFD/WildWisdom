@@ -8,5 +8,9 @@ namespace ASI.Basecode.Services.Interfaces
     {
         LoginResult AuthenticateUser(string userid, string password, ref User user);
         void AddUser(UserViewModel model);
+        UserSettingsViewModel GetUserById(int id);
+        UserSettingsViewModel GetUserByUserId(string userId);
+        void UpdateUser(UserSettingsViewModel model, string currentUserId);
+        void DeleteUser(int id);
     }
 }

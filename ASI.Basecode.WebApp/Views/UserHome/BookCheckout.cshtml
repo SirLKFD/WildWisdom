@@ -1,0 +1,57 @@
+@{
+    ViewData["Title"] = "My Books - WildWisdom";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+    <link rel="stylesheet" href="~/css/userhome.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+@Html.Partial("_UserHomeHeader")
+
+<div class="userhome-content">
+    <div class="container-fluid px-4 py-4">
+        <!-- Page Header -->
+        <div class="page-header mb-4">
+            <h2 class="userhome-section-title">
+                <i class="fa-solid fa-book-bookmark"></i> My Books
+            </h2>
+            <p class="userhome-section-subtitle">View and manage your borrowed books</p>
+        </div>
+
+        <!-- Placeholder Content -->
+        <div class="placeholder-content">
+            <div class="placeholder-icon">
+                <i class="fa-solid fa-book-bookmark"></i>
+            </div>
+            <h3>Book Checkout Coming Soon</h3>
+            <p>This feature will allow you to view and manage your borrowed books.</p>
+            <div class="placeholder-features">
+                <ul>
+                    <li><i class="fas fa-check-circle"></i> View borrowed books</li>
+                    <li><i class="fas fa-check-circle"></i> Track due dates</li>
+                    <li><i class="fas fa-check-circle"></i> Renew books</li>
+                    <li><i class="fas fa-check-circle"></i> View borrowing history</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>
+
