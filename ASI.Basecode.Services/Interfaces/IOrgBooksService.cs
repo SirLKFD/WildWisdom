@@ -7,6 +7,7 @@ namespace ASI.Basecode.Services.Interfaces
     {
         List<OrgBooksViewModel> GetAllBooks();
         List<OrgBooksViewModel> GetBookCatalog(int orgId);
+        List<OrgBooksViewModel> GetAllBooksByOrganization(int orgId);
         List<OrgBooksViewModel> GetAvailableBooks(int orgId);
         void AddBook(OrgBooksViewModel model);
         void UpdateBook(OrgBooksViewModel model);

@@ -22,6 +22,11 @@ namespace ASI.Basecode.Data.Repositories
             return this.GetDbSet<OrgBooks>().Where(x => x.OrganizationId == orgId && x.IsActive);
         }
 
+        public IQueryable<OrgBooks> GetAllBooksByOrganization(int orgId)
+        {
+            return this.GetDbSet<OrgBooks>().Where(x => x.OrganizationId == orgId);
+        }
+
         public IQueryable<OrgBooks> GetAvailableBooks(int orgId)
         {
             return this.GetDbSet<OrgBooks>().Where(x => x.OrganizationId == orgId && x.IsActive && x.CopiesAvailable > 0);

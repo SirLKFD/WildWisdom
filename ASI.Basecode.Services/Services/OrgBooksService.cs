@@ -70,6 +70,24 @@ namespace ASI.Basecode.Services.Services
             return viewModels;
         }
 
+        public List<OrgBooksViewModel> GetAllBooksByOrganization(int orgId)
+        {
+            var books = _repository.GetAllBooksByOrganization(orgId).ToList();
+            var viewModels = _mapper.Map<List<OrgBooksViewModel>>(books);
+
+            // Populate organization names for each book
+            foreach (var vm in viewModels)
+            {
+                var org = _organizationRepository.GetById(vm.OrganizationId);
+                if (org != null)
+                {
+                    vm.OrganizationName = org.Name;
+                }
+            }
+
+            return viewModels;
+        }
+
         public List<OrgBooksViewModel> GetAvailableBooks(int orgId)
         {
             var books = _repository.GetAvailableBooks(orgId).ToList();
