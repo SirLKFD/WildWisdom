@@ -82,9 +82,9 @@ namespace ASI.Basecode.WebApp.Controllers
             var accessCheck = VerifyAdminAccess();
             if (accessCheck != null) return accessCheck;
 
-            // Get books only from the admin's organization
+            // Get all books (including inactive) from the admin's organization
             var orgId = this._session.GetInt32("OrganizationId") ?? 0;
-            var books = _booksService.GetBookCatalog(orgId);
+            var books = _booksService.GetAllBooksByOrganization(orgId);
             return View(books);
         }
 

@@ -28,13 +28,13 @@ namespace ASI.Basecode.Services.Services
             var books = _repository.GetAll().ToList();
             var viewModels = _mapper.Map<List<OrgBooksViewModel>>(books);
 
-            // Populate organization names
+            // Use already-loaded Organization navigation property
             foreach (var vm in viewModels)
             {
-                var org = _organizationRepository.GetById(vm.OrganizationId);
-                if (org != null)
+                var book = books.FirstOrDefault(b => b.Id == vm.Id);
+                if (book?.Organization != null)
                 {
-                    vm.OrganizationName = org.Name;
+                    vm.OrganizationName = book.Organization.Name;
                 }
             }
 
@@ -57,13 +57,31 @@ namespace ASI.Basecode.Services.Services
             
             var viewModels = _mapper.Map<List<OrgBooksViewModel>>(books);
 
-            // Populate organization names for each book
+            // Use already-loaded Organization navigation property
             foreach (var vm in viewModels)
             {
-                var org = _organizationRepository.GetById(vm.OrganizationId);
-                if (org != null)
+                var book = books.FirstOrDefault(b => b.Id == vm.Id);
+                if (book?.Organization != null)
                 {
-                    vm.OrganizationName = org.Name;
+                    vm.OrganizationName = book.Organization.Name;
+                }
+            }
+
+            return viewModels;
+        }
+
+        public List<OrgBooksViewModel> GetAllBooksByOrganization(int orgId)
+        {
+            var books = _repository.GetAllBooksByOrganization(orgId).ToList();
+            var viewModels = _mapper.Map<List<OrgBooksViewModel>>(books);
+
+            // Use already-loaded Organization navigation property
+            foreach (var vm in viewModels)
+            {
+                var book = books.FirstOrDefault(b => b.Id == vm.Id);
+                if (book?.Organization != null)
+                {
+                    vm.OrganizationName = book.Organization.Name;
                 }
             }
 
@@ -75,11 +93,11 @@ namespace ASI.Basecode.Services.Services
             var books = _repository.GetAvailableBooks(orgId).ToList();
             var viewModels = _mapper.Map<List<OrgBooksViewModel>>(books);
 
-            // Populate organization name
-            var org = _organizationRepository.GetById(orgId);
-            if (org != null)
+            // Use already-loaded Organization navigation property (all books have same org)
+            if (books.Any() && books.First().Organization != null)
             {
-                viewModels.ForEach(vm => vm.OrganizationName = org.Name);
+                var orgName = books.First().Organization.Name;
+                viewModels.ForEach(vm => vm.OrganizationName = orgName);
             }
 
             return viewModels;
@@ -130,11 +148,10 @@ namespace ASI.Basecode.Services.Services
 
             var viewModel = _mapper.Map<OrgBooksViewModel>(book);
             
-            // Populate organization name
-            var org = _organizationRepository.GetById(book.OrganizationId);
-            if (org != null)
+            // Use already-loaded Organization navigation property
+            if (book.Organization != null)
             {
-                viewModel.OrganizationName = org.Name;
+                viewModel.OrganizationName = book.Organization.Name;
             }
 
             return viewModel;

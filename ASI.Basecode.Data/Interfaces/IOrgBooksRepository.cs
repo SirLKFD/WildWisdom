@@ -7,6 +7,7 @@ namespace ASI.Basecode.Data.Interfaces
     {
         IQueryable<OrgBooks> GetAll();
         IQueryable<OrgBooks> GetBooksByOrganization(int orgId);
+        IQueryable<OrgBooks> GetAllBooksByOrganization(int orgId);
         IQueryable<OrgBooks> GetAvailableBooks(int orgId);
         void AddBook(OrgBooks book);
         void UpdateBook(OrgBooks book);
