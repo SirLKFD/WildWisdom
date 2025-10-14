@@ -9,6 +9,9 @@ namespace ASI.Basecode.Data.Interfaces
         bool OrganizationExists(string name);
         void AddOrganization(Organization organization);
         Organization GetById(int id);
+        Organization GetOrganizationById(int id);
+        void UpdateOrganization(Organization organization);
+        void DeleteOrganization(int organizationId);
     }
 }
 

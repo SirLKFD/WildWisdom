@@ -9,6 +9,9 @@ namespace ASI.Basecode.Data.Interfaces
         bool AdminExists(string username);
         void AddAdmin(Admin admin);
         Admin GetByUsername(string username);
+        Admin GetAdminById(int adminId);
+        void UpdateAdmin(Admin admin);
+        void DeleteAdmin(int adminId);
     }
 }
 

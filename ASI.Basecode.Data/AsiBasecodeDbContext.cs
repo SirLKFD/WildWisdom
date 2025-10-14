@@ -28,6 +28,8 @@ namespace ASI.Basecode.Data
         public virtual DbSet<FinePolicy> FinePolicies { get; set; }
         public virtual DbSet<RenewalPolicy> RenewalPolicies { get; set; }
         public virtual DbSet<ClaimPolicy> ClaimPolicies { get; set; }
+        public virtual DbSet<BookReview> BookReviews { get; set; }
+        public virtual DbSet<BookReviewLike> BookReviewLikes { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -475,6 +477,53 @@ namespace ASI.Basecode.Data
                     .HasForeignKey<ClaimPolicy>(d => d.OrganizationId)
                     .OnDelete(DeleteBehavior.Restrict)
                     .HasConstraintName("FK_ClaimPolicy_Organization");
+            });
+
+            modelBuilder.Entity<BookReview>(entity =>
+            {
+                entity.Property(e => e.CreatedTime).HasColumnType("datetime");
+                entity.Property(e => e.UpdatedTime).HasColumnType("datetime");
+
+                entity.Property(e => e.ReviewText)
+                    .HasMaxLength(250)
+                    .IsUnicode(true);
+
+                entity.HasOne(d => d.User)
+                    .WithMany()
+                    .HasForeignKey(d => d.UserId)
+                    .OnDelete(DeleteBehavior.Restrict)
+                    .HasConstraintName("FK_BookReview_User");
+
+                entity.HasOne(d => d.OrgBook)
+                    .WithMany()
+                    .HasForeignKey(d => d.OrgBookId)
+                    .OnDelete(DeleteBehavior.Restrict)
+                    .HasConstraintName("FK_BookReview_OrgBook");
+
+                // Create unique index to ensure one review per user per book
+                entity.HasIndex(e => new { e.UserId, e.OrgBookId }, "UQ__BookReview__UserId_OrgBookId")
+                    .IsUnique();
+            });
+
+            modelBuilder.Entity<BookReviewLike>(entity =>
+            {
+                entity.Property(e => e.CreatedTime).HasColumnType("datetime");
+
+                entity.HasOne(d => d.BookReview)
+                    .WithMany()
+                    .HasForeignKey(d => d.BookReviewId)
+                    .OnDelete(DeleteBehavior.Restrict)
+                    .HasConstraintName("FK_BookReviewLike_BookReview");
+
+                entity.HasOne(d => d.User)
+                    .WithMany()
+                    .HasForeignKey(d => d.UserId)
+                    .OnDelete(DeleteBehavior.Restrict)
+                    .HasConstraintName("FK_BookReviewLike_User");
+
+                // Create unique index to ensure one user can only like a review once
+                entity.HasIndex(e => new { e.UserId, e.BookReviewId }, "UQ__BookReviewLike__UserId_BookReviewId")
+                    .IsUnique();
             });
 
             OnModelCreatingPartial(modelBuilder);

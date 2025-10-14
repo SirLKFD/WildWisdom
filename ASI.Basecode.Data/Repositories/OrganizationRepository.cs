@@ -32,6 +32,28 @@ namespace ASI.Basecode.Data.Repositories
         {
             return this.GetDbSet<Organization>().FirstOrDefault(x => x.Id == id);
         }
+
+        public Organization GetOrganizationById(int id)
+        {
+            return this.GetDbSet<Organization>().FirstOrDefault(x => x.Id == id);
+        }
+
+        public void UpdateOrganization(Organization organization)
+        {
+            this.GetDbSet<Organization>().Update(organization);
+            UnitOfWork.SaveChanges();
+        }
+
+        public void DeleteOrganization(int organizationId)
+        {
+            var organization = GetOrganizationById(organizationId);
+            if (organization != null)
+            {
+                // Cascade delete will handle OrgBooks
+                this.GetDbSet<Organization>().Remove(organization);
+                UnitOfWork.SaveChanges();
+            }
+        }
     }
 }
 

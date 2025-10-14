@@ -9,6 +9,10 @@ namespace ASI.Basecode.Services.Interfaces
         LoginResult AuthenticateAdmin(string username, string password, ref Admin admin);
         void AddAdmin(AdminViewModel model);
         bool ValidateAdminRegistration(AdminViewModel model);
+        AdminSettingsViewModel GetAdminSettings(int adminId);
+        void UpdateAdminSettings(AdminSettingsViewModel model);
+        bool CanDeleteAccount(int adminId);
+        void DeleteAdminAccount(int adminId);
     }
 }
 

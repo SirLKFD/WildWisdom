@@ -1,0 +1,95 @@
+@using Microsoft.AspNetCore.Http
+@inject IHttpContextAccessor HttpContextAccessor
+@{
+    var organizationName = HttpContextAccessor.HttpContext.Session.GetString("OrganizationName");
+    var profilePicture = HttpContextAccessor.HttpContext.Session.GetString("ProfilePicture");
+    var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
+}
+
+<!-- Admin Left Sidebar -->
+<div class="admin-sidebar" id="adminSidebar">
+    <div class="admin-sidebar-content">
+        <!-- Logo Section -->
+        <div class="admin-logo-section">
+            <img src="~/img/WildWisdom-main-logo.png" alt="WildWisdom" class="admin-sidebar-logo" />
+        </div>
+
+        <!-- Navigation Menu -->
+        <nav class="admin-nav-menu">
+            <ul>
+                <li>
+                    <a asp-controller="AdminHome" asp-action="Dashboard" 
+                       class="admin-nav-link @(currentAction == "Dashboard" ? "active" : "")">
+                        <i class="fas fa-th-large"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+                <li>
+                    <a asp-controller="AdminHome" asp-action="Index" 
+                       class="admin-nav-link @(currentAction == "Index" || currentAction == "AddBook" || currentAction == "EditBook" ? "active" : "")">
+                        <i class="fas fa-book"></i>
+                        <span>Books Management</span>
+                    </a>
+                </li>
+                <li>
+                    <a asp-controller="AdminHome" asp-action="AdminSettings" 
+                       class="admin-nav-link @(currentAction == "AdminSettings" ? "active" : "")">
+                        <i class="fas fa-cog"></i>
+                        <span>Settings</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- Bottom Section -->
+        <div class="admin-sidebar-bottom">
+            <div class="admin-profile-section">
+                @if (!string.IsNullOrEmpty(profilePicture))
+                {
+                    <img src="@profilePicture" alt="@organizationName" class="admin-profile-pic" />
+                }
+                else
+                {
+                    <div class="admin-profile-placeholder">
+                        <i class="fas fa-user-shield"></i>
+                    </div>
+                }
+                <div class="admin-profile-info">
+                    <span class="admin-username">@organizationName</span>
+                    <span class="admin-role">Administrator</span>
+                </div>
+            </div>
+            <a asp-action="SignOutUser" asp-controller="Account" class="admin-logout-btn">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Logout</span>
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Mobile Toggle Button -->
+<button class="admin-mobile-toggle" id="adminMobileToggle">
+    <span></span>
+    <span></span>
+    <span></span>
+</button>
+
+<!-- Overlay for mobile -->
+<div class="admin-sidebar-overlay" id="adminSidebarOverlay"></div>
+
+<script>
+    // Mobile sidebar toggle
+    document.getElementById('adminMobileToggle').addEventListener('click', function() {
+        document.getElementById('adminSidebar').classList.toggle('active');
+        document.getElementById('adminSidebarOverlay').classList.toggle('active');
+        this.classList.toggle('active');
+    });
+
+    // Close sidebar when clicking overlay
+    document.getElementById('adminSidebarOverlay').addEventListener('click', function() {
+        document.getElementById('adminSidebar').classList.remove('active');
+        this.classList.remove('active');
+        document.getElementById('adminMobileToggle').classList.remove('active');
+    });
+</script>
+

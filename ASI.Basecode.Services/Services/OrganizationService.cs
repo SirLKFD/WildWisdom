@@ -42,6 +42,12 @@ namespace ASI.Basecode.Services.Services
 
             _repository.AddOrganization(organization);
         }
+
+        public OrganizationViewModel GetOrganizationById(int id)
+        {
+            var organization = _repository.GetOrganizationById(id);
+            return _mapper.Map<OrganizationViewModel>(organization);
+        }
     }
 }
 

@@ -1,9 +1,28 @@
 @model ASI.Basecode.Services.ServiceModels.OrgBooksViewModel
 @{
     ViewData["Title"] = "Edit Book";
+    Layout = null;
 }
 
-<div class="container mt-4">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+    <link rel="stylesheet" href="~/css/adminhome.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+@Html.Partial("_AdminHomeTab")
+
+<div class="admin-main-content">
+    <div class="container">
     <div class="row">
         <div class="col-md-8 offset-md-2">
             <div class="card shadow">
@@ -174,42 +193,47 @@
                     </form>
                 </div>
             </div>
+            </div>
         </div>
     </div>
 </div>
 
-@section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
-    <script>
-        document.getElementById('CoverImageFile').addEventListener('change', function(e) {
-            var file = e.target.files[0];
-            if (file) {
-                // Validate file type
-                var validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
-                if (!validTypes.includes(file.type)) {
-                    alert('Please upload only JPEG, PNG, or GIF images.');
-                    this.value = '';
-                    document.getElementById('imagePreview').style.display = 'none';
-                    return;
-                }
-
-                // Validate file size (max 5MB)
-                if (file.size > 5 * 1024 * 1024) {
-                    alert('File size must be less than 5MB.');
-                    this.value = '';
-                    document.getElementById('imagePreview').style.display = 'none';
-                    return;
-                }
-
-                // Show preview
-                var reader = new FileReader();
-                reader.onload = function(e) {
-                    document.getElementById('preview').src = e.target.result;
-                    document.getElementById('imagePreview').style.display = 'block';
-                };
-                reader.readAsDataURL(file);
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.3/dist/jquery.validate.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jquery-validation-unobtrusive@3.2.12/dist/jquery.validate.unobtrusive.min.js"></script>
+<script>
+    document.getElementById('CoverImageFile').addEventListener('change', function(e) {
+        var file = e.target.files[0];
+        if (file) {
+            // Validate file type
+            var validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+            if (!validTypes.includes(file.type)) {
+                alert('Please upload only JPEG, PNG, or GIF images.');
+                this.value = '';
+                document.getElementById('imagePreview').style.display = 'none';
+                return;
             }
-        });
-    </script>
-}
+
+            // Validate file size (max 5MB)
+            if (file.size > 5 * 1024 * 1024) {
+                alert('File size must be less than 5MB.');
+                this.value = '';
+                document.getElementById('imagePreview').style.display = 'none';
+                return;
+            }
+
+            // Show preview
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('preview').src = e.target.result;
+                document.getElementById('imagePreview').style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+</script>
+
+</body>
+</html>
 
