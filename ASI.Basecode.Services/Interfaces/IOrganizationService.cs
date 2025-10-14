@@ -8,6 +8,7 @@ namespace ASI.Basecode.Services.Interfaces
         List<OrganizationViewModel> GetAllOrganizations();
         bool ValidateOrganization(string name);
         void AddOrganization(OrganizationViewModel model);
+        OrganizationViewModel GetOrganizationById(int id);
     }
 }
 

@@ -19,6 +19,7 @@ namespace ASI.Basecode.WebApp.Controllers
     public class AdminHomeController : ControllerBase<AdminHomeController>
     {
         private readonly IOrgBooksService _booksService;
+        private readonly IAdminService _adminService;
         private readonly IWebHostEnvironment _webHostEnvironment;
 
         /// <summary>
@@ -28,6 +29,7 @@ namespace ASI.Basecode.WebApp.Controllers
         /// <param name="loggerFactory"></param>
         /// <param name="configuration"></param>
         /// <param name="booksService"></param>
+        /// <param name="adminService"></param>
         /// <param name="webHostEnvironment"></param>
         /// <param name="mapper"></param>
         public AdminHomeController(
@@ -35,10 +37,12 @@ namespace ASI.Basecode.WebApp.Controllers
             ILoggerFactory loggerFactory,
             IConfiguration configuration,
             IOrgBooksService booksService,
+            IAdminService adminService,
             IWebHostEnvironment webHostEnvironment,
             IMapper mapper = null) : base(httpContextAccessor, loggerFactory, configuration, mapper)
         {
             _booksService = booksService;
+            _adminService = adminService;
             _webHostEnvironment = webHostEnvironment;
         }
 
@@ -71,6 +75,19 @@ namespace ASI.Basecode.WebApp.Controllers
 
             // If userRole is 1 or not set, allow access (default to Admin for this controller)
             return null;
+        }
+
+        /// <summary>
+        /// Dashboard Page
+        /// </summary>
+        /// <returns> Dashboard View </returns>
+        public IActionResult Dashboard()
+        {
+            var accessCheck = VerifyAdminAccess();
+            if (accessCheck != null) return accessCheck;
+
+            // TODO: Add dashboard statistics and data
+            return View();
         }
 
         /// <summary>
@@ -342,6 +359,106 @@ namespace ASI.Basecode.WebApp.Controllers
             }
 
             return RedirectToAction("Index");
+        }
+
+        /// <summary>
+        /// Admin Settings Page
+        /// </summary>
+        [HttpGet]
+        public IActionResult AdminSettings()
+        {
+            var accessCheck = VerifyAdminAccess();
+            if (accessCheck != null) return accessCheck;
+
+            try
+            {
+                var adminId = this._session.GetInt32("UserId") ?? 0;
+                var model = _adminService.GetAdminSettings(adminId);
+                return View(model);
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = $"Error loading settings: {ex.Message}";
+                return RedirectToAction("Index");
+            }
+        }
+
+        /// <summary>
+        /// Update Admin Settings
+        /// </summary>
+        [HttpPost]
+        public IActionResult UpdateAdminSettings(AdminSettingsViewModel model, IFormFile profilePictureFile)
+        {
+            var accessCheck = VerifyAdminAccess();
+            if (accessCheck != null) return accessCheck;
+
+            try
+            {
+                // Handle profile picture upload
+                if (profilePictureFile != null && profilePictureFile.Length > 0)
+                {
+                    var uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "uploads", "profiles");
+                    Directory.CreateDirectory(uploadsFolder);
+
+                    var uniqueFileName = Guid.NewGuid().ToString() + "_" + profilePictureFile.FileName;
+                    var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+                    using (var fileStream = new FileStream(filePath, FileMode.Create))
+                    {
+                        profilePictureFile.CopyTo(fileStream);
+                    }
+
+                    model.ProfilePicture = "/uploads/profiles/" + uniqueFileName;
+                    this._session.SetString("ProfilePicture", model.ProfilePicture);
+                }
+
+                _adminService.UpdateAdminSettings(model);
+
+                // Update session data
+                this._session.SetString("UserName", model.AdminUsername);
+
+                TempData["SuccessMessage"] = "Settings updated successfully!";
+                return RedirectToAction("AdminSettings");
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = $"Error updating settings: {ex.Message}";
+                return View("AdminSettings", model);
+            }
+        }
+
+        /// <summary>
+        /// Delete Admin Account
+        /// </summary>
+        [HttpPost]
+        public IActionResult DeleteAdminAccount()
+        {
+            var accessCheck = VerifyAdminAccess();
+            if (accessCheck != null) return accessCheck;
+
+            try
+            {
+                var adminId = this._session.GetInt32("UserId") ?? 0;
+
+                if (!_adminService.CanDeleteAccount(adminId))
+                {
+                    TempData["ErrorMessage"] = "Cannot delete account with pending transactions.";
+                    return RedirectToAction("AdminSettings");
+                }
+
+                _adminService.DeleteAdminAccount(adminId);
+
+                // Clear session
+                HttpContext.Session.Clear();
+
+                TempData["SuccessMessage"] = "Account deleted successfully.";
+                return RedirectToAction("LoginAdmin", "Account");
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = $"Error deleting account: {ex.Message}";
+                return RedirectToAction("AdminSettings");
+            }
         }
     }
 }

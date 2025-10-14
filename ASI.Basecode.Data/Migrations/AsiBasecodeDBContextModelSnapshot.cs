@@ -120,6 +120,71 @@ namespace ASI.Basecode.Data.Migrations
                     b.ToTable("BookCategories");
                 });
 
+            modelBuilder.Entity("ASI.Basecode.Data.Models.BookReview", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedTime")
+                        .HasColumnType("datetime");
+
+                    b.Property<int>("OrgBookId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("Rating")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ReviewText")
+                        .HasMaxLength(250)
+                        .IsUnicode(true)
+                        .HasColumnType("nvarchar(250)");
+
+                    b.Property<DateTime>("UpdatedTime")
+                        .HasColumnType("datetime");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrgBookId");
+
+                    b.HasIndex(new[] { "UserId", "OrgBookId" }, "UQ__BookReview__UserId_OrgBookId")
+                        .IsUnique();
+
+                    b.ToTable("BookReviews");
+                });
+
+            modelBuilder.Entity("ASI.Basecode.Data.Models.BookReviewLike", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("BookReviewId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedTime")
+                        .HasColumnType("datetime");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BookReviewId");
+
+                    b.HasIndex(new[] { "UserId", "BookReviewId" }, "UQ__BookReviewLike__UserId_BookReviewId")
+                        .IsUnique();
+
+                    b.ToTable("BookReviewLikes");
+                });
+
             modelBuilder.Entity("ASI.Basecode.Data.Models.BorrowTicket", b =>
                 {
                     b.Property<int>("Id")
@@ -497,6 +562,12 @@ namespace ASI.Basecode.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("Address")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ContactNumber")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("CreatedBy")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -699,6 +770,48 @@ namespace ASI.Basecode.Data.Migrations
                         .HasConstraintName("FK_Admin_Organization");
 
                     b.Navigation("Organization");
+                });
+
+            modelBuilder.Entity("ASI.Basecode.Data.Models.BookReview", b =>
+                {
+                    b.HasOne("ASI.Basecode.Data.Models.OrgBooks", "OrgBook")
+                        .WithMany()
+                        .HasForeignKey("OrgBookId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_BookReview_OrgBook");
+
+                    b.HasOne("ASI.Basecode.Data.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_BookReview_User");
+
+                    b.Navigation("OrgBook");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("ASI.Basecode.Data.Models.BookReviewLike", b =>
+                {
+                    b.HasOne("ASI.Basecode.Data.Models.BookReview", "BookReview")
+                        .WithMany()
+                        .HasForeignKey("BookReviewId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_BookReviewLike_BookReview");
+
+                    b.HasOne("ASI.Basecode.Data.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_BookReviewLike_User");
+
+                    b.Navigation("BookReview");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("ASI.Basecode.Data.Models.BorrowTicket", b =>

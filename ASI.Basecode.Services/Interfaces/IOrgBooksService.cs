@@ -13,6 +13,7 @@ namespace ASI.Basecode.Services.Interfaces
         void UpdateBook(OrgBooksViewModel model);
         void DeleteBook(int id);
         OrgBooksViewModel GetBookById(int id);
+        OrgBooksViewModel GetBookDetails(int bookId, int userId);
         bool ValidateBookAvailability(int bookId);
         void ReserveCopy(int bookId);
         void ReleaseCopy(int bookId);

@@ -16,6 +16,8 @@ namespace ASI.Basecode.Data.Models
         public int Id { get; set; }
         public string Name { get; set; }
         public string Type { get; set; }
+        public string ContactNumber { get; set; }
+        public string Address { get; set; }
         public string CreatedBy { get; set; }
         public DateTime CreatedTime { get; set; }
         public string UpdatedBy { get; set; }

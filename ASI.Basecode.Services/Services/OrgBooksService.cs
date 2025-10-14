@@ -14,13 +14,15 @@ namespace ASI.Basecode.Services.Services
     {
         private readonly IOrgBooksRepository _repository;
         private readonly IOrganizationRepository _organizationRepository;
+        private readonly IBookReviewRepository _reviewRepository;
         private readonly IMapper _mapper;
 
-        public OrgBooksService(IOrgBooksRepository repository, IOrganizationRepository organizationRepository, IMapper mapper)
+        public OrgBooksService(IOrgBooksRepository repository, IOrganizationRepository organizationRepository, IBookReviewRepository reviewRepository, IMapper mapper)
         {
             _mapper = mapper;
             _repository = repository;
             _organizationRepository = organizationRepository;
+            _reviewRepository = reviewRepository;
         }
 
         public List<OrgBooksViewModel> GetAllBooks()
@@ -57,7 +59,7 @@ namespace ASI.Basecode.Services.Services
             
             var viewModels = _mapper.Map<List<OrgBooksViewModel>>(books);
 
-            // Use already-loaded Organization navigation property
+            // Use already-loaded Organization navigation property and add ratings
             foreach (var vm in viewModels)
             {
                 var book = books.FirstOrDefault(b => b.Id == vm.Id);
@@ -65,6 +67,9 @@ namespace ASI.Basecode.Services.Services
                 {
                     vm.OrganizationName = book.Organization.Name;
                 }
+                
+                // Add average rating
+                vm.AverageRating = _reviewRepository.GetBookAverageRating(vm.Id);
             }
 
             return viewModels;
@@ -153,6 +158,46 @@ namespace ASI.Basecode.Services.Services
             {
                 viewModel.OrganizationName = book.Organization.Name;
             }
+
+            // Add average rating
+            viewModel.AverageRating = _reviewRepository.GetBookAverageRating(id);
+
+            return viewModel;
+        }
+
+        public OrgBooksViewModel GetBookDetails(int bookId, int userId)
+        {
+            var book = _repository.GetById(bookId);
+            if (book == null)
+            {
+                return null;
+            }
+
+            var viewModel = _mapper.Map<OrgBooksViewModel>(book);
+            
+            // Use already-loaded Organization navigation property
+            if (book.Organization != null)
+            {
+                viewModel.OrganizationName = book.Organization.Name;
+                viewModel.ContactNumber = book.Organization.ContactNumber;
+                viewModel.Address = book.Organization.Address;
+                
+                // Get the first admin of the organization for display
+                var admin = book.Organization.Admins?.FirstOrDefault();
+                if (admin != null)
+                {
+                    viewModel.AdminName = admin.AdminUsername;
+                    viewModel.AdminProfilePicture = admin.ProfilePicture;
+                }
+            }
+
+            // Add average rating
+            viewModel.AverageRating = _reviewRepository.GetBookAverageRating(bookId);
+
+            // Add user's rating and review text
+            var userReview = _reviewRepository.GetReviewByUserAndBook(userId, bookId);
+            viewModel.UserRating = userReview?.Rating;
+            viewModel.UserReviewText = userReview?.ReviewText;
 
             return viewModel;
         }
