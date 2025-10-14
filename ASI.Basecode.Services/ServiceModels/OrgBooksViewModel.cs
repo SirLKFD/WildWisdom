@@ -53,6 +53,15 @@ namespace ASI.Basecode.Services.ServiceModels
 
         // Additional display properties
         public string OrganizationName { get; set; }
+        public decimal? AverageRating { get; set; }
+        public int? UserRating { get; set; }
+        public string UserReviewText { get; set; }
+        
+        // Admin/Organization contact details
+        public string AdminName { get; set; }
+        public string AdminProfilePicture { get; set; }
+        public string ContactNumber { get; set; }
+        public string Address { get; set; }
 
         public string CreatedBy { get; set; }
         public DateTime CreatedTime { get; set; }

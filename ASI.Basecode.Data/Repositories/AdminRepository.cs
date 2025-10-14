@@ -32,6 +32,27 @@ namespace ASI.Basecode.Data.Repositories
         {
             return this.GetDbSet<Admin>().FirstOrDefault(x => x.AdminUsername == username);
         }
+
+        public Admin GetAdminById(int adminId)
+        {
+            return this.GetDbSet<Admin>().FirstOrDefault(x => x.Id == adminId);
+        }
+
+        public void UpdateAdmin(Admin admin)
+        {
+            this.GetDbSet<Admin>().Update(admin);
+            UnitOfWork.SaveChanges();
+        }
+
+        public void DeleteAdmin(int adminId)
+        {
+            var admin = GetAdminById(adminId);
+            if (admin != null)
+            {
+                this.GetDbSet<Admin>().Remove(admin);
+                UnitOfWork.SaveChanges();
+            }
+        }
     }
 }
 

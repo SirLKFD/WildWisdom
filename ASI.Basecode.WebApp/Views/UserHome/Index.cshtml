@@ -187,7 +187,7 @@
                             @foreach (var book in paginatedBooks)
                             {
                                 <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6 col-6 mb-4">
-                                    <div class="book-card-simple">
+                                    <div class="book-card-simple" onclick="window.location.href='@Url.Action("BookDetails", new { id = book.Id })'">
                                         <div class="book-cover-wrapper">
                                             @if (!string.IsNullOrEmpty(book.CoverImage))
                                             {
@@ -201,6 +201,18 @@
                                             }
                                         </div>
                                         <h6 class="book-card-title">@book.Title</h6>
+                                        @if (book.AverageRating.HasValue)
+                                        {
+                                            <div class="book-card-rating">
+                                                <div class="star-rating-display" data-rating="@book.AverageRating">
+                                                    @for (int i = 1; i <= 5; i++)
+                                                    {
+                                                        <i class="star fas fa-star @(i <= Math.Round(book.AverageRating.Value) ? "filled" : "")" data-value="@i"></i>
+                                                    }
+                                                </div>
+                                                <span class="rating-count">@Math.Round(book.AverageRating.Value, 1)</span>
+                                            </div>
+                                        }
                                     </div>
                                 </div>
                             }
