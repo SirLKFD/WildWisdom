@@ -21,6 +21,7 @@ namespace ASI.Basecode.WebApp.Controllers
         private readonly IOrgBooksService _booksService;
         private readonly IUserService _userService;
         private readonly IOrganizationService _organizationService;
+        private readonly IBookReviewService _reviewService;
         private readonly IWebHostEnvironment _webHostEnvironment;
 
         /// <summary>
@@ -32,6 +33,7 @@ namespace ASI.Basecode.WebApp.Controllers
         /// <param name="booksService"></param>
         /// <param name="userService"></param>
         /// <param name="organizationService"></param>
+        /// <param name="reviewService"></param>
         /// <param name="webHostEnvironment"></param>
         /// <param name="mapper"></param>
         public UserHomeController(IHttpContextAccessor httpContextAccessor,
@@ -40,12 +42,14 @@ namespace ASI.Basecode.WebApp.Controllers
                               IOrgBooksService booksService,
                               IUserService userService,
                               IOrganizationService organizationService,
+                              IBookReviewService reviewService,
                               IWebHostEnvironment webHostEnvironment,
                               IMapper mapper = null) : base(httpContextAccessor, loggerFactory, configuration, mapper)
         {
             _booksService = booksService;
             _userService = userService;
             _organizationService = organizationService;
+            _reviewService = reviewService;
             _webHostEnvironment = webHostEnvironment;
         }
 
@@ -353,6 +357,151 @@ namespace ASI.Basecode.WebApp.Controllers
             }
 
             return RedirectToAction("UserSettings");
+        }
+
+        /// <summary>
+        /// Book Details Action
+        /// </summary>
+        /// <param name="id">Book ID</param>
+        /// <returns> BookDetails View </returns>
+        public IActionResult BookDetails(int id)
+        {
+            // Check if user is logged in
+            var userId = this._session.GetString("UserId");
+            if (string.IsNullOrEmpty(userId))
+            {
+                return RedirectToAction("LoginUser", "Account");
+            }
+
+            var userModel = _userService.GetUserByUserId(userId);
+            if (userModel == null)
+            {
+                return RedirectToAction("LoginUser", "Account");
+            }
+
+            // Get book details with user rating
+            var book = _booksService.GetBookDetails(id, userModel.Id);
+            if (book == null)
+            {
+                TempData["ErrorMessage"] = "Book not found.";
+                return RedirectToAction("Index");
+            }
+
+            // Get books by same author for "More by Author" section
+            var orgId = this._session.GetInt32("OrganizationId") ?? 0;
+            var booksByAuthor = _booksService.GetBookCatalog(orgId)
+                .Where(b => b.Author == book.Author && b.Id != book.Id)
+                .Take(5)
+                .ToList();
+            
+            ViewBag.BooksByAuthor = booksByAuthor;
+
+            // Get reviews for display
+            var reviews = _reviewService.GetBookReviewsDisplay(id, userModel.Id);
+            ViewBag.Reviews = reviews;
+            
+            // Pass current user's database ID to view for comparison
+            ViewBag.CurrentUserId = userModel.Id;
+
+            return View(book);
+        }
+
+        /// <summary>
+        /// Rate Book Action
+        /// </summary>
+        /// <param name="bookId">Book ID</param>
+        /// <param name="rating">Rating value (1-5 or null)</param>
+        /// <param name="reviewText">Review text (max 250 characters)</param>
+        /// <returns> JSON result </returns>
+        [HttpPost]
+        public IActionResult RateBook(int bookId, int? rating, string reviewText = null)
+        {
+            try
+            {
+                var userId = this._session.GetString("UserId");
+                if (string.IsNullOrEmpty(userId))
+                {
+                    return Json(new { success = false, message = "Please login to rate books." });
+                }
+
+                var userModel = _userService.GetUserByUserId(userId);
+                if (userModel == null)
+                {
+                    return Json(new { success = false, message = "User not found." });
+                }
+
+                // Validate rating
+                if (rating.HasValue && (rating < 1 || rating > 5))
+                {
+                    return Json(new { success = false, message = "Rating must be between 1 and 5." });
+                }
+
+                // Validate review text length
+                if (!string.IsNullOrEmpty(reviewText) && reviewText.Length > 250)
+                {
+                    return Json(new { success = false, message = "Review text must not exceed 250 characters." });
+                }
+
+                // Save rating and review
+                _reviewService.SaveRating(userModel.Id, bookId, rating, reviewText);
+
+                // Get updated average rating
+                var averageRating = _reviewService.GetBookAverageRating(bookId);
+
+                return Json(new { 
+                    success = true, 
+                    message = "Review saved successfully!",
+                    averageRating = averageRating,
+                    userRating = rating
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = $"Error saving review: {ex.Message}" });
+            }
+        }
+
+        /// <summary>
+        /// Like Review Action
+        /// </summary>
+        /// <param name="reviewId">Review ID</param>
+        /// <returns> JSON result </returns>
+        [HttpPost]
+        public IActionResult LikeReview(int reviewId)
+        {
+            try
+            {
+                var userId = this._session.GetString("UserId");
+                if (string.IsNullOrEmpty(userId))
+                {
+                    return Json(new { success = false, message = "Please login to like reviews." });
+                }
+
+                var userModel = _userService.GetUserByUserId(userId);
+                if (userModel == null)
+                {
+                    return Json(new { success = false, message = "User not found." });
+                }
+
+                // Check if user is trying to like their own review
+                if (_reviewService.IsReviewByUser(userModel.Id, reviewId))
+                {
+                    return Json(new { success = false, message = "You cannot like your own review." });
+                }
+
+                // Toggle like
+                var result = _reviewService.ToggleLike(userModel.Id, reviewId);
+
+                return Json(new { 
+                    success = true, 
+                    isLiked = result.isLiked,
+                    likeCount = result.likeCount
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = $"Error: {ex.Message}" });
+            }
         }
     }
 }

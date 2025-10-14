@@ -86,6 +86,102 @@ namespace ASI.Basecode.Services.Services
             // Check if organization name already exists
             return !_organizationRepository.OrganizationExists(model.OrganizationName);
         }
+
+        public AdminSettingsViewModel GetAdminSettings(int adminId)
+        {
+            var admin = _adminRepository.GetAdminById(adminId);
+            if (admin == null)
+            {
+                throw new InvalidDataException("Admin not found.");
+            }
+
+            var organization = _organizationRepository.GetOrganizationById(admin.OrganizationId.Value);
+            if (organization == null)
+            {
+                throw new InvalidDataException("Organization not found.");
+            }
+
+            return new AdminSettingsViewModel
+            {
+                AdminId = admin.Id,
+                AdminUsername = admin.AdminUsername,
+                ProfilePicture = admin.ProfilePicture,
+                OrganizationId = organization.Id,
+                OrganizationName = organization.Name,
+                OrganizationType = organization.Type,
+                ContactNumber = organization.ContactNumber,
+                Address = organization.Address
+            };
+        }
+
+        public void UpdateAdminSettings(AdminSettingsViewModel model)
+        {
+            var admin = _adminRepository.GetAdminById(model.AdminId);
+            if (admin == null)
+            {
+                throw new InvalidDataException("Admin not found.");
+            }
+
+            var organization = _organizationRepository.GetOrganizationById(model.OrganizationId);
+            if (organization == null)
+            {
+                throw new InvalidDataException("Organization not found.");
+            }
+
+            // Update admin
+            admin.AdminUsername = model.AdminUsername;
+            if (!string.IsNullOrEmpty(model.NewPassword))
+            {
+                admin.AdminPassword = PasswordManager.EncryptPassword(model.NewPassword);
+            }
+            if (!string.IsNullOrEmpty(model.ProfilePicture))
+            {
+                admin.ProfilePicture = model.ProfilePicture;
+            }
+            admin.UpdatedBy = System.Environment.UserName;
+            admin.UpdatedTime = DateTime.Now;
+
+            _adminRepository.UpdateAdmin(admin);
+
+            // Update organization
+            organization.Name = model.OrganizationName;
+            organization.Type = model.OrganizationType;
+            organization.ContactNumber = model.ContactNumber;
+            organization.Address = model.Address;
+            organization.UpdatedBy = System.Environment.UserName;
+            organization.UpdatedTime = DateTime.Now;
+
+            _organizationRepository.UpdateOrganization(organization);
+        }
+
+        public bool CanDeleteAccount(int adminId)
+        {
+            // TODO: Check for pending borrows, late returns, etc.
+            // For now, return true as validation will be implemented later
+            return true;
+        }
+
+        public void DeleteAdminAccount(int adminId)
+        {
+            var admin = _adminRepository.GetAdminById(adminId);
+            if (admin == null)
+            {
+                throw new InvalidDataException("Admin not found.");
+            }
+
+            if (!CanDeleteAccount(adminId))
+            {
+                throw new InvalidOperationException("Cannot delete account with pending transactions.");
+            }
+
+            var organizationId = admin.OrganizationId.Value;
+
+            // Delete admin first
+            _adminRepository.DeleteAdmin(adminId);
+
+            // Delete organization and cascade to books
+            _organizationRepository.DeleteOrganization(organizationId);
+        }
     }
 }
 

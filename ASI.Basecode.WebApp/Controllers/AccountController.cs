@@ -235,9 +235,27 @@ namespace ASI.Basecode.WebApp.Controllers
                 };
                 await this._signInManager.SignInAsync(user);
                 this._session.SetString("UserName", admin.AdminUsername);
+                this._session.SetInt32("UserId", admin.Id); // Store admin's database ID
                 this._session.SetInt32("UserRole", 1); // 1 = Admin
                 this._session.SetInt32("OrganizationId", admin.OrganizationId ?? 0);
-                return RedirectToAction("Index", "AdminHome");
+                
+                // Store organization name in session
+                if (admin.OrganizationId.HasValue)
+                {
+                    var organization = _organizationService.GetOrganizationById(admin.OrganizationId.Value);
+                    if (organization != null)
+                    {
+                        this._session.SetString("OrganizationName", organization.Name);
+                    }
+                }
+                
+                // Store profile picture in session
+                if (!string.IsNullOrEmpty(admin.ProfilePicture))
+                {
+                    this._session.SetString("ProfilePicture", admin.ProfilePicture);
+                }
+                
+                return RedirectToAction("Dashboard", "AdminHome");
             }
             else
             {
