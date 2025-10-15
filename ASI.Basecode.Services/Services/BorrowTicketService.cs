@@ -66,15 +66,39 @@ namespace ASI.Basecode.Services.Services
             var renewalPolicy = _renewalPolicyRepository.GetByOrganization(book.OrganizationId);
             var claimPolicy = _claimPolicyRepository.GetByOrganization(book.OrganizationId);
 
+            // Create default policies if they don't exist
             if (borrowingPolicy == null || finePolicy == null || renewalPolicy == null || claimPolicy == null)
             {
-                throw new InvalidDataException("Organization policies not found. Please contact administrator.");
+                CreateDefaultPoliciesIfMissing(book.OrganizationId);
+                
+                // Re-fetch policies after creation
+                borrowingPolicy = _borrowingPolicyRepository.GetByOrganization(book.OrganizationId);
+                finePolicy = _finePolicyRepository.GetByOrganization(book.OrganizationId);
+                renewalPolicy = _renewalPolicyRepository.GetByOrganization(book.OrganizationId);
+                claimPolicy = _claimPolicyRepository.GetByOrganization(book.OrganizationId);
             }
 
             // Validate borrow eligibility
             if (!ValidateBorrowEligibility(userId, book.OrganizationId))
             {
                 throw new InvalidOperationException($"You have reached the maximum number of active tickets ({borrowingPolicy.MaxActiveTicketsPerUser}).");
+            }
+
+            // Enforce daily borrow limit (default 10 per day)
+            var allowedPerDay = borrowingPolicy.BorrowLimitPerUser > 0
+                ? Math.Min(10, borrowingPolicy.BorrowLimitPerUser)
+                : 10;
+
+            var todaysBorrowCount = _ticketRepository.GetTicketsByUser(userId)
+                .Count(t =>
+                    t.OrganizationId == book.OrganizationId &&
+                    t.CreatedAt.Date == DateTime.Today &&
+                    t.Status != TicketStatus.Cancelled &&
+                    t.Status != TicketStatus.Expired);
+
+            if (todaysBorrowCount >= allowedPerDay)
+            {
+                throw new InvalidOperationException($"Daily borrow limit of {allowedPerDay} reached. Please try again tomorrow.");
             }
 
             // Create ticket
@@ -295,6 +319,64 @@ namespace ASI.Basecode.Services.Services
             return MapTicketsToViewModels(tickets);
         }
 
+        public List<BorrowTicketViewModel> GetPendingClaims(int orgId)
+        {
+            var tickets = _ticketRepository.GetTicketsByOrganization(orgId)
+                .Where(t => t.Status == TicketStatus.NotYetClaimed)
+                .OrderBy(t => t.ExpiresAt)
+                .ToList();
+
+            return MapTicketsToViewModels(tickets);
+        }
+
+        public List<BorrowTicketViewModel> GetUserBorrowedBooks(int userId)
+        {
+            var tickets = _ticketRepository.GetTicketsByUser(userId)
+                .Where(t => t.Status == TicketStatus.NotYetReturned)
+                .OrderBy(t => t.DueAt)
+                .ToList();
+
+            return MapTicketsToViewModels(tickets);
+        }
+
+        public List<BorrowTicketViewModel> GetUserOverdueBooks(int userId)
+        {
+            var tickets = _ticketRepository.GetTicketsByUser(userId)
+                .Where(t => t.Status == TicketStatus.NotYetReturned && 
+                           t.DueAt.HasValue && 
+                           t.DueAt.Value < DateTime.Now)
+                .OrderBy(t => t.DueAt)
+                .ToList();
+
+            return MapTicketsToViewModels(tickets);
+        }
+
+        public List<BorrowTicketViewModel> GetUserBorrowHistory(int userId)
+        {
+            var tickets = _ticketRepository.GetTicketsByUser(userId)
+                .Where(t => t.Status == TicketStatus.Returned)
+                .OrderByDescending(t => t.ReturnedAt)
+                .ToList();
+
+            return MapTicketsToViewModels(tickets);
+        }
+
+        public decimal CalculateFine(BorrowTicket ticket)
+        {
+            if (ticket.Status != TicketStatus.NotYetReturned || !ticket.DueAt.HasValue)
+            {
+                return 0;
+            }
+
+            var overdueDays = (DateTime.Now - ticket.DueAt.Value).Days;
+            if (overdueDays <= 0)
+            {
+                return 0;
+            }
+
+            return overdueDays * ticket.FinePerDay;
+        }
+
         public BorrowTicketViewModel GetTicketByReferenceCode(string referenceCode)
         {
             var ticket = _ticketRepository.GetTicketByReferenceCode(referenceCode);
@@ -315,6 +397,17 @@ namespace ASI.Basecode.Services.Services
             }
 
             return MapTicketToViewModel(ticket);
+        }
+
+        public BorrowingPolicyViewModel GetBorrowingPolicy(int orgId)
+        {
+            var policy = _borrowingPolicyRepository.GetByOrganization(orgId);
+            if (policy == null)
+            {
+                return null;
+            }
+
+            return _mapper.Map<BorrowingPolicyViewModel>(policy);
         }
 
         public bool ValidateBorrowEligibility(int userId, int orgId)
@@ -406,6 +499,8 @@ namespace ASI.Basecode.Services.Services
             {
                 viewModel.BookTitle = book.Title;
                 viewModel.BookAuthor = book.Author;
+                viewModel.BookCoverImage = book.CoverImage;
+                viewModel.OrganizationName = book.Organization?.Name;
             }
 
             // Populate user name
@@ -463,7 +558,74 @@ namespace ASI.Basecode.Services.Services
                 _ => "Unknown"
             };
         }
+
+        private void CreateDefaultPoliciesIfMissing(int organizationId)
+        {
+            var now = DateTime.Now;
+            var systemUser = "System";
+
+            // Create BorrowingPolicy if missing
+            if (_borrowingPolicyRepository.GetByOrganization(organizationId) == null)
+            {
+                var borrowingPolicy = new BorrowingPolicy
+                {
+                    OrganizationId = organizationId,
+                    BorrowLimitPerUser = 10,
+                    BorrowDaysDefault = 14,
+                    MaxActiveTicketsPerUser = 5,
+                    CreatedBy = systemUser,
+                    CreatedTime = now,
+                    UpdatedBy = systemUser,
+                    UpdatedTime = now
+                };
+                _borrowingPolicyRepository.Add(borrowingPolicy);
+            }
+
+            // Create FinePolicy if missing
+            if (_finePolicyRepository.GetByOrganization(organizationId) == null)
+            {
+                var finePolicy = new FinePolicy
+                {
+                    OrganizationId = organizationId,
+                    FinePerDay = 5.00m,
+                    CreatedBy = systemUser,
+                    CreatedTime = now,
+                    UpdatedBy = systemUser,
+                    UpdatedTime = now
+                };
+                _finePolicyRepository.Add(finePolicy);
+            }
+
+            // Create RenewalPolicy if missing
+            if (_renewalPolicyRepository.GetByOrganization(organizationId) == null)
+            {
+                var renewalPolicy = new RenewalPolicy
+                {
+                    OrganizationId = organizationId,
+                    AllowRenewals = true,
+                    MaxRenewals = 2,
+                    CreatedBy = systemUser,
+                    CreatedTime = now,
+                    UpdatedBy = systemUser,
+                    UpdatedTime = now
+                };
+                _renewalPolicyRepository.Add(renewalPolicy);
+            }
+
+            // Create ClaimPolicy if missing
+            if (_claimPolicyRepository.GetByOrganization(organizationId) == null)
+            {
+                var claimPolicy = new ClaimPolicy
+                {
+                    OrganizationId = organizationId,
+                    ClaimWindowHours = 24,
+                    CreatedBy = systemUser,
+                    CreatedTime = now,
+                    UpdatedBy = systemUser,
+                    UpdatedTime = now
+                };
+                _claimPolicyRepository.Add(claimPolicy);
+            }
+        }
     }
 }
-
-

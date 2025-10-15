@@ -117,14 +117,23 @@
                                 <span class="currently-reading">@(Model.CopiesTotal - Model.CopiesAvailable) Currently reading</span>
                                 <span class="copies-available">@Model.CopiesAvailable books left</span>
                             </div>
-                            @if (Model.CopiesAvailable > 0)
-                            {
-                                <button class="btn-borrow-now">BORROW NOW</button>
-                            }
-                            else
-                            {
-                                <button class="btn-borrow-now" disabled>OUT OF STOCK</button>
-                            }
+                            <div class="action-buttons">
+                                @if (Model.CopiesAvailable > 0)
+                                {
+                                    <button class="btn-borrow-now" id="borrowBookButton"
+                                            data-book-id="@Model.Id"
+                                            data-organization="@Model.OrganizationName">
+                                        BORROW NOW
+                                    </button>
+                                }
+                                else
+                                {
+                                    <button class="btn-borrow-now" disabled>OUT OF STOCK</button>
+                                }
+                                <button class="btn-add-wishlist" id="wishlistButton" data-book-id="@Model.Id">
+                                    <i class="far fa-heart"></i> <span>Add to Wishlist</span>
+                                </button>
+                            </div>
                         </div>
 
                         <!-- Admin/Organization Contact Information -->
@@ -325,6 +334,7 @@
     }
 }
 
+
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
     $(document).ready(function() {
@@ -336,6 +346,61 @@
         
         // Initialize user rating display
         updateStarDisplay('.star-rating-interactive');
+
+        var borrowButton = $('#borrowBookButton');
+        if (borrowButton.length) {
+            borrowButton.on('click', function (event) {
+                event.preventDefault();
+
+                if (borrowButton.hasClass('loading')) {
+                    return;
+                }
+
+                var bookId = borrowButton.data('book-id');
+
+                borrowButton.addClass('loading').prop('disabled', true);
+
+                $.ajax({
+                    url: '@Url.Action("AddToCart", "UserHome")',
+                    type: 'POST',
+                    data: { bookId: bookId },
+                    success: function(response) {
+                        if (response && response.success) {
+                            // Show success message
+                            showMessage(response.message, 'success');
+                            
+                            // Update button text temporarily
+                            var originalText = borrowButton.text();
+                            borrowButton.text('ADDED!').addClass('added');
+                            
+                            // Update cart badge
+                            updateCartBadge();
+                            
+                            // Reset button after 2 seconds
+                            setTimeout(function() {
+                                borrowButton.text(originalText).removeClass('added');
+                            }, 2000);
+                        } else if (response && response.message) {
+                            showMessage(response.message, 'error');
+                        } else {
+                            showMessage('Unable to add book to cart right now.', 'error');
+                        }
+                    },
+                    error: function() {
+                        showMessage('Unable to add book to cart right now.', 'error');
+                    },
+                    complete: function() {
+                        borrowButton.removeClass('loading').prop('disabled', false);
+                    }
+                });
+            });
+        }
+
+        // Initialize cart badge on page load
+        updateCartBadge();
+
+        // Initialize wishlist button
+        initializeWishlistButton();
 
         // Character counter
         $('#reviewTextInput').on('input', function() {
@@ -375,6 +440,26 @@
             $(this).find('.star').removeClass('hover');
         });
     });
+
+    function updateCartBadge() {
+        $.ajax({
+            url: '@Url.Action("GetCartCount", "UserHome")',
+            type: 'GET',
+            success: function(response) {
+                if (response && response.cartCount !== undefined) {
+                    $('#cartBadgeCount').text(response.cartCount);
+                    if (response.cartCount > 0) {
+                        $('#cartBadgeCount').show();
+                    } else {
+                        $('#cartBadgeCount').hide();
+                    }
+                }
+            },
+            error: function() {
+                // Silently fail - cart badge is not critical
+            }
+        });
+    }
 
     function saveReview() {
         var bookId = $('.star-rating-interactive').data('book-id');
@@ -555,6 +640,69 @@
             'background': 'linear-gradient(135deg, rgba(212, 194, 176, 0.3) 0%, rgba(166, 109, 63, 0.2) 100%)',
             'background-color': '#F2E4D4'
         });
+    }
+
+    function initializeWishlistButton() {
+        var wishlistButton = $('#wishlistButton');
+        var bookId = wishlistButton.data('book-id');
+
+        // Check wishlist status on page load
+        $.ajax({
+            url: '@Url.Action("GetWishlistStatus", "UserHome")',
+            type: 'GET',
+            data: { bookId: bookId },
+            success: function(response) {
+                if (response && response.isInWishlist) {
+                    updateWishlistButton(true);
+                }
+            }
+        });
+
+        // Handle wishlist toggle
+        wishlistButton.on('click', function() {
+            if (wishlistButton.hasClass('loading')) {
+                return;
+            }
+
+            wishlistButton.addClass('loading').prop('disabled', true);
+
+            $.ajax({
+                url: '@Url.Action("ToggleWishlist", "UserHome")',
+                type: 'POST',
+                data: { bookId: bookId },
+                success: function(response) {
+                    if (response && response.success) {
+                        updateWishlistButton(response.isInWishlist);
+                        showMessage(response.message, 'success');
+                    } else if (response && response.message) {
+                        showMessage(response.message, 'error');
+                    } else {
+                        showMessage('Unable to update wishlist right now.', 'error');
+                    }
+                },
+                error: function() {
+                    showMessage('Unable to update wishlist right now.', 'error');
+                },
+                complete: function() {
+                    wishlistButton.removeClass('loading').prop('disabled', false);
+                }
+            });
+        });
+    }
+
+    function updateWishlistButton(isInWishlist) {
+        var wishlistButton = $('#wishlistButton');
+        var icon = wishlistButton.find('i');
+        
+        if (isInWishlist) {
+            icon.removeClass('far').addClass('fas');
+            wishlistButton.addClass('wishlist-active');
+            wishlistButton.find('span').text('Remove from Wishlist');
+        } else {
+            icon.removeClass('fas').addClass('far');
+            wishlistButton.removeClass('wishlist-active');
+            wishlistButton.find('span').text('Add to Wishlist');
+        }
     }
 </script>
 

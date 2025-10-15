@@ -331,5 +331,121 @@ namespace ASI.Basecode.WebApp.Controllers
                 return RedirectToAction("LoginUser", "Account");
             }
         }
+
+        #region User Authentication Pages
+
+        // User Forgot Password
+        [HttpGet]
+        [AllowAnonymous]
+        public IActionResult ForgotPasswordUser()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        [AllowAnonymous]
+        public IActionResult ForgotPasswordUser(string email)
+        {
+            // Placeholder: Will send reset email
+            TempData["SuccessMessage"] = "Password reset link has been sent to your email.";
+            return RedirectToAction("LoginUser");
+        }
+
+        // User Change Password
+        [HttpGet]
+        [AllowAnonymous]
+        public IActionResult ChangePasswordUser(string token, string email)
+        {
+            ViewBag.Token = token;
+            ViewBag.Email = email;
+            return View();
+        }
+
+        [HttpPost]
+        [AllowAnonymous]
+        public IActionResult ChangePasswordUser(string token, string email, string newPassword, string confirmPassword)
+        {
+            // Placeholder: Will validate token and update password
+            TempData["SuccessMessage"] = "Password changed successfully!";
+            return RedirectToAction("LoginUser");
+        }
+
+        // User OTP Verification
+        [HttpGet]
+        [AllowAnonymous]
+        public IActionResult OTPVerificationUser(string email)
+        {
+            ViewBag.Email = email;
+            return View();
+        }
+
+        [HttpPost]
+        [AllowAnonymous]
+        public IActionResult VerifyOTPUser(string email, string otpCode)
+        {
+            // Placeholder: Will verify OTP
+            TempData["SuccessMessage"] = "Account verified successfully!";
+            return RedirectToAction("LoginUser");
+        }
+
+        #endregion
+
+        #region Admin Authentication Pages
+
+        // Admin Forgot Password
+        [HttpGet]
+        [AllowAnonymous]
+        public IActionResult ForgotPasswordAdmin()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        [AllowAnonymous]
+        public IActionResult ForgotPasswordAdmin(string email)
+        {
+            // Placeholder: Will send reset email
+            TempData["SuccessMessage"] = "Password reset link has been sent to your email.";
+            return RedirectToAction("LoginAdmin");
+        }
+
+        // Admin Change Password
+        [HttpGet]
+        [AllowAnonymous]
+        public IActionResult ChangePasswordAdmin(string token, string email)
+        {
+            ViewBag.Token = token;
+            ViewBag.Email = email;
+            return View();
+        }
+
+        [HttpPost]
+        [AllowAnonymous]
+        public IActionResult ChangePasswordAdmin(string token, string email, string newPassword, string confirmPassword)
+        {
+            // Placeholder: Will validate token and update password
+            TempData["SuccessMessage"] = "Password changed successfully!";
+            return RedirectToAction("LoginAdmin");
+        }
+
+        // Admin OTP Verification
+        [HttpGet]
+        [AllowAnonymous]
+        public IActionResult OTPVerificationAdmin(string email)
+        {
+            ViewBag.Email = email;
+            return View();
+        }
+
+        [HttpPost]
+        [AllowAnonymous]
+        public IActionResult VerifyOTPAdmin(string email, string otpCode)
+        {
+            // Placeholder: Will verify OTP
+            TempData["SuccessMessage"] = "Account verified successfully!";
+            return RedirectToAction("LoginAdmin");
+        }
+
+        #endregion
     }
 }
