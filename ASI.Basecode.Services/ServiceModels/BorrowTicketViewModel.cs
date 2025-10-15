@@ -44,6 +44,8 @@ namespace ASI.Basecode.Services.ServiceModels
         // Display properties
         public string BookTitle { get; set; }
         public string BookAuthor { get; set; }
+        public string BookCoverImage { get; set; }
+        public string OrganizationName { get; set; }
         public string UserName { get; set; }
         public string ClaimedByEmployeeName { get; set; }
         public string CheckedOutByEmployeeName { get; set; }
@@ -54,6 +56,7 @@ namespace ASI.Basecode.Services.ServiceModels
         public bool IsOverdue => Status == TicketStatus.NotYetReturned && DueAt.HasValue && DueAt < DateTime.Now;
         public int DaysUntilExpiry => Status == TicketStatus.NotYetClaimed ? (int)(ExpiresAt - DateTime.Now).TotalDays : 0;
         public int DaysUntilDue => Status == TicketStatus.NotYetReturned && DueAt.HasValue ? (int)(DueAt.Value - DateTime.Now).TotalDays : 0;
+        public bool CanCancel => Status == TicketStatus.NotYetClaimed;
 
         public void CreateMappings(IMapperConfigurationExpression configuration)
         {
@@ -75,5 +78,4 @@ namespace ASI.Basecode.Services.ServiceModels
         }
     }
 }
-
 

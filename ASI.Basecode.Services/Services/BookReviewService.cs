@@ -76,6 +76,18 @@ namespace ASI.Basecode.Services.Services
         }
 
         /// <summary>
+        /// Get all reviews for a book (for calculating statistics)
+        /// </summary>
+        public List<BookReviewViewModel> GetBookReviews(int bookId)
+        {
+            var reviews = _repository.GetBookReviews(bookId)
+                .Where(r => r.Rating.HasValue) // Only include reviews with ratings
+                .ToList();
+
+            return _mapper.Map<List<BookReviewViewModel>>(reviews);
+        }
+
+        /// <summary>
         /// Get book reviews for display with user info and like counts
         /// Excludes the current user's review (shown separately in "Your Review" section)
         /// </summary>

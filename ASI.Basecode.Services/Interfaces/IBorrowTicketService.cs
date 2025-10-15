@@ -15,12 +15,16 @@ namespace ASI.Basecode.Services.Interfaces
         decimal CalculateFine(BorrowTicketViewModel ticket);
         List<BorrowTicketViewModel> GetUserTickets(int userId, TicketStatus? status = null);
         List<BorrowTicketViewModel> GetOrganizationTickets(int orgId, TicketStatus? status = null);
+        List<BorrowTicketViewModel> GetPendingClaims(int orgId);
         BorrowTicketViewModel GetTicketByReferenceCode(string referenceCode);
         BorrowTicketViewModel GetTicketById(int id);
         bool ValidateBorrowEligibility(int userId, int orgId);
         void RenewTicket(int ticketId);
         void PayFine(int ticketId);
+        BorrowingPolicyViewModel GetBorrowingPolicy(int orgId);
+        List<BorrowTicketViewModel> GetUserBorrowedBooks(int userId);
+        List<BorrowTicketViewModel> GetUserOverdueBooks(int userId);
+        List<BorrowTicketViewModel> GetUserBorrowHistory(int userId);
     }
 }
-
 

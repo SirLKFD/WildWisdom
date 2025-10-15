@@ -120,6 +120,56 @@ namespace ASI.Basecode.Data.Migrations
                     b.ToTable("BookCategories");
                 });
 
+            modelBuilder.Entity("ASI.Basecode.Data.Models.BookCheckout", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("AddedAt")
+                        .HasColumnType("datetime");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<DateTime>("CreatedTime")
+                        .HasColumnType("datetime");
+
+                    b.Property<int>("OrgBookId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("OrganizationId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UpdatedBy")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<DateTime>("UpdatedTime")
+                        .HasColumnType("datetime");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrgBookId");
+
+                    b.HasIndex("OrganizationId");
+
+                    b.HasIndex(new[] { "UserId", "OrgBookId" }, "UQ__BookCheckout__UserId_OrgBookId")
+                        .IsUnique();
+
+                    b.ToTable("BookCheckouts");
+                });
+
             modelBuilder.Entity("ASI.Basecode.Data.Models.BookReview", b =>
                 {
                     b.Property<int>("Id")
@@ -762,6 +812,51 @@ namespace ASI.Basecode.Data.Migrations
                     b.ToTable("Users");
                 });
 
+            modelBuilder.Entity("ASI.Basecode.Data.Models.Wishlist", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("AddedAt")
+                        .HasColumnType("datetime");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<DateTime>("CreatedTime")
+                        .HasColumnType("datetime");
+
+                    b.Property<int>("OrgBookId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UpdatedBy")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<DateTime>("UpdatedTime")
+                        .HasColumnType("datetime");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrgBookId");
+
+                    b.HasIndex(new[] { "UserId", "OrgBookId" }, "UQ__Wishlist__UserId_OrgBookId")
+                        .IsUnique();
+
+                    b.ToTable("Wishlists");
+                });
+
             modelBuilder.Entity("ASI.Basecode.Data.Models.Admin", b =>
                 {
                     b.HasOne("ASI.Basecode.Data.Models.Organization", "Organization")
@@ -770,6 +865,36 @@ namespace ASI.Basecode.Data.Migrations
                         .HasConstraintName("FK_Admin_Organization");
 
                     b.Navigation("Organization");
+                });
+
+            modelBuilder.Entity("ASI.Basecode.Data.Models.BookCheckout", b =>
+                {
+                    b.HasOne("ASI.Basecode.Data.Models.OrgBooks", "OrgBook")
+                        .WithMany()
+                        .HasForeignKey("OrgBookId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_BookCheckout_OrgBook");
+
+                    b.HasOne("ASI.Basecode.Data.Models.Organization", "Organization")
+                        .WithMany()
+                        .HasForeignKey("OrganizationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_BookCheckout_Organization");
+
+                    b.HasOne("ASI.Basecode.Data.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_BookCheckout_User");
+
+                    b.Navigation("OrgBook");
+
+                    b.Navigation("Organization");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("ASI.Basecode.Data.Models.BookReview", b =>
@@ -944,6 +1069,27 @@ namespace ASI.Basecode.Data.Migrations
                         .HasConstraintName("FK_User_Organization");
 
                     b.Navigation("Organization");
+                });
+
+            modelBuilder.Entity("ASI.Basecode.Data.Models.Wishlist", b =>
+                {
+                    b.HasOne("ASI.Basecode.Data.Models.OrgBooks", "OrgBook")
+                        .WithMany()
+                        .HasForeignKey("OrgBookId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_Wishlist_OrgBook");
+
+                    b.HasOne("ASI.Basecode.Data.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_Wishlist_User");
+
+                    b.Navigation("OrgBook");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("ASI.Basecode.Data.Models.BookCategory", b =>

@@ -31,6 +31,11 @@ namespace ASI.Basecode.Services.Interfaces
         List<BookReviewDisplayViewModel> GetBookReviewsDisplay(int bookId, int currentUserId);
 
         /// <summary>
+        /// Get all reviews for a book (for calculating statistics)
+        /// </summary>
+        List<BookReviewViewModel> GetBookReviews(int bookId);
+
+        /// <summary>
         /// Toggle like on a review
         /// </summary>
         (bool isLiked, int likeCount) ToggleLike(int userId, int reviewId);

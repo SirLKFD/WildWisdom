@@ -32,6 +32,13 @@
                     </a>
                 </li>
                 <li>
+                    <a asp-controller="AdminHome" asp-action="ReferenceLookup"
+                       class="admin-nav-link @(currentAction == "ReferenceLookup" ? "active" : "")">
+                        <i class="fas fa-ticket-alt"></i>
+                        <span>Reference Lookup</span>
+                    </a>
+                </li>
+                <li>
                     <a asp-controller="AdminHome" asp-action="AdminSettings" 
                        class="admin-nav-link @(currentAction == "AdminSettings" ? "active" : "")">
                         <i class="fas fa-cog"></i>

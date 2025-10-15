@@ -30,6 +30,8 @@ namespace ASI.Basecode.Data
         public virtual DbSet<ClaimPolicy> ClaimPolicies { get; set; }
         public virtual DbSet<BookReview> BookReviews { get; set; }
         public virtual DbSet<BookReviewLike> BookReviewLikes { get; set; }
+        public virtual DbSet<BookCheckout> BookCheckouts { get; set; }
+        public virtual DbSet<Wishlist> Wishlists { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -523,6 +525,74 @@ namespace ASI.Basecode.Data
 
                 // Create unique index to ensure one user can only like a review once
                 entity.HasIndex(e => new { e.UserId, e.BookReviewId }, "UQ__BookReviewLike__UserId_BookReviewId")
+                    .IsUnique();
+            });
+
+            modelBuilder.Entity<BookCheckout>(entity =>
+            {
+                entity.Property(e => e.AddedAt).HasColumnType("datetime");
+                entity.Property(e => e.CreatedBy)
+                    .IsRequired()
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+                entity.Property(e => e.CreatedTime).HasColumnType("datetime");
+                entity.Property(e => e.UpdatedBy)
+                    .IsRequired()
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+                entity.Property(e => e.UpdatedTime).HasColumnType("datetime");
+
+                entity.HasOne(d => d.User)
+                    .WithMany()
+                    .HasForeignKey(d => d.UserId)
+                    .OnDelete(DeleteBehavior.Restrict)
+                    .HasConstraintName("FK_BookCheckout_User");
+
+                entity.HasOne(d => d.OrgBook)
+                    .WithMany()
+                    .HasForeignKey(d => d.OrgBookId)
+                    .OnDelete(DeleteBehavior.Restrict)
+                    .HasConstraintName("FK_BookCheckout_OrgBook");
+
+                entity.HasOne(d => d.Organization)
+                    .WithMany()
+                    .HasForeignKey(d => d.OrganizationId)
+                    .OnDelete(DeleteBehavior.Restrict)
+                    .HasConstraintName("FK_BookCheckout_Organization");
+
+                // Create unique index to ensure one user can only have one cart item per book
+                entity.HasIndex(e => new { e.UserId, e.OrgBookId }, "UQ__BookCheckout__UserId_OrgBookId")
+                    .IsUnique();
+            });
+
+            modelBuilder.Entity<Wishlist>(entity =>
+            {
+                entity.Property(e => e.AddedAt).HasColumnType("datetime");
+                entity.Property(e => e.CreatedBy)
+                    .IsRequired()
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+                entity.Property(e => e.CreatedTime).HasColumnType("datetime");
+                entity.Property(e => e.UpdatedBy)
+                    .IsRequired()
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+                entity.Property(e => e.UpdatedTime).HasColumnType("datetime");
+
+                entity.HasOne(d => d.User)
+                    .WithMany()
+                    .HasForeignKey(d => d.UserId)
+                    .OnDelete(DeleteBehavior.Restrict)
+                    .HasConstraintName("FK_Wishlist_User");
+
+                entity.HasOne(d => d.OrgBook)
+                    .WithMany()
+                    .HasForeignKey(d => d.OrgBookId)
+                    .OnDelete(DeleteBehavior.Restrict)
+                    .HasConstraintName("FK_Wishlist_OrgBook");
+
+                // Create unique index to ensure one user can only have one wishlist item per book
+                entity.HasIndex(e => new { e.UserId, e.OrgBookId }, "UQ__Wishlist__UserId_OrgBookId")
                     .IsUnique();
             });
 

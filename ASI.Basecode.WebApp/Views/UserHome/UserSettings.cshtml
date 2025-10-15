@@ -1,8 +1,9 @@
 @model ASI.Basecode.Services.ServiceModels.UserSettingsViewModel
 
 @{
-    ViewData["Title"] = "Settings - WildWisdom";
+    ViewData["Title"] = "My Profile - WildWisdom";
     Layout = null;
+    var selectedTab = ViewBag.SelectedTab as string ?? "borrowed-books";
 }
 
 <!DOCTYPE html>
@@ -145,13 +146,6 @@
 
 <div class="userhome-content">
     <div class="container-fluid px-4 py-4">
-        <!-- Page Header -->
-        <div class="page-header mb-4">
-            <h2 class="userhome-section-title">
-                <i class="fa-solid fa-gear"></i> Account Settings
-            </h2>
-            <p class="userhome-section-subtitle">Manage your profile information and preferences</p>
-        </div>
 
         @if (TempData["SuccessMessage"] != null)
         {
@@ -169,7 +163,426 @@
             </div>
         }
 
-        <div class="settings-container">
+        <!-- User Profile Container with Sidebar -->
+        <div class="user-profile-container">
+            <!-- Left Sidebar -->
+            <div class="profile-sidebar">
+                <div class="sidebar-header">
+                    <h4>My Profile</h4>
+                </div>
+                <nav class="sidebar-nav">
+                    <a href="#" class="sidebar-nav-item @(selectedTab == "borrowed-books" ? "active" : "")" data-tab="borrowed-books">
+                        <i class="fa-solid fa-book-open"></i>
+                        <span>My Borrowed Books</span>
+                    </a>
+                    <a href="#" class="sidebar-nav-item @(selectedTab == "pending-reservations" ? "active" : "")" data-tab="pending-reservations">
+                        <i class="fa-solid fa-clock"></i>
+                        <span>Pending Reservations</span>
+                    </a>
+                    <a href="#" class="sidebar-nav-item @(selectedTab == "unreturned-books" ? "active" : "")" data-tab="unreturned-books">
+                        <i class="fa-solid fa-clock"></i>
+                        <span>Unreturned Books</span>
+                    </a>
+                    <a href="#" class="sidebar-nav-item @(selectedTab == "history" ? "active" : "")" data-tab="history">
+                        <i class="fa-solid fa-history"></i>
+                        <span>History</span>
+                    </a>
+                    <a href="#" class="sidebar-nav-item @(selectedTab == "wishlist" ? "active" : "")" data-tab="wishlist">
+                        <i class="fa-solid fa-heart"></i>
+                        <span>Wishlist</span>
+                    </a>
+                    <a href="#" class="sidebar-nav-item @(selectedTab == "account-settings" ? "active" : "")" data-tab="account-settings">
+                        <i class="fa-solid fa-gear"></i>
+                        <span>Account Settings</span>
+                    </a>
+                </nav>
+            </div>
+
+            <!-- Content Area -->
+            <div class="profile-content-area">
+                <!-- My Borrowed Books Tab -->
+                <div class="profile-tab-content @(selectedTab == "borrowed-books" ? "active" : "")" id="borrowed-books">
+                    <div class="tab-header">
+                        <h3><i class="fa-solid fa-book-open"></i> My Borrowed Books</h3>
+                        <p>View and manage your currently borrowed books</p>
+                    </div>
+                    
+                    @if (Model.BorrowedBooks.Any())
+                    {
+                        <div class="borrowed-books-container">
+                            @foreach (var book in Model.BorrowedBooks)
+                            {
+                                <div class="borrowed-book-card">
+                                    <div class="book-cover">
+                                        @if (!string.IsNullOrEmpty(book.BookCoverImage))
+                                        {
+                                            <img src="@book.BookCoverImage" alt="@book.BookTitle" />
+                                        }
+                                        else
+                                        {
+                                            <div class="book-cover-placeholder">
+                                                <i class="fas fa-book"></i>
+                                            </div>
+                                        }
+                                    </div>
+                                    <div class="book-info">
+                                        <h4>@book.BookTitle</h4>
+                                        <p class="book-author">by @book.BookAuthor</p>
+                                        <div class="book-meta">
+                                            <span class="borrowed-date">
+                                                <i class="fas fa-calendar-plus"></i>
+                                                Borrowed: @(book.CheckedOutAt?.ToString("MMM dd, yyyy") ?? "Not set")
+                                            </span>
+                                            <span class="due-date">
+                                                <i class="fas fa-calendar-check"></i>
+                                                Due: @(book.DueAt?.ToString("MMM dd, yyyy") ?? "Not set")
+                                            </span>
+                                            <span class="organization">
+                                                <i class="fas fa-building"></i>
+                                                @book.OrganizationName
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="empty-state">
+                            <div class="empty-icon">
+                                <i class="fa-solid fa-book-open"></i>
+                            </div>
+                            <h3>No Borrowed Books</h3>
+                            <p>You haven't borrowed any books yet.</p>
+                            <a href="@Url.Action("Index", "UserHome")" class="btn-browse-books">
+                                <i class="fas fa-search"></i> Browse Books
+                            </a>
+                        </div>
+                    }
+                </div>
+
+                <!-- Unreturned Books Tab -->
+                <div class="profile-tab-content @(selectedTab == "unreturned-books" ? "active" : "")" id="unreturned-books">
+                    <div class="tab-header">
+                        <h3><i class="fa-solid fa-clock"></i> Unreturned Books</h3>
+                        <p>Books that are overdue or need to be returned soon</p>
+                    </div>
+                    
+                    @if (Model.OverdueBooks.Any())
+                    {
+                        <div class="overdue-books-container">
+                            @foreach (var book in Model.OverdueBooks)
+                            {
+                                var daysOverdue = book.DueAt.HasValue ? (DateTime.Now - book.DueAt.Value).Days : 0;
+                                var fineAmount = daysOverdue > 0 ? daysOverdue * book.FinePerDay : 0;
+                                
+                                <div class="overdue-book-card">
+                                    <div class="book-cover">
+                                        @if (!string.IsNullOrEmpty(book.BookCoverImage))
+                                        {
+                                            <img src="@book.BookCoverImage" alt="@book.BookTitle" />
+                                        }
+                                        else
+                                        {
+                                            <div class="book-cover-placeholder">
+                                                <i class="fas fa-book"></i>
+                                            </div>
+                                        }
+                                    </div>
+                                    <div class="book-info">
+                                        <div class="overdue-header">
+                                            <h4>@book.BookTitle</h4>
+                                            <span class="overdue-badge">OVERDUE</span>
+                                        </div>
+                                        <p class="book-author">by @book.BookAuthor</p>
+                                        <div class="overdue-meta">
+                                            <span class="days-overdue">
+                                                <i class="fas fa-exclamation-triangle"></i>
+                                                @daysOverdue days overdue
+                                            </span>
+                                            <span class="due-date">
+                                                <i class="fas fa-calendar-times"></i>
+                                                Due: @(book.DueAt?.ToString("MMM dd, yyyy") ?? "Not set")
+                                            </span>
+                                            <span class="organization">
+                                                <i class="fas fa-building"></i>
+                                                @book.OrganizationName
+                                            </span>
+                                        </div>
+                                        <div class="fine-info">
+                                            <span class="fine-amount">Fine: ₱@fineAmount.ToString("F2")</span>
+                                        </div>
+                                        <div class="book-actions">
+                                            <button class="btn-return-urgent" data-ticket-id="@book.Id">
+                                                <i class="fas fa-undo"></i> URGENT: Return Now
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="empty-state">
+                            <div class="empty-icon">
+                                <i class="fa-solid fa-clock"></i>
+                            </div>
+                            <h3>No Overdue Books</h3>
+                            <p>Great! You don't have any overdue books.</p>
+                        </div>
+                    }
+                </div>
+
+                <!-- History Tab -->
+                <div class="profile-tab-content @(selectedTab == "history" ? "active" : "")" id="history">
+                    <div class="tab-header">
+                        <h3><i class="fa-solid fa-history"></i> Borrowing History</h3>
+                        <p>Complete history of all your book borrowing activities</p>
+                    </div>
+                    
+                    @if (Model.HistoryBooks.Any())
+                    {
+                        <div class="history-books-container">
+                            @foreach (var book in Model.HistoryBooks)
+                            {
+                                var duration = book.ReturnedAt.HasValue && book.CheckedOutAt.HasValue 
+                                    ? (book.ReturnedAt.Value - book.CheckedOutAt.Value).Days 
+                                    : 0;
+                                
+                                <div class="history-book-item">
+                                    <div class="book-cover-small">
+                                        @if (!string.IsNullOrEmpty(book.BookCoverImage))
+                                        {
+                                            <img src="@book.BookCoverImage" alt="@book.BookTitle" />
+                                        }
+                                        else
+                                        {
+                                            <div class="book-cover-placeholder-small">
+                                                <i class="fas fa-book"></i>
+                                            </div>
+                                        }
+                                    </div>
+                                    <div class="book-details">
+                                        <h4>@book.BookTitle</h4>
+                                        <p class="book-author">by @book.BookAuthor</p>
+                                        <div class="history-meta">
+                                            <span class="borrowed-date">
+                                                <i class="fas fa-calendar-plus"></i>
+                                                Borrowed: @(book.CheckedOutAt?.ToString("MMM dd, yyyy") ?? "Not set")
+                                            </span>
+                                            <span class="returned-date">
+                                                <i class="fas fa-calendar-check"></i>
+                                                Returned: @(book.ReturnedAt?.ToString("MMM dd, yyyy") ?? "Not set")
+                                            </span>
+                                            <span class="duration">
+                                                <i class="fas fa-clock"></i>
+                                                Duration: @duration days
+                                            </span>
+                                            <span class="organization">
+                                                <i class="fas fa-building"></i>
+                                                @book.OrganizationName
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="history-status">
+                                        <span class="status-badge returned">Returned</span>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="empty-state">
+                            <div class="empty-icon">
+                                <i class="fa-solid fa-history"></i>
+                            </div>
+                            <h3>No History Yet</h3>
+                            <p>You haven't returned any books yet.</p>
+                        </div>
+                    }
+                </div>
+
+                <!-- Wishlist Tab -->
+                <div class="profile-tab-content @(selectedTab == "wishlist" ? "active" : "")" id="wishlist">
+                    <div class="tab-header">
+                        <h3><i class="fa-solid fa-heart"></i> My Wishlist</h3>
+                        <p>Books you want to read in the future</p>
+                    </div>
+                    
+                    @if (Model.WishlistItems.Any())
+                    {
+                        <div class="wishlist-books-grid">
+                            @foreach (var item in Model.WishlistItems)
+                            {
+                                <div class="wishlist-book-card">
+                                    <div class="book-cover">
+                                        @if (!string.IsNullOrEmpty(item.BookCoverImage))
+                                        {
+                                            <img src="@item.BookCoverImage" alt="@item.BookTitle" />
+                                        }
+                                        else
+                                        {
+                                            <div class="book-cover-placeholder">
+                                                <i class="fas fa-book"></i>
+                                            </div>
+                                        }
+                                    </div>
+                                    <div class="book-info">
+                                        <h4>@item.BookTitle</h4>
+                                        <p class="book-author">by @item.BookAuthor</p>
+                                        <div class="book-meta">
+                                            <span class="organization">
+                                                <i class="fas fa-building"></i>
+                                                @item.OrganizationName
+                                            </span>
+                                            <span class="added-date">
+                                                <i class="fas fa-calendar-plus"></i>
+                                                Added: @item.AddedAt.ToString("MMM dd, yyyy")
+                                            </span>
+                                        </div>
+                                        <div class="availability-status">
+                                            @if (item.IsAvailable)
+                                            {
+                                                <span class="status-badge available">Available</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="status-badge unavailable">Out of Stock</span>
+                                            }
+                                        </div>
+                                        @if (item.ReviewCount > 0)
+                                        {
+                                            <div class="book-rating">
+                                                <div class="stars">
+                                                    @for (int i = 1; i <= 5; i++)
+                                                    {
+                                                        if (i <= Math.Floor(item.AverageRating))
+                                                        {
+                                                            <i class="fas fa-star"></i>
+                                                        }
+                                                        else if (i == Math.Ceiling(item.AverageRating) && item.AverageRating % 1 != 0)
+                                                        {
+                                                            <i class="fas fa-star-half-alt"></i>
+                                                        }
+                                                        else
+                                                        {
+                                                            <i class="far fa-star"></i>
+                                                        }
+                                                    }
+                                                </div>
+                                                <span class="rating-text">
+                                                    @item.AverageRating.ToString("F1") (@item.ReviewCount review@(item.ReviewCount != 1 ? "s" : ""))
+                                                </span>
+                                            </div>
+                                        }
+                                        <div class="book-actions">
+                                            @if (item.IsAvailable)
+                                            {
+                                                <button class="btn-borrow-from-wishlist" data-book-id="@item.BookId">
+                                                    <i class="fas fa-book"></i> Borrow Now
+                                                </button>
+                                            }
+                                            <button class="btn-remove-wishlist" data-book-id="@item.BookId">
+                                                <i class="fas fa-trash"></i> Remove
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="empty-state">
+                            <div class="empty-icon">
+                                <i class="fa-solid fa-heart"></i>
+                            </div>
+                            <h3>Your Wishlist is Empty</h3>
+                            <p>Save books you want to read and get notified when they become available.</p>
+                            <a href="@Url.Action("Index", "UserHome")" class="btn-browse-books">
+                                <i class="fas fa-search"></i> Browse Books
+                            </a>
+                        </div>
+                    }
+                </div>
+
+                <!-- Pending Reservations Tab -->
+                <div class="profile-tab-content @(selectedTab == "pending-reservations" ? "active" : "")" id="pending-reservations">
+                    <div class="tab-header">
+                        <h3><i class="fa-solid fa-clock"></i> Pending Reservations</h3>
+                        <p>Books you have reserved and need to claim</p>
+                    </div>
+                    
+                    @if (Model.PendingTickets != null && Model.PendingTickets.Any())
+                    {
+                        <div class="pending-reservations-container">
+                            @foreach (var ticket in Model.PendingTickets)
+                            {
+                                <div class="pending-reservation-card">
+                                    <div class="reservation-cover">
+                                        @if (!string.IsNullOrEmpty(ticket.BookCoverImage))
+                                        {
+                                            <img src="@ticket.BookCoverImage" alt="@ticket.BookTitle" />
+                                        }
+                                        else
+                                        {
+                                            <div class="reservation-cover-placeholder">
+                                                <i class="fas fa-book"></i>
+                                            </div>
+                                        }
+                                    </div>
+                                    <div class="reservation-info">
+                                        <h4>@ticket.BookTitle</h4>
+                                        <p class="reservation-author">by @ticket.BookAuthor</p>
+                                        <div class="reservation-meta">
+                                            <span class="reference-code">
+                                                <i class="fas fa-ticket-alt"></i>
+                                                Ref #: @ticket.ReferenceCode
+                                            </span>
+                                            <span class="expiry-date">
+                                                <i class="fas fa-hourglass-half"></i>
+                                                Claim before: @ticket.ExpiresAt.ToString("MMM dd, yyyy h:mm tt")
+                                            </span>
+                                            <span class="organization">
+                                                <i class="fas fa-building"></i>
+                                                @ticket.OrganizationName
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="reservation-actions">
+                                        <button class="btn-cancel-reservation" data-ticket-id="@ticket.Id">
+                                            <i class="fas fa-times"></i> Cancel
+                                        </button>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="empty-state">
+                            <div class="empty-icon">
+                                <i class="fa-solid fa-clock"></i>
+                            </div>
+                            <h3>No Pending Reservations</h3>
+                            <p>You don't have any pending reservations at the moment.</p>
+                            <a href="@Url.Action("Index", "UserHome")" class="btn-browse-books">
+                                <i class="fas fa-search"></i> Browse Books
+                            </a>
+                        </div>
+                    }
+                </div>
+
+                <!-- Account Settings Tab -->
+                <div class="profile-tab-content @(selectedTab == "account-settings" ? "active" : "")" id="account-settings">
+                    <div class="tab-header">
+                        <h3><i class="fa-solid fa-gear"></i> Account Settings</h3>
+                        <p>Manage your profile information and preferences</p>
+                    </div>
+
             <form asp-action="UserSettings" method="post" enctype="multipart/form-data">
                 @Html.AntiForgeryToken()
                 @Html.HiddenFor(m => m.Id)
@@ -283,20 +696,7 @@
                         </div>
                     </div>
 
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label class="form-label">Created By</label>
-                                <input type="text" class="form-control readonly-field" value="@Model.CreatedBy" readonly />
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label class="form-label">Updated By</label>
-                                <input type="text" class="form-control readonly-field" value="@Model.UpdatedBy" readonly />
-                            </div>
-                        </div>
-                    </div>
+                    <!-- Created By and Updated By fields are hidden as per user request -->
                 </div>
 
                 <!-- Save Button -->
@@ -319,6 +719,8 @@
                             <i class="fas fa-trash-alt"></i> Delete My Account
                         </button>
                     </form>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -340,6 +742,90 @@
             reader.readAsDataURL(input.files[0]);
         }
     }
+
+    // Tab switching functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        const tabItems = document.querySelectorAll('.sidebar-nav-item');
+        const tabContents = document.querySelectorAll('.profile-tab-content');
+
+        tabItems.forEach(item => {
+            item.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                const targetTab = this.getAttribute('data-tab');
+                
+                // Navigate to the same page with the tab parameter to load data from server
+                const url = new URL(window.location);
+                url.searchParams.set('tab', targetTab);
+                window.location.href = url.toString();
+            });
+        });
+    });
+
+    // Wishlist - Borrow Now button
+    $(document).on('click', '.btn-borrow-from-wishlist', function() {
+        var bookId = $(this).data('book-id');
+        
+        $.ajax({
+            url: '@Url.Action("AddToCart", "UserHome")',
+            type: 'POST',
+            data: { bookId: bookId },
+            success: function(response) {
+                if (response.success) {
+                    alert('Book added to cart!');
+                    window.location.href = '@Url.Action("BookCheckout", "UserHome")';
+                } else {
+                    alert(response.message || 'Failed to add book to cart.');
+                }
+            }
+        });
+    });
+
+    // Wishlist - Remove button
+    $(document).on('click', '.btn-remove-wishlist', function() {
+        var bookId = $(this).data('book-id');
+        
+        if (!confirm('Remove this book from your wishlist?')) {
+            return;
+        }
+        
+        $.ajax({
+            url: '@Url.Action("ToggleWishlist", "UserHome")',
+            type: 'POST',
+            data: { bookId: bookId },
+            success: function(response) {
+                if (response.success) {
+                    alert('Book removed from wishlist!');
+                    window.location.reload();
+                } else {
+                    alert(response.message || 'Failed to remove book from wishlist.');
+                }
+            }
+        });
+    });
+
+    // Pending Reservations - Cancel button
+    $(document).on('click', '.btn-cancel-reservation', function() {
+        var ticketId = $(this).data('ticket-id');
+        
+        if (!confirm('Cancel this reservation? This action cannot be undone.')) {
+            return;
+        }
+        
+        $.ajax({
+            url: '@Url.Action("CancelTicket", "UserHome")',
+            type: 'POST',
+            data: { ticketId: ticketId },
+            success: function(response) {
+                if (response.success) {
+                    alert('Reservation cancelled successfully!');
+                    window.location.reload();
+                } else {
+                    alert(response.message || 'Failed to cancel reservation.');
+                }
+            }
+        });
+    });
 </script>
 
 </body>
