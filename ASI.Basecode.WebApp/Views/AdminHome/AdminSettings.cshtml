@@ -20,7 +20,7 @@
 
 @Html.Partial("_AdminHomeTab")
 
-<div class="admin-main-content">
+<div class="admin-main-content admin-settings-container">
     <h1 class="admin-page-heading"><i class="fas fa-cog"></i> Settings</h1>
 
     @if (TempData["SuccessMessage"] != null)
@@ -216,65 +216,6 @@
     });
 </script>
 
-<style>
-    .section-title {
-        font-size: 1.3rem;
-        font-weight: 700;
-        color: #7B4A2C;
-        margin-bottom: 25px;
-        padding-bottom: 15px;
-        border-bottom: 2px solid #E8DFD3;
-    }
-
-    .profile-upload-section {
-        display: flex;
-        align-items: center;
-        gap: 20px;
-    }
-
-    .profile-preview {
-        width: 100px;
-        height: 100px;
-        border-radius: 50%;
-        object-fit: cover;
-        border: 3px solid #D4A574;
-    }
-
-    .profile-preview-placeholder {
-        width: 100px;
-        height: 100px;
-        border-radius: 50%;
-        background-color: #E8DFD3;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border: 3px solid #D4A574;
-    }
-
-    .profile-preview-placeholder i {
-        font-size: 40px;
-        color: #A66D3F;
-    }
-
-    .danger-zone {
-        border: 2px solid #dc3545;
-        background-color: #fff5f5;
-    }
-
-    .danger-zone-content {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 20px;
-    }
-
-    @@media (max-width: 768px) {
-        .danger-zone-content {
-            flex-direction: column;
-            align-items: flex-start;
-        }
-    }
-</style>
 
 </body>
 </html>

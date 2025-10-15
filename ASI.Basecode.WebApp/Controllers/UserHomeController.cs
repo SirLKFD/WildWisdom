@@ -8,8 +8,10 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using static ASI.Basecode.Resources.Constants.Enums;
 
 namespace ASI.Basecode.WebApp.Controllers
 {
@@ -21,7 +23,10 @@ namespace ASI.Basecode.WebApp.Controllers
         private readonly IOrgBooksService _booksService;
         private readonly IUserService _userService;
         private readonly IOrganizationService _organizationService;
+        private readonly IBorrowTicketService _borrowTicketService;
         private readonly IBookReviewService _reviewService;
+        private readonly IBookCheckoutService _bookCheckoutService;
+        private readonly IWishlistService _wishlistService;
         private readonly IWebHostEnvironment _webHostEnvironment;
 
         /// <summary>
@@ -42,14 +47,20 @@ namespace ASI.Basecode.WebApp.Controllers
                               IOrgBooksService booksService,
                               IUserService userService,
                               IOrganizationService organizationService,
+                              IBorrowTicketService borrowTicketService,
                               IBookReviewService reviewService,
+                              IBookCheckoutService bookCheckoutService,
+                              IWishlistService wishlistService,
                               IWebHostEnvironment webHostEnvironment,
                               IMapper mapper = null) : base(httpContextAccessor, loggerFactory, configuration, mapper)
         {
             _booksService = booksService;
             _userService = userService;
             _organizationService = organizationService;
+            _borrowTicketService = borrowTicketService;
             _reviewService = reviewService;
+            _bookCheckoutService = bookCheckoutService;
+            _wishlistService = wishlistService;
             _webHostEnvironment = webHostEnvironment;
         }
 
@@ -203,16 +214,475 @@ namespace ASI.Basecode.WebApp.Controllers
             {
                 return RedirectToAction("LoginUser", "Account");
             }
-            
-            return View();
+
+            var userId = this._session.GetString("UserId");
+            if (string.IsNullOrEmpty(userId))
+            {
+                return RedirectToAction("LoginUser", "Account");
+            }
+
+            var userModel = _userService.GetUserByUserId(userId);
+            if (userModel == null)
+            {
+                TempData["ErrorMessage"] = "User not found.";
+                return RedirectToAction("Index");
+            }
+
+            var orgId = this._session.GetInt32("OrganizationId") ?? 0;
+            var tickets = _borrowTicketService.GetUserTickets(userModel.Id) ?? new List<BorrowTicketViewModel>();
+
+            var pendingTickets = tickets
+                .Where(t => t.Status == TicketStatus.NotYetClaimed)
+                .OrderByDescending(t => t.CreatedAt)
+                .ToList();
+
+            var borrowedTickets = tickets
+                .Where(t => t.Status == TicketStatus.NotYetReturned)
+                .OrderByDescending(t => t.CheckedOutAt ?? t.CreatedAt)
+                .ToList();
+
+            var historyTickets = tickets
+                .Where(t => t.Status == TicketStatus.Returned
+                         || t.Status == TicketStatus.Cancelled
+                         || t.Status == TicketStatus.Expired
+                         || t.Status == TicketStatus.Lost
+                         || t.Status == TicketStatus.Claimed)
+                .OrderByDescending(t => t.CreatedAt)
+                .ToList();
+
+            // Get cart items from database
+            var cartItems = _bookCheckoutService.GetUserCart(userModel.Id)
+                .Select(item => new CartItemViewModel
+                {
+                    BookId = item.BookId,
+                    BookTitle = item.BookTitle,
+                    BookAuthor = item.BookAuthor,
+                    BookCoverImage = item.BookCoverImage,
+                    OrganizationName = item.OrganizationName,
+                    AddedToCartAt = item.AddedAt
+                })
+                .ToList();
+
+            var borrowingPolicy = _borrowTicketService.GetBorrowingPolicy(orgId);
+            var dailyLimit = borrowingPolicy?.BorrowLimitPerUser > 0
+                ? Math.Min(10, borrowingPolicy.BorrowLimitPerUser)
+                : 10;
+
+            var borrowedToday = tickets.Count(t =>
+                t.CreatedAt.Date == DateTime.Today &&
+                t.Status != TicketStatus.Cancelled &&
+                t.Status != TicketStatus.Expired);
+
+            var activeTicketCount = pendingTickets.Count + borrowedTickets.Count;
+
+            var model = new BookCheckoutViewModel
+            {
+                UserName = userModel.Name,
+                DailyBorrowLimit = dailyLimit,
+                BorrowedToday = borrowedToday,
+                MaxActiveTickets = borrowingPolicy?.MaxActiveTicketsPerUser ?? 0,
+                ActiveTicketCount = activeTicketCount,
+                BorrowDaysDefault = borrowingPolicy?.BorrowDaysDefault ?? 0,
+                CartItems = cartItems,
+                PendingTickets = pendingTickets,
+                BorrowedTickets = borrowedTickets,
+                HistoryTickets = historyTickets
+            };
+
+            ViewBag.OrganizationName = this._session.GetString("OrganizationName") ?? "Library";
+
+            return View(model);
+        }
+
+        /// <summary>
+        /// Add a book to the user's cart.
+        /// </summary>
+        /// <param name="bookId">Book identifier.</param>
+        /// <returns>JSON result indicating success or failure.</returns>
+        [HttpPost]
+        public IActionResult AddToCart(int bookId)
+        {
+            try
+            {
+                var userIdString = this._session.GetString("UserId");
+                if (string.IsNullOrEmpty(userIdString))
+                {
+                    return Json(new { success = false, message = "Please login to add books to cart." });
+                }
+
+                var userModel = _userService.GetUserByUserId(userIdString);
+                if (userModel == null)
+                {
+                    return Json(new { success = false, message = "User account not found." });
+                }
+
+                // Add to cart using service
+                var success = _bookCheckoutService.AddToCart(userModel.Id, bookId);
+                
+                if (!success)
+                {
+                    // Check if book is already in cart
+                    if (_bookCheckoutService.IsInCart(userModel.Id, bookId))
+                    {
+                        return Json(new { success = false, message = "Book is already in your cart." });
+                    }
+                    
+                    // Check if book is available
+                    var book = _booksService.GetBookById(bookId);
+                    if (book == null)
+                    {
+                        return Json(new { success = false, message = "Book not found." });
+                    }
+                    
+                    if (book.CopiesAvailable <= 0)
+                    {
+                        return Json(new { success = false, message = "No copies available for this book." });
+                    }
+                    
+                    return Json(new { success = false, message = "Unable to add book to cart." });
+                }
+
+                var cartCount = _bookCheckoutService.GetCartCount(userModel.Id);
+
+                return Json(new
+                {
+                    success = true,
+                    message = "Book added to cart!",
+                    cartCount = cartCount
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Get the count of items in the user's cart.
+        /// </summary>
+        /// <returns>JSON result with cart count.</returns>
+        [HttpGet]
+        public IActionResult GetCartCount()
+        {
+            try
+            {
+                var userIdString = this._session.GetString("UserId");
+                if (string.IsNullOrEmpty(userIdString))
+                {
+                    return Json(new { cartCount = 0 });
+                }
+
+                var userModel = _userService.GetUserByUserId(userIdString);
+                if (userModel == null)
+                {
+                    return Json(new { cartCount = 0 });
+                }
+
+                var cartCount = _bookCheckoutService.GetCartCount(userModel.Id);
+                return Json(new { cartCount });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { cartCount = 0 });
+            }
+        }
+
+        /// <summary>
+        /// Remove a book from the user's cart.
+        /// </summary>
+        /// <param name="bookId">Book identifier.</param>
+        /// <returns>JSON result indicating success or failure.</returns>
+        [HttpPost]
+        public IActionResult RemoveFromCart(int bookId)
+        {
+            try
+            {
+                var userIdString = this._session.GetString("UserId");
+                if (string.IsNullOrEmpty(userIdString))
+                {
+                    return Json(new { success = false, message = "Please login to manage your cart." });
+                }
+
+                var userModel = _userService.GetUserByUserId(userIdString);
+                if (userModel == null)
+                {
+                    return Json(new { success = false, message = "User account not found." });
+                }
+
+                var success = _bookCheckoutService.RemoveFromCart(userModel.Id, bookId);
+                return Json(new { success = success });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Toggle wishlist status for a book.
+        /// </summary>
+        /// <param name="bookId">Book identifier.</param>
+        /// <returns>JSON result indicating success or failure.</returns>
+        [HttpPost]
+        public IActionResult ToggleWishlist(int bookId)
+        {
+            try
+            {
+                var userIdString = this._session.GetString("UserId");
+                if (string.IsNullOrEmpty(userIdString))
+                {
+                    return Json(new { success = false, message = "Please login to manage your wishlist." });
+                }
+
+                var userModel = _userService.GetUserByUserId(userIdString);
+                if (userModel == null)
+                {
+                    return Json(new { success = false, message = "User account not found." });
+                }
+
+                var success = _wishlistService.ToggleWishlist(userModel.Id, bookId);
+                var isInWishlist = _wishlistService.IsInWishlist(userModel.Id, bookId);
+
+                return Json(new { 
+                    success = success, 
+                    isInWishlist = isInWishlist,
+                    message = isInWishlist ? "Added to wishlist!" : "Removed from wishlist!"
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Check if a book is in the user's wishlist.
+        /// </summary>
+        /// <param name="bookId">Book identifier.</param>
+        /// <returns>JSON result with wishlist status.</returns>
+        [HttpGet]
+        public IActionResult GetWishlistStatus(int bookId)
+        {
+            try
+            {
+                var userIdString = this._session.GetString("UserId");
+                if (string.IsNullOrEmpty(userIdString))
+                {
+                    return Json(new { isInWishlist = false });
+                }
+
+                var userModel = _userService.GetUserByUserId(userIdString);
+                if (userModel == null)
+                {
+                    return Json(new { isInWishlist = false });
+                }
+
+                var isInWishlist = _wishlistService.IsInWishlist(userModel.Id, bookId);
+                return Json(new { isInWishlist = isInWishlist });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { isInWishlist = false });
+            }
+        }
+
+        /// <summary>
+        /// Create a borrow ticket for the specified book.
+        /// </summary>
+        /// <param name="bookId">Book identifier.</param>
+        /// <returns>JSON result with reference details.</returns>
+        [HttpPost]
+        public IActionResult BorrowBook(int bookId)
+        {
+            try
+            {
+                var userIdString = this._session.GetString("UserId");
+                if (string.IsNullOrEmpty(userIdString))
+                {
+                    return Json(new { success = false, message = "Please login to borrow books." });
+                }
+
+                var userModel = _userService.GetUserByUserId(userIdString);
+                if (userModel == null)
+                {
+                    return Json(new { success = false, message = "User account not found." });
+                }
+
+                var ticket = _borrowTicketService.CreateBorrowRequest(userModel.Id, bookId);
+
+                var orgId = this._session.GetInt32("OrganizationId") ?? 0;
+                var policy = _borrowTicketService.GetBorrowingPolicy(orgId);
+                var dailyLimit = policy?.BorrowLimitPerUser > 0
+                    ? Math.Min(10, policy.BorrowLimitPerUser)
+                    : 10;
+
+                var borrowedToday = _borrowTicketService.GetUserTickets(userModel.Id)
+                    .Count(t => t.CreatedAt.Date == DateTime.Today &&
+                                t.Status != TicketStatus.Cancelled &&
+                                t.Status != TicketStatus.Expired);
+
+                return Json(new
+                {
+                    success = true,
+                    ticketId = ticket.Id,
+                    referenceCode = ticket.ReferenceCode,
+                    bookTitle = ticket.BookTitle,
+                    organizationName = ticket.OrganizationName ?? (this._session.GetString("OrganizationName") ?? "your library"),
+                    expiresAt = ticket.ExpiresAt.ToString("MMMM d, yyyy h:mm tt"),
+                    borrowedToday,
+                    dailyLimit
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Confirm borrow for selected cart items and create tickets.
+        /// </summary>
+        /// <param name="bookIds">List of book IDs to borrow.</param>
+        /// <returns>JSON result with reference details.</returns>
+        [HttpPost]
+        public IActionResult ConfirmBorrow(List<int> bookIds)
+        {
+            try
+            {
+                var userIdString = this._session.GetString("UserId");
+                if (string.IsNullOrEmpty(userIdString))
+                {
+                    return Json(new { success = false, message = "Please login to borrow books." });
+                }
+
+                var userModel = _userService.GetUserByUserId(userIdString);
+                if (userModel == null)
+                {
+                    return Json(new { success = false, message = "User account not found." });
+                }
+
+                if (bookIds == null || !bookIds.Any())
+                {
+                    return Json(new { success = false, message = "No books selected to borrow." });
+                }
+
+                var createdTickets = new List<object>();
+                var errors = new List<string>();
+
+                foreach (var bookId in bookIds)
+                {
+                    try
+                    {
+                        var ticket = _borrowTicketService.CreateBorrowRequest(userModel.Id, bookId);
+                        createdTickets.Add(new
+                        {
+                            ticketId = ticket.Id,
+                            referenceCode = ticket.ReferenceCode,
+                            bookTitle = ticket.BookTitle,
+                            organizationName = ticket.OrganizationName ?? (this._session.GetString("OrganizationName") ?? "your library"),
+                            expiresAt = ticket.ExpiresAt.ToString("MMMM d, yyyy h:mm tt")
+                        });
+                    }
+                    catch (Exception ex)
+                    {
+                        // Get book title for better error message
+                        var book = _booksService.GetBookById(bookId);
+                        var bookTitle = book?.Title ?? $"Book ID {bookId}";
+                        errors.Add($"Failed to borrow '{bookTitle}': {ex.Message}");
+                    }
+                }
+
+                // Remove successfully borrowed books from cart
+                if (createdTickets.Any())
+                {
+                    foreach (var bookId in bookIds)
+                    {
+                        _bookCheckoutService.RemoveFromCart(userModel.Id, bookId);
+                    }
+                }
+
+                if (createdTickets.Any())
+                {
+                    return Json(new
+                    {
+                        success = true,
+                        message = $"Successfully created {createdTickets.Count} borrow request(s).",
+                        tickets = createdTickets,
+                        errors = errors
+                    });
+                }
+                else
+                {
+                    return Json(new { success = false, message = "Failed to create any borrow requests.", errors = errors });
+                }
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Cancel a borrow ticket created by the current user.
+        /// </summary>
+        /// <param name="ticketId">Ticket identifier.</param>
+        /// <returns>JSON indicating success or failure.</returns>
+        [HttpPost]
+        public IActionResult CancelBorrowTicket(int ticketId)
+        {
+            try
+            {
+                var userIdString = this._session.GetString("UserId");
+                if (string.IsNullOrEmpty(userIdString))
+                {
+                    return Json(new { success = false, message = "Please login to manage your tickets." });
+                }
+
+                var userModel = _userService.GetUserByUserId(userIdString);
+                if (userModel == null)
+                {
+                    return Json(new { success = false, message = "User account not found." });
+                }
+
+                var ticket = _borrowTicketService.GetTicketById(ticketId);
+                if (ticket == null || ticket.UserId != userModel.Id)
+                {
+                    return Json(new { success = false, message = "Borrow ticket not found." });
+                }
+
+                if (ticket.Status != TicketStatus.NotYetClaimed)
+                {
+                    return Json(new { success = false, message = "Only unclaimed tickets can be cancelled." });
+                }
+
+                _borrowTicketService.CancelTicket(ticketId, "Cancelled by borrower");
+
+                return Json(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Cancel a ticket (alias for CancelBorrowTicket for consistency)
+        /// </summary>
+        /// <param name="ticketId">Ticket identifier.</param>
+        /// <returns>JSON indicating success or failure.</returns>
+        [HttpPost]
+        public IActionResult CancelTicket(int ticketId)
+        {
+            return CancelBorrowTicket(ticketId);
         }
 
         /// <summary>
         /// User Settings Action - GET
         /// </summary>
+        /// <param name="tab">Selected tab (borrowed-books, unreturned-books, history, wishlist, account-settings)</param>
         /// <returns> UserSettings View </returns>
         [HttpGet]
-        public IActionResult UserSettings()
+        public IActionResult UserSettings(string tab = "borrowed-books")
         {
             // Check if user is logged in
             var userId = this._session.GetString("UserId");
@@ -233,7 +703,45 @@ namespace ASI.Basecode.WebApp.Controllers
             var organizations = _organizationService.GetAllOrganizations();
             ViewBag.Organizations = organizations;
 
-            return View(userModel);
+            // Set selected tab
+            ViewBag.SelectedTab = tab;
+
+            // Load data based on selected tab
+            var viewModel = new UserSettingsViewModel
+            {
+                Id = userModel.Id,
+                UserId = userModel.UserId,
+                Name = userModel.Name,
+                OrganizationId = userModel.OrganizationId,
+                ProfilePicture = userModel.ProfilePicture,
+                CreatedTime = userModel.CreatedTime,
+                UpdatedTime = userModel.UpdatedTime,
+                CreatedBy = userModel.CreatedBy,
+                UpdatedBy = userModel.UpdatedBy
+            };
+
+            // Load tab-specific data
+            switch (tab)
+            {
+                case "borrowed-books":
+                    viewModel.BorrowedBooks = _borrowTicketService.GetUserBorrowedBooks(userModel.Id);
+                    break;
+                case "unreturned-books":
+                    viewModel.OverdueBooks = _borrowTicketService.GetUserOverdueBooks(userModel.Id);
+                    break;
+                case "history":
+                    viewModel.HistoryBooks = _borrowTicketService.GetUserBorrowHistory(userModel.Id);
+                    break;
+                case "pending-reservations":
+                    var allTickets = _borrowTicketService.GetUserTickets(userModel.Id);
+                    viewModel.PendingTickets = allTickets?.Where(t => t.Status == TicketStatus.NotYetClaimed).ToList() ?? new List<BorrowTicketViewModel>();
+                    break;
+                case "wishlist":
+                    viewModel.WishlistItems = _wishlistService.GetUserWishlist(userModel.Id);
+                    break;
+            }
+
+            return View(viewModel);
         }
 
         /// <summary>
@@ -505,4 +1013,3 @@ namespace ASI.Basecode.WebApp.Controllers
         }
     }
 }
-

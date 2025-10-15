@@ -10,6 +10,7 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.IO;
 using System.Linq;
+using static ASI.Basecode.Resources.Constants.Enums;
 
 namespace ASI.Basecode.WebApp.Controllers
 {
@@ -20,6 +21,8 @@ namespace ASI.Basecode.WebApp.Controllers
     {
         private readonly IOrgBooksService _booksService;
         private readonly IAdminService _adminService;
+        private readonly IBorrowTicketService _borrowTicketService;
+        private readonly IOrganizationService _organizationService;
         private readonly IWebHostEnvironment _webHostEnvironment;
 
         /// <summary>
@@ -38,11 +41,15 @@ namespace ASI.Basecode.WebApp.Controllers
             IConfiguration configuration,
             IOrgBooksService booksService,
             IAdminService adminService,
+            IBorrowTicketService borrowTicketService,
+            IOrganizationService organizationService,
             IWebHostEnvironment webHostEnvironment,
             IMapper mapper = null) : base(httpContextAccessor, loggerFactory, configuration, mapper)
         {
             _booksService = booksService;
             _adminService = adminService;
+            _borrowTicketService = borrowTicketService;
+            _organizationService = organizationService;
             _webHostEnvironment = webHostEnvironment;
         }
 
@@ -86,8 +93,54 @@ namespace ASI.Basecode.WebApp.Controllers
             var accessCheck = VerifyAdminAccess();
             if (accessCheck != null) return accessCheck;
 
-            // TODO: Add dashboard statistics and data
-            return View();
+            try
+            {
+                var orgId = this._session.GetInt32("OrganizationId") ?? 0;
+
+                // Get all books for the organization
+                var allBooks = _booksService.GetAllBooksByOrganization(orgId);
+                var totalBooks = allBooks.Count(b => b.IsActive);
+
+                // Get all tickets for the organization
+                var allTickets = _borrowTicketService.GetOrganizationTickets(orgId);
+
+                // Calculate statistics
+                var borrowedToday = allTickets.Count(t => 
+                    t.CreatedAt.Date == DateTime.Today && 
+                    t.Status != TicketStatus.Cancelled && 
+                    t.Status != TicketStatus.Expired);
+
+                var pendingClaims = allTickets.Count(t => t.Status == TicketStatus.NotYetClaimed);
+                var activeBorrows = allTickets.Count(t => t.Status == TicketStatus.NotYetReturned);
+                var overdueCount = allTickets.Count(t => 
+                    t.Status == TicketStatus.NotYetReturned && 
+                    t.DueAt.HasValue && 
+                    t.DueAt.Value < DateTime.Now);
+
+                var model = new DashboardViewModel
+                {
+                    TotalBooks = totalBooks,
+                    BorrowedToday = borrowedToday,
+                    PendingClaims = pendingClaims,
+                    ActiveBorrows = activeBorrows,
+                    OverdueCount = overdueCount
+                };
+
+                return View(model);
+            }
+            catch (Exception ex)
+            {
+                // Return empty model on error
+                var model = new DashboardViewModel
+                {
+                    TotalBooks = 0,
+                    BorrowedToday = 0,
+                    PendingClaims = 0,
+                    ActiveBorrows = 0,
+                    OverdueCount = 0
+                };
+                return View(model);
+            }
         }
 
         /// <summary>
@@ -103,6 +156,148 @@ namespace ASI.Basecode.WebApp.Controllers
             var orgId = this._session.GetInt32("OrganizationId") ?? 0;
             var books = _booksService.GetAllBooksByOrganization(orgId);
             return View(books);
+        }
+
+        /// <summary>
+        /// Reference lookup page for borrow tickets.
+        /// </summary>
+        [HttpGet]
+        public IActionResult ReferenceLookup()
+        {
+            var accessCheck = VerifyAdminAccess();
+            if (accessCheck != null) return accessCheck;
+
+            // Get organization information for auto-filling reference number
+            var orgId = this._session.GetInt32("OrganizationId") ?? 0;
+            var organization = _organizationService.GetOrganizationById(orgId);
+            var organizationCode = $"ORG{orgId:D3}";
+
+            var viewModel = new BorrowTicketLookupViewModel
+            {
+                OrganizationCode = organizationCode
+            };
+
+            return View(viewModel);
+        }
+
+        /// <summary>
+        /// Get pending claims for the admin's organization.
+        /// </summary>
+        /// <returns>JSON payload with pending claims list.</returns>
+        [HttpGet]
+        public IActionResult GetPendingClaims()
+        {
+            var username = this._session.GetString("UserName");
+            if (string.IsNullOrEmpty(username) || !IsAdminUser())
+            {
+                return Json(new { success = false, message = "Unauthorized. Please login as an administrator." });
+            }
+
+            try
+            {
+                var orgId = this._session.GetInt32("OrganizationId") ?? 0;
+                var pendingClaims = _borrowTicketService.GetPendingClaims(orgId);
+
+                var claims = pendingClaims.Select(claim => new
+                {
+                    referenceCode = claim.ReferenceCode,
+                    bookTitle = claim.BookTitle,
+                    userName = claim.UserName,
+                    expiresAt = claim.ExpiresAt.ToString("MMMM d, yyyy h:mm tt"),
+                    createdAt = claim.CreatedAt.ToString("MMMM d, yyyy h:mm tt")
+                }).ToList();
+
+                return Json(new { success = true, claims = claims });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Confirm a claim for a borrow ticket.
+        /// </summary>
+        /// <param name="referenceCode">Reference number of the ticket.</param>
+        /// <param name="notes">Optional notes for the confirmation.</param>
+        /// <returns>JSON result indicating success or failure.</returns>
+        [HttpPost]
+        public IActionResult ConfirmClaim(string referenceCode, string notes = "")
+        {
+            var username = this._session.GetString("UserName");
+            if (string.IsNullOrEmpty(username) || !IsAdminUser())
+            {
+                return Json(new { success = false, message = "Unauthorized. Please login as an administrator." });
+            }
+
+            try
+            {
+                var orgId = this._session.GetInt32("OrganizationId") ?? 0;
+                var adminId = this._session.GetInt32("UserId") ?? 0;
+
+                // Verify the ticket belongs to this organization
+                var ticket = _borrowTicketService.GetTicketByReferenceCode(referenceCode);
+                if (ticket == null || ticket.OrganizationId != orgId)
+                {
+                    return Json(new { success = false, message = "Ticket not found for your organization." });
+                }
+
+                _borrowTicketService.ClaimTicket(referenceCode, adminId, notes ?? "Confirmed by admin");
+
+                return Json(new { success = true, message = "Claim confirmed successfully!" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Check whether a borrow ticket reference exists within the admin's organization.
+        /// </summary>
+        /// <param name="referenceCode">Reference number supplied by the patron.</param>
+        /// <returns>JSON payload describing the ticket, if found.</returns>
+        [HttpPost]
+        public IActionResult CheckReference(string referenceCode)
+        {
+            var username = this._session.GetString("UserName");
+            if (string.IsNullOrEmpty(username) || !IsAdminUser())
+            {
+                return Json(new { success = false, message = "Unauthorized. Please login as an administrator." });
+            }
+
+            if (string.IsNullOrWhiteSpace(referenceCode))
+            {
+                return Json(new { success = false, message = "Please enter a reference number to search." });
+            }
+
+            var orgId = this._session.GetInt32("OrganizationId") ?? 0;
+            var ticket = _borrowTicketService.GetTicketByReferenceCode(referenceCode.Trim());
+            if (ticket == null || ticket.OrganizationId != orgId)
+            {
+                return Json(new { success = false, message = "Reference number not found for your organization." });
+            }
+
+            return Json(new
+            {
+                success = true,
+                ticket = new
+                {
+                    ticket.ReferenceCode,
+                    ticket.BookTitle,
+                    ticket.BookAuthor,
+                    ticket.UserName,
+                    ticket.OrganizationName,
+                    ticket.StatusDisplay,
+                    createdAt = ticket.CreatedAt.ToString("MMMM d, yyyy h:mm tt"),
+                    expiresAt = ticket.ExpiresAt.ToString("MMMM d, yyyy h:mm tt"),
+                    claimedAt = ticket.ClaimedAt?.ToString("MMMM d, yyyy h:mm tt"),
+                    checkedOutAt = ticket.CheckedOutAt?.ToString("MMMM d, yyyy h:mm tt"),
+                    dueAt = ticket.DueAt?.ToString("MMMM d, yyyy h:mm tt"),
+                    returnedAt = ticket.ReturnedAt?.ToString("MMMM d, yyyy h:mm tt"),
+                    notes = ticket.Notes
+                }
+            });
         }
 
         /// <summary>
@@ -460,6 +655,79 @@ namespace ASI.Basecode.WebApp.Controllers
                 return RedirectToAction("AdminSettings");
             }
         }
+
+        /// <summary>
+        /// Get unreturned books for the admin's organization.
+        /// </summary>
+        /// <returns>JSON payload with unreturned books list.</returns>
+        [HttpGet]
+        public IActionResult GetUnreturnedBooks()
+        {
+            var username = this._session.GetString("UserName");
+            if (string.IsNullOrEmpty(username) || !IsAdminUser())
+            {
+                return Json(new { success = false, message = "Unauthorized. Please login as an administrator." });
+            }
+
+            try
+            {
+                var orgId = this._session.GetInt32("OrganizationId") ?? 0;
+                var unreturnedBooks = _borrowTicketService.GetOrganizationTickets(orgId, TicketStatus.NotYetReturned);
+                
+                var result = unreturnedBooks.Select(ticket => new
+                {
+                    id = ticket.Id,
+                    referenceCode = ticket.ReferenceCode,
+                    bookTitle = ticket.BookTitle,
+                    bookAuthor = ticket.BookAuthor,
+                    userName = ticket.UserName,
+                    checkedOutAt = ticket.CheckedOutAt?.ToString("MMM dd, yyyy"),
+                    dueAt = ticket.DueAt?.ToString("MMM dd, yyyy"),
+                    isOverdue = ticket.IsOverdue,
+                    daysOverdue = ticket.IsOverdue ? (int)(DateTime.Now - ticket.DueAt.Value).TotalDays : 0
+                }).ToList();
+
+                return Json(new { success = true, books = result });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Confirm a book return.
+        /// </summary>
+        /// <param name="referenceCode">Reference number of the ticket.</param>
+        /// <returns>JSON result indicating success or failure.</returns>
+        [HttpPost]
+        public IActionResult ConfirmReturn(string referenceCode)
+        {
+            var username = this._session.GetString("UserName");
+            if (string.IsNullOrEmpty(username) || !IsAdminUser())
+            {
+                return Json(new { success = false, message = "Unauthorized. Please login as an administrator." });
+            }
+
+            try
+            {
+                var orgId = this._session.GetInt32("OrganizationId") ?? 0;
+                var adminId = this._session.GetInt32("UserId") ?? 0;
+
+                // Verify the ticket belongs to this organization
+                var ticket = _borrowTicketService.GetTicketByReferenceCode(referenceCode);
+                if (ticket == null || ticket.OrganizationId != orgId)
+                {
+                    return Json(new { success = false, message = "Ticket not found for your organization." });
+                }
+
+                _borrowTicketService.ReturnBook(referenceCode, adminId);
+                return Json(new { success = true, message = "Book return confirmed successfully." });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
     }
 }
-
