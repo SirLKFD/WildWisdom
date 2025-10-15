@@ -45,6 +45,8 @@ namespace ASI.Basecode.WebApp
             this._services.AddScoped<IOrgBooksService, OrgBooksService>();
             this._services.AddScoped<IBorrowTicketService, BorrowTicketService>();
             this._services.AddScoped<IBookReviewService, BookReviewService>();
+            this._services.AddScoped<IBookCheckoutService, BookCheckoutService>();
+            this._services.AddScoped<IWishlistService, WishlistService>();
 
             // Repositories
             this._services.AddScoped<IUserRepository, UserRepository>();
@@ -58,6 +60,8 @@ namespace ASI.Basecode.WebApp
             this._services.AddScoped<IRenewalPolicyRepository, RenewalPolicyRepository>();
             this._services.AddScoped<IClaimPolicyRepository, ClaimPolicyRepository>();
             this._services.AddScoped<IBookReviewRepository, BookReviewRepository>();
+            this._services.AddScoped<IBookCheckoutRepository, BookCheckoutRepository>();
+            this._services.AddScoped<IWishlistRepository, WishlistRepository>();
 
             // Manager Class
             this._services.AddScoped<SignInManager>();

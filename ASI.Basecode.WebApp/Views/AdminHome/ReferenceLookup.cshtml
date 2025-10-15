@@ -1,0 +1,502 @@
+@using System.Text.Json
+@model ASI.Basecode.Services.ServiceModels.BorrowTicketLookupViewModel
+@{
+    ViewData["Title"] = "Reference Lookup";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+    <link rel="stylesheet" href="~/css/adminhome.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+@Html.Partial("_AdminHomeTab")
+
+<div class="admin-main-content reference-lookup-page">
+    <h1 class="admin-page-heading">
+        <i class="fas fa-ticket-alt"></i> Reference Lookup
+    </h1>
+
+    <div class="reference-intro-card">
+        <div>
+            <h2>Verify Borrow Tickets Quickly</h2>
+            <p>Enter a reference number provided by a patron to view reservation details before releasing books.</p>
+        </div>
+        <div class="lookup-hints">
+            <span><i class="fas fa-clock"></i> Confirm claim deadlines</span>
+            <span><i class="fas fa-user-check"></i> Verify the borrower</span>
+            <span><i class="fas fa-shield-alt"></i> Prevent fraudulent claims</span>
+        </div>
+    </div>
+
+    <div class="reference-search-card">
+        <form id="referenceLookupForm" class="reference-form">
+            <label for="referenceInput" class="reference-label">Reference Number</label>
+            <div class="reference-input-group">
+                <div class="reference-prefix">@(Model.OrganizationCode ?? "ORG")-</div>
+                <input type="text"
+                       id="dateInput"
+                       name="datePart"
+                       placeholder="YYYYMMDD"
+                       maxlength="8"
+                       autocomplete="off"
+                       class="reference-date-input" />
+                <div class="reference-separator">-</div>
+                <input type="text"
+                       id="numberInput"
+                       name="numberPart"
+                       placeholder="00123"
+                       maxlength="5"
+                       autocomplete="off"
+                       class="reference-number-input" />
+                <button type="submit" class="btn btn-primary reference-search-btn">
+                    <i class="fas fa-search"></i> Search
+                </button>
+            </div>
+            <div class="reference-help">
+                <small><i class="fas fa-info-circle"></i> Enter the date (YYYYMMDD) and ticket number (last 5 digits) to search</small>
+            </div>
+        </form>
+        <div id="lookupMessage" class="reference-message @(string.IsNullOrEmpty(Model.Message) ? "" : "show")">
+            @Model.Message
+        </div>
+    </div>
+
+    <div id="lookupResult" class="reference-result-card @(Model.Ticket != null ? "show" : "")">
+        <div class="result-header">
+            <div>
+                <span class="result-label">Reference Number</span>
+                <h2 class="result-reference" id="resultReference">@Model.Ticket?.ReferenceCode</h2>
+            </div>
+            <span class="result-status" id="resultStatus">@Model.Ticket?.StatusDisplay</span>
+        </div>
+
+        <div class="result-content">
+            <div class="result-column">
+                <h4>Book Details</h4>
+                <p class="result-title" id="resultTitle">@Model.Ticket?.BookTitle</p>
+                <p class="result-author" id="resultAuthor">@Model.Ticket?.BookAuthor</p>
+            </div>
+            <div class="result-column">
+                <h4>Borrower</h4>
+                <p class="result-user" id="resultUser">@Model.Ticket?.UserName</p>
+                <p class="result-organization" id="resultOrganization">@Model.Ticket?.OrganizationName</p>
+            </div>
+        </div>
+
+        <div class="result-timeline">
+            <div class="timeline-item">
+                <span class="timeline-label"><i class="fas fa-calendar-plus"></i> Created</span>
+                <span class="timeline-value" id="timelineCreated">
+                    @(Model.Ticket?.CreatedAt.ToString("MMMM d, yyyy h:mm tt"))
+                </span>
+            </div>
+            <div class="timeline-item">
+                <span class="timeline-label"><i class="fas fa-hourglass-half"></i> Claim By</span>
+                <span class="timeline-value" id="timelineExpires">
+                    @(Model.Ticket?.ExpiresAt.ToString("MMMM d, yyyy h:mm tt"))
+                </span>
+            </div>
+            <div class="timeline-item" id="timelineClaimedWrapper">
+                <span class="timeline-label"><i class="fas fa-handshake"></i> Claimed</span>
+                <span class="timeline-value" id="timelineClaimed">@(Model.Ticket?.ClaimedAt?.ToString("MMMM d, yyyy h:mm tt"))</span>
+            </div>
+            <div class="timeline-item" id="timelineCheckedOutWrapper">
+                <span class="timeline-label"><i class="fas fa-book-reader"></i> Checked Out</span>
+                <span class="timeline-value" id="timelineCheckedOut">@(Model.Ticket?.CheckedOutAt?.ToString("MMMM d, yyyy h:mm tt"))</span>
+            </div>
+            <div class="timeline-item" id="timelineDueWrapper">
+                <span class="timeline-label"><i class="fas fa-calendar-alt"></i> Due</span>
+                <span class="timeline-value" id="timelineDue">@(Model.Ticket?.DueAt?.ToString("MMMM d, yyyy h:mm tt"))</span>
+            </div>
+            <div class="timeline-item" id="timelineReturnedWrapper">
+                <span class="timeline-label"><i class="fas fa-undo-alt"></i> Returned</span>
+                <span class="timeline-value" id="timelineReturned">@(Model.Ticket?.ReturnedAt?.ToString("MMMM d, yyyy h:mm tt"))</span>
+            </div>
+        </div>
+
+        <div class="result-notes" id="resultNotesContainer">
+            <h4>Notes</h4>
+            <p id="resultNotes">@Model.Ticket?.Notes</p>
+        </div>
+    </div>
+
+    <!-- Pending Claims Section -->
+    <div class="pending-claims-section">
+        <h3 class="section-heading">
+            <i class="fas fa-clock"></i> Pending Claims
+        </h3>
+        <div id="pendingClaimsList" class="pending-claims-list">
+            <!-- Pending claims will be loaded here -->
+        </div>
+    </div>
+
+    <!-- Unreturned Books Section -->
+    <div class="unreturned-books-section">
+        <h3 class="section-heading">
+            <i class="fas fa-book-open"></i> Unreturned Books
+        </h3>
+        <div id="unreturnedBooksList" class="unreturned-books-list">
+            <!-- Unreturned books will be loaded here -->
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    (function () {
+        const form = document.getElementById('referenceLookupForm');
+        const message = document.getElementById('lookupMessage');
+        const resultCard = document.getElementById('lookupResult');
+
+        const referenceEl = document.getElementById('resultReference');
+        const statusEl = document.getElementById('resultStatus');
+        const titleEl = document.getElementById('resultTitle');
+        const authorEl = document.getElementById('resultAuthor');
+        const userEl = document.getElementById('resultUser');
+        const orgEl = document.getElementById('resultOrganization');
+        const createdEl = document.getElementById('timelineCreated');
+        const expiresEl = document.getElementById('timelineExpires');
+        const claimedEl = document.getElementById('timelineClaimed');
+        const claimedWrapper = document.getElementById('timelineClaimedWrapper');
+        const checkedOutEl = document.getElementById('timelineCheckedOut');
+        const checkedOutWrapper = document.getElementById('timelineCheckedOutWrapper');
+        const dueEl = document.getElementById('timelineDue');
+        const dueWrapper = document.getElementById('timelineDueWrapper');
+        const returnedEl = document.getElementById('timelineReturned');
+        const returnedWrapper = document.getElementById('timelineReturnedWrapper');
+        const notesContainer = document.getElementById('resultNotesContainer');
+        const notesEl = document.getElementById('resultNotes');
+
+        function resetTimeline() {
+            [claimedWrapper, checkedOutWrapper, dueWrapper, returnedWrapper].forEach(function (item) {
+                if (item) {
+                    item.style.display = 'none';
+                }
+            });
+        }
+
+        function showMessage(text, isSuccess) {
+            message.textContent = text || '';
+            message.classList.remove('success', 'error', 'show');
+
+            if (text) {
+                message.classList.add(isSuccess ? 'success' : 'error');
+                message.classList.add('show');
+            }
+        }
+
+        function toggleResultCard(show) {
+            if (show) {
+                resultCard.classList.add('show');
+            } else {
+                resultCard.classList.remove('show');
+            }
+        }
+
+        function updateStatusBadge(statusText) {
+            statusEl.textContent = statusText || 'Unknown';
+            statusEl.className = 'result-status';
+            if (!statusText) {
+                return;
+            }
+            const normalized = statusText.toLowerCase().replace(/\s+/g, '-');
+            statusEl.classList.add('status-' + normalized);
+        }
+
+        function updateResult(ticket) {
+            referenceEl.textContent = ticket.referenceCode || '-';
+            titleEl.textContent = ticket.bookTitle || 'Untitled';
+            authorEl.textContent = ticket.bookAuthor || '';
+            userEl.textContent = ticket.userName || 'Unknown borrower';
+            orgEl.textContent = ticket.organizationName || '';
+            createdEl.textContent = ticket.createdAt || '—';
+            expiresEl.textContent = ticket.expiresAt || '—';
+
+            resetTimeline();
+
+            if (ticket.claimedAt) {
+                claimedEl.textContent = ticket.claimedAt;
+                claimedWrapper.style.display = 'flex';
+            }
+
+            if (ticket.checkedOutAt) {
+                checkedOutEl.textContent = ticket.checkedOutAt;
+                checkedOutWrapper.style.display = 'flex';
+            }
+
+            if (ticket.dueAt) {
+                dueEl.textContent = ticket.dueAt;
+                dueWrapper.style.display = 'flex';
+            }
+
+            if (ticket.returnedAt) {
+                returnedEl.textContent = ticket.returnedAt;
+                returnedWrapper.style.display = 'flex';
+            }
+
+            if (ticket.notes) {
+                notesEl.textContent = ticket.notes;
+                notesContainer.style.display = 'block';
+            } else {
+                notesContainer.style.display = 'none';
+            }
+
+            updateStatusBadge(ticket.status);
+            toggleResultCard(true);
+        }
+
+        function clearResult() {
+            toggleResultCard(false);
+            resetTimeline();
+        }
+
+        form.addEventListener('submit', function (event) {
+            event.preventDefault();
+
+            const dateInput = document.getElementById('dateInput').value.trim();
+            const numberInput = document.getElementById('numberInput').value.trim();
+            const organizationCode = '@(Model.OrganizationCode ?? "ORG")';
+            
+            if (!dateInput || !numberInput) {
+                showMessage('Please enter both date and ticket number.', false);
+                clearResult();
+                return;
+            }
+
+            // Validate date format (YYYYMMDD)
+            if (!/^\d{8}$/.test(dateInput)) {
+                showMessage('Please enter a valid date in YYYYMMDD format.', false);
+                clearResult();
+                return;
+            }
+
+            // Validate number format (5 digits)
+            if (!/^\d{5}$/.test(numberInput)) {
+                showMessage('Please enter a valid 5-digit ticket number.', false);
+                clearResult();
+                return;
+            }
+
+            const referenceCode = `${organizationCode}-${dateInput}-${numberInput}`;
+            showMessage('Searching...', true);
+
+            fetch('@Url.Action("CheckReference", "AdminHome")', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
+                },
+                body: new URLSearchParams({ referenceCode: referenceCode }).toString()
+            })
+                .then(response => response.json())
+                .then(result => {
+                    if (result && result.success) {
+                        showMessage('Reference found. Review the reservation details below.', true);
+                        updateResult(result.ticket);
+                    } else {
+                        const errorMessage = result && result.message
+                            ? result.message
+                            : 'Reference number not found.';
+                        showMessage(errorMessage, false);
+                        clearResult();
+                    }
+                })
+                .catch(() => {
+                    showMessage('Unable to verify the reference number right now.', false);
+                    clearResult();
+                });
+        });
+
+        const initialTicket = @Html.Raw(Model.Ticket != null
+            ? JsonSerializer.Serialize(new
+            {
+                referenceCode = Model.Ticket.ReferenceCode,
+                bookTitle = Model.Ticket.BookTitle,
+                bookAuthor = Model.Ticket.BookAuthor,
+                userName = Model.Ticket.UserName,
+                organizationName = Model.Ticket.OrganizationName,
+                status = Model.Ticket.StatusDisplay,
+                createdAt = Model.Ticket.CreatedAt.ToString("MMMM d, yyyy h:mm tt"),
+                expiresAt = Model.Ticket.ExpiresAt.ToString("MMMM d, yyyy h:mm tt"),
+                claimedAt = Model.Ticket.ClaimedAt?.ToString("MMMM d, yyyy h:mm tt"),
+                checkedOutAt = Model.Ticket.CheckedOutAt?.ToString("MMMM d, yyyy h:mm tt"),
+                dueAt = Model.Ticket.DueAt?.ToString("MMMM d, yyyy h:mm tt"),
+                returnedAt = Model.Ticket.ReturnedAt?.ToString("MMMM d, yyyy h:mm tt"),
+                notes = Model.Ticket.Notes
+            })
+            : "null");
+
+        if (initialTicket) {
+            updateResult(initialTicket);
+        } else {
+            resetTimeline();
+            toggleResultCard(false);
+        }
+
+        // Load pending claims on page load
+        loadPendingClaims();
+        
+        // Load unreturned books on page load
+        loadUnreturnedBooks();
+    })();
+
+    function loadPendingClaims() {
+        fetch('@Url.Action("GetPendingClaims", "AdminHome")')
+            .then(response => response.json())
+            .then(data => {
+                const container = document.getElementById('pendingClaimsList');
+                if (data && data.success && data.claims && data.claims.length > 0) {
+                    container.innerHTML = '';
+                    data.claims.forEach(claim => {
+                        const claimCard = createPendingClaimCard(claim);
+                        container.appendChild(claimCard);
+                    });
+                } else {
+                    container.innerHTML = '<p class="no-pending-claims">No pending claims at this time.</p>';
+                }
+            })
+            .catch(() => {
+                document.getElementById('pendingClaimsList').innerHTML = '<p class="no-pending-claims">Unable to load pending claims.</p>';
+            });
+    }
+
+    function createPendingClaimCard(claim) {
+        const card = document.createElement('div');
+        card.className = 'pending-claim-card';
+        card.innerHTML = `
+            <div class="claim-info">
+                <div class="claim-header">
+                    <h4>${claim.bookTitle}</h4>
+                    <span class="claim-reference">${claim.referenceCode}</span>
+                </div>
+                <div class="claim-details">
+                    <p><strong>Borrower:</strong> ${claim.userName}</p>
+                    <p><strong>Claim by:</strong> ${claim.expiresAt}</p>
+                </div>
+            </div>
+            <div class="claim-actions">
+                <button class="btn-confirm-claim" onclick="confirmClaim('${claim.referenceCode}')">
+                    <i class="fas fa-check"></i> Confirm Claim
+                </button>
+            </div>
+        `;
+        return card;
+    }
+
+    function confirmClaim(referenceCode) {
+        if (!confirm('Confirm this claim? The book will be marked as borrowed.')) {
+            return;
+        }
+
+        fetch('@Url.Action("ConfirmClaim", "AdminHome")', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
+            },
+            body: new URLSearchParams({ 
+                referenceCode: referenceCode,
+                notes: 'Confirmed by admin'
+            }).toString()
+        })
+        .then(response => response.json())
+        .then(result => {
+            if (result && result.success) {
+                alert('Claim confirmed successfully!');
+                loadPendingClaims(); // Reload the list
+            } else {
+                alert(result.message || 'Failed to confirm claim.');
+            }
+        })
+        .catch(() => {
+            alert('Unable to confirm claim right now.');
+        });
+    }
+
+    function loadUnreturnedBooks() {
+        fetch('@Url.Action("GetUnreturnedBooks", "AdminHome")')
+            .then(response => response.json())
+            .then(data => {
+                const container = document.getElementById('unreturnedBooksList');
+                if (data && data.success && data.books && data.books.length > 0) {
+                    container.innerHTML = '';
+                    data.books.forEach(book => {
+                        const bookCard = createUnreturnedBookCard(book);
+                        container.appendChild(bookCard);
+                    });
+                } else {
+                    container.innerHTML = '<p class="no-unreturned-books">No unreturned books at this time.</p>';
+                }
+            })
+            .catch(() => {
+                document.getElementById('unreturnedBooksList').innerHTML = '<p class="no-unreturned-books">Unable to load unreturned books.</p>';
+            });
+    }
+
+    function createUnreturnedBookCard(book) {
+        const card = document.createElement('div');
+        card.className = 'unreturned-book-card';
+        if (book.isOverdue) {
+            card.classList.add('overdue');
+        }
+        
+        card.innerHTML = `
+            <div class="book-info">
+                <div class="book-header">
+                    <h4>${book.bookTitle}</h4>
+                    <span class="book-reference">${book.referenceCode}</span>
+                </div>
+                <div class="book-details">
+                    <p><strong>Borrower:</strong> ${book.userName}</p>
+                    <p><strong>Checked Out:</strong> ${book.checkedOutAt}</p>
+                    <p><strong>Due:</strong> ${book.dueAt}</p>
+                    ${book.isOverdue ? `<p class="overdue-indicator"><i class="fas fa-exclamation-triangle"></i> <strong>OVERDUE</strong> (${book.daysOverdue} days)</p>` : ''}
+                </div>
+            </div>
+            <div class="book-actions">
+                <button class="btn-confirm-return" onclick="confirmReturn('${book.referenceCode}')">
+                    <i class="fas fa-check"></i> Confirm Return
+                </button>
+            </div>
+        `;
+        return card;
+    }
+
+    function confirmReturn(referenceCode) {
+        if (!confirm('Confirm this book return?')) {
+            return;
+        }
+
+        fetch('@Url.Action("ConfirmReturn", "AdminHome")', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
+            },
+            body: new URLSearchParams({ referenceCode: referenceCode }).toString()
+        })
+        .then(response => response.json())
+        .then(result => {
+            if (result && result.success) {
+                alert('Book return confirmed successfully!');
+                loadUnreturnedBooks(); // Reload the list
+            } else {
+                alert(result.message || 'Failed to confirm return.');
+            }
+        })
+        .catch(() => {
+            alert('Unable to confirm return right now.');
+        });
+    }
+</script>
+
+</body>
+</html>

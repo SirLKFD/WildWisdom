@@ -1,3 +1,4 @@
+@model ASI.Basecode.Services.ServiceModels.DashboardViewModel
 @{
     ViewData["Title"] = "Dashboard";
     Layout = null;
@@ -31,17 +32,17 @@
             <div class="admin-card text-center" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
                 <i class="fas fa-book fa-3x mb-3"></i>
                 <h3>Total Books</h3>
-                <h2 class="mb-0">-</h2>
-                <p class="mb-0">Coming Soon</p>
+                <h2 class="mb-0">@Model.TotalBooks</h2>
+                <p class="mb-0">Active books in catalog</p>
             </div>
         </div>
 
         <div class="col-md-3 mb-4">
             <div class="admin-card text-center" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white;">
-                <i class="fas fa-users fa-3x mb-3"></i>
-                <h3>Total Users</h3>
-                <h2 class="mb-0">-</h2>
-                <p class="mb-0">Coming Soon</p>
+                <i class="fas fa-calendar-day fa-3x mb-3"></i>
+                <h3>Borrowed Today</h3>
+                <h2 class="mb-0">@Model.BorrowedToday</h2>
+                <p class="mb-0">Books borrowed today</p>
             </div>
         </div>
 
@@ -49,8 +50,8 @@
             <div class="admin-card text-center" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white;">
                 <i class="fas fa-book-reader fa-3x mb-3"></i>
                 <h3>Active Borrows</h3>
-                <h2 class="mb-0">-</h2>
-                <p class="mb-0">Coming Soon</p>
+                <h2 class="mb-0">@Model.ActiveBorrows</h2>
+                <p class="mb-0">Currently borrowed</p>
             </div>
         </div>
 
@@ -58,8 +59,19 @@
             <div class="admin-card text-center" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); color: white;">
                 <i class="fas fa-clock fa-3x mb-3"></i>
                 <h3>Overdue</h3>
-                <h2 class="mb-0">-</h2>
-                <p class="mb-0">Coming Soon</p>
+                <h2 class="mb-0">@Model.OverdueCount</h2>
+                <p class="mb-0">Books overdue</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-3 mb-4">
+            <div class="admin-card text-center" style="background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%); color: #333;">
+                <i class="fas fa-hourglass-half fa-3x mb-3"></i>
+                <h3>Pending Claims</h3>
+                <h2 class="mb-0">@Model.PendingClaims</h2>
+                <p class="mb-0">Awaiting confirmation</p>
             </div>
         </div>
     </div>
@@ -88,11 +100,11 @@
                     <a href="@Url.Action("Index", "AdminHome")" class="list-group-item list-group-item-action">
                         <i class="fas fa-book text-primary"></i> Manage Books
                     </a>
+                    <a href="@Url.Action("ReferenceLookup", "AdminHome")" class="list-group-item list-group-item-action">
+                        <i class="fas fa-ticket-alt text-warning"></i> Reference Lookup
+                    </a>
                     <a href="@Url.Action("AdminSettings", "AdminHome")" class="list-group-item list-group-item-action">
                         <i class="fas fa-cog text-secondary"></i> Settings
-                    </a>
-                    <a href="#" class="list-group-item list-group-item-action disabled">
-                        <i class="fas fa-user-plus text-info"></i> Manage Users (Coming Soon)
                     </a>
                 </div>
             </div>

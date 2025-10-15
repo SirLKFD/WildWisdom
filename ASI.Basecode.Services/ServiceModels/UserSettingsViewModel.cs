@@ -3,6 +3,7 @@ using ASI.Basecode.Services.Utils.DtoMapper;
 using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 namespace ASI.Basecode.Services.ServiceModels
@@ -58,6 +59,13 @@ namespace ASI.Basecode.Services.ServiceModels
 
         [Display(Name = "Updated By")]
         public string UpdatedBy { get; set; }
+
+        // Additional properties for tabs
+        public List<BorrowTicketViewModel> BorrowedBooks { get; set; } = new List<BorrowTicketViewModel>();
+        public List<BorrowTicketViewModel> OverdueBooks { get; set; } = new List<BorrowTicketViewModel>();
+        public List<BorrowTicketViewModel> HistoryBooks { get; set; } = new List<BorrowTicketViewModel>();
+        public List<BorrowTicketViewModel> PendingTickets { get; set; } = new List<BorrowTicketViewModel>();
+        public List<WishlistItemViewModel> WishlistItems { get; set; } = new List<WishlistItemViewModel>();
 
         public void CreateMappings(IMapperConfigurationExpression configuration)
         {
