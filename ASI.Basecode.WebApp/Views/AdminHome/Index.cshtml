@@ -1,4 +1,4 @@
-@model IEnumerable<ASI.Basecode.Services.ServiceModels.OrgBooksViewModel>
+﻿@model IEnumerable<ASI.Basecode.Services.ServiceModels.OrgBooksViewModel>
 @{
     ViewData["Title"] = "Books Management";
     Layout = null;
@@ -16,6 +16,237 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Admin books filter section */
+        .books-filter-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #dee2e6;
+        }
+
+        .results-info {
+            color: #7B4A2C;
+            font-weight: 500;
+            margin-bottom: 15px;
+        }
+
+        .filter-row {
+            display: flex;
+            gap: 15px;
+            align-items: end;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            min-width: 150px;
+        }
+
+        .filter-label {
+            font-weight: 500;
+            color: #495057;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+        }
+
+        .filter-input, .filter-select {
+            border: 2px solid #ced4da;
+            border-radius: 6px;
+            padding: 8px 12px;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .filter-input:focus, .filter-select:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        }
+
+        .btn-search-filter {
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 8px 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .btn-search-filter:hover {
+            background: #0056b3;
+        }
+
+        .btn-clear-filters {
+            background: #6c757d;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 8px 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .btn-clear-filters:hover {
+            background: #545b62;
+        }
+
+        /* Pagination Styles - Standardized to match UserHome */
+        .pagination-wrapper {
+            margin-top: 50px;
+            padding: 30px 0;
+            border-top: 2px solid #E8DFD3;
+        }
+
+        .pagination-controls {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+
+        .page-numbers {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .page-btn {
+            min-width: 50px;
+            height: 50px;
+            padding: 0 15px;
+            background-color: white;
+            border: 2px solid #D4C4B0;
+            color: #7B4A2C;
+            font-weight: 500;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+        }
+
+        .page-btn:hover {
+            background-color: #D4A574;
+            border-color: #D4A574;
+            color: white;
+            text-decoration: none;
+        }
+
+        .page-btn.active {
+            background-color: #D4A574;
+            border-color: #D4A574;
+            color: white;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .page-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .page-ellipsis {
+            padding: 0 8px;
+            color: #8B7355;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .pagination-info {
+            text-align: center;
+            color: #6c757d;
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+        }
+
+        .items-per-page {
+            display: flex;
+            align-items: center;
+        }
+
+        .page-size-select {
+            width: 130px;
+            height: 50px;
+            padding: 0 15px;
+            border: 2px solid #D4C4B0;
+            border-radius: 8px;
+            color: #7B4A2C;
+            font-weight: 500;
+            background-color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .page-size-select:focus {
+            outline: none;
+            border-color: #A66D3F;
+            box-shadow: 0 0 0 3px rgba(166, 109, 63, 0.1);
+        }
+
+        .go-to-page {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            white-space: nowrap;
+        }
+
+        .go-to-label {
+            color: #8B7355;
+            font-weight: 500;
+            line-height: 1;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .page-input {
+            width: 70px;
+            height: 50px;
+            padding: 0 15px;
+            border: 2px solid #D4C4B0;
+            border-radius: 8px;
+            color: #7B4A2C;
+            font-weight: 500;
+            text-align: center;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .page-input:focus {
+            outline: none;
+            border-color: #A66D3F;
+            box-shadow: 0 0 0 3px rgba(166, 109, 63, 0.1);
+        }
+
+        @@media (max-width: 768px) {
+            .filter-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .filter-group {
+                min-width: auto;
+            }
+            
+            .pagination-controls {
+                flex-wrap: wrap;
+                gap: 5px;
+            }
+        }
+    </style>
 </head>
 <body>
 
@@ -52,110 +283,196 @@
         </div>
     }
 
+    <!-- Filter Section -->
+    <div class="books-filter-section">
+        <h5 class="mb-3"><i class="fas fa-filter"></i> Search & Filter Books</h5>
+        
+        <div class="filter-row">
+            <div class="filter-group">
+                <label class="filter-label">Search</label>
+                <input type="text" id="searchInput" class="filter-input" placeholder="Search by title, author, ISBN, or publisher..." />
+            </div>
+            <div class="filter-group">
+                <label class="filter-label">Category</label>
+                <select id="categoryFilter" class="filter-select">
+                    <option value="">All Categories</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label class="filter-label">Genre</label>
+                <select id="genreFilter" class="filter-select">
+                    <option value="">All Genres</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label class="filter-label">Status</label>
+                <select id="statusFilter" class="filter-select">
+                    <option value="">All Status</option>
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label class="filter-label">Availability</label>
+                <select id="availabilityFilter" class="filter-select">
+                    <option value="">All</option>
+                    <option value="available">Available</option>
+                    <option value="out-of-stock">Out of Stock</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label class="filter-label">Sort By</label>
+                <select id="sortBy" class="filter-select">
+                    <option value="title">Title A-Z</option>
+                    <option value="author">Author A-Z</option>
+                    <option value="date-added">Date Added (Newest)</option>
+                    <option value="copies-available">Most Available</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="filter-row">
+            <div class="filter-group">
+                <button type="button" id="searchBtn" class="btn-search-filter">
+                    <i class="fas fa-search"></i> Search
+                </button>
+            </div>
+            <div class="filter-group">
+                <button type="button" id="clearBtn" class="btn-clear-filters">
+                    <i class="fas fa-times"></i> Clear Filters
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Results Info -->
+    <div class="results-info" id="resultsInfo">
+        Loading books...
+    </div>
+
+    <!-- Books Table -->
     <div class="card shadow">
         <div class="card-body">
-            @if (Model != null && Model.Any())
-            {
-                <div class="table-responsive">
-                    <table class="table table-hover table-striped">
-                        <thead class="thead-dark">
-                            <tr>
-                                <th>Cover</th>
-                                <th>Title</th>
-                                <th>Author</th>
-                                <th>ISBN</th>
-                                <th>Publisher</th>
-                                <th>Category</th>
-                                <th>Genre</th>
-                                <th>Copies (Total/Avail)</th>
-                                <th>Status</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var book in Model)
-                            {
+            <div id="booksTableContainer">
+                @if (Model != null && Model.Any())
+                {
+                    <div class="table-responsive">
+                        <table class="table-hover table-striped table" id="booksTable">
+                            <thead class="thead-dark">
                                 <tr>
-                                    <td>
-                                        @if (!string.IsNullOrEmpty(book.CoverImage))
-                                        {
-                                            <img src="@book.CoverImage" alt="@book.Title" style="width: 50px; height: 70px; object-fit: cover;" />
-                                        }
-                                        else
-                                        {
-                                            <div style="width: 50px; height: 70px; background: #e9ecef; display: flex; align-items: center; justify-content: center;">
-                                                <i class="fas fa-book fa-2x text-muted"></i>
-                                            </div>
-                                        }
-                                    </td>
-                                    <td>@book.Title</td>
-                                    <td>@book.Author</td>
-                                    <td>@book.ISBN</td>
-                                    <td>@(book.Publisher ?? "-")</td>
-                                    <td>@(book.Category ?? "-")</td>
-                                    <td>@(book.Genre ?? "-")</td>
-                                    <td>
-                                        <strong>@book.CopiesTotal</strong> / 
-                                        <span class="@(book.CopiesAvailable > 0 ? "text-success" : "text-danger")">
-                                            @book.CopiesAvailable
-                                        </span>
-                                    </td>
-                                    <td>
-                                        @if (book.IsActive)
-                                        {
-                                            <span class="badge badge-success">Active</span>
-                                        }
-                                        else
-                                        {
-                                            <span class="badge badge-secondary">Inactive</span>
-                                        }
-                                    </td>
-                                    <td>
-                                        <div class="btn-group" role="group">
-                                            <a href="@Url.Action("EditBook", "AdminHome", new { id = book.Id })" 
-                                               class="btn btn-sm btn-primary" title="Edit Book">
-                                                <i class="fas fa-edit"></i>
-                                            </a>
-                                            @if (book.IsActive)
+                                    <th>Cover</th>
+                                    <th>Title</th>
+                                    <th>Author</th>
+                                    <th>ISBN</th>
+                                    <th>Publisher</th>
+                                    <th>Category</th>
+                                    <th>Genre</th>
+                                    <th>Copies (Total/Avail)</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="booksTableBody">
+                                @foreach (var book in Model)
+                                {
+                                    <tr data-book-id="@book.Id" 
+                                        data-title="@book.Title.ToLower()" 
+                                        data-author="@book.Author.ToLower()" 
+                                        data-isbn="@book.ISBN.ToLower()" 
+                                        data-publisher="@(book.Publisher ?? "").ToLower()" 
+                                        data-category="@(book.Category ?? "")" 
+                                        data-genre="@(book.Genre ?? "")" 
+                                        data-status="@(book.IsActive ? "active" : "inactive")" 
+                                        data-availability="@(book.CopiesAvailable > 0 ? "available" : "out-of-stock")"
+                                        data-date-added="@book.CreatedTime.ToString("yyyy-MM-dd")"
+                                        data-copies-available="@book.CopiesAvailable">
+                                        <td>
+                                            @if (!string.IsNullOrEmpty(book.CoverImage))
                                             {
-                                                <button type="button" class="btn btn-sm btn-secondary" 
-                                                        onclick="toggleStatus(@book.Id, '@book.Title', false)" 
-                                                        title="Deactivate Book">
-                                                    <i class="fas fa-eye-slash"></i>
-                                                </button>
+                                                <img src="@book.CoverImage" alt="@book.Title" style="width: 50px; height: 70px; object-fit: cover;" />
                                             }
                                             else
                                             {
-                                                <button type="button" class="btn btn-sm btn-success" 
-                                                        onclick="toggleStatus(@book.Id, '@book.Title', true)" 
-                                                        title="Activate Book">
-                                                    <i class="fas fa-eye"></i>
-                                                </button>
+                                                <div style="width: 50px; height: 70px; background: #e9ecef; display: flex; align-items: center; justify-content: center;">
+                                                    <i class="fas fa-book fa-2x text-muted"></i>
+                                                </div>
                                             }
-                                            <button type="button" class="btn btn-sm btn-danger" 
-                                                    onclick="deleteBook(@book.Id, '@book.Title')" title="Delete Book">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
-            }
-            else
-            {
-                <div class="text-center py-5">
-                    <i class="fas fa-book fa-4x text-muted mb-3"></i>
-                    <h4>No books found</h4>
-                    <p class="text-muted">Start by adding your first book to the library.</p>
-                    <a href="@Url.Action("AddBook", "AdminHome")" class="btn btn-success mt-3">
-                        <i class="fas fa-plus"></i> Add Your First Book
-                    </a>
-                </div>
-            }
+                                        </td>
+                                        <td>@book.Title</td>
+                                        <td>@book.Author</td>
+                                        <td>@book.ISBN</td>
+                                        <td>@(book.Publisher ?? "-")</td>
+                                        <td>@(book.Category ?? "-")</td>
+                                        <td>@(book.Genre ?? "-")</td>
+                                        <td>
+                                            <strong>@book.CopiesTotal</strong> / 
+                                            <span class="@(book.CopiesAvailable > 0 ? "text-success" : "text-danger")">
+                                                @book.CopiesAvailable
+                                            </span>
+                                        </td>
+                                        <td>
+                                            @if (book.IsActive)
+                                            {
+                                                <span class="badge badge-success">Active</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge badge-secondary">Inactive</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            <div class="btn-group" role="group">
+                                                <a href="@Url.Action("EditBook", "AdminHome", new { id = book.Id })" 
+                                                   class="btn btn-sm btn-primary" title="Edit Book">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                                @if (book.IsActive)
+                                                {
+                                                    <button type="button" class="btn btn-sm btn-secondary" 
+                                                            onclick="toggleStatus(@book.Id, '@book.Title', false)" 
+                                                            title="Deactivate Book">
+                                                        <i class="fas fa-eye-slash"></i>
+                                                    </button>
+                                                }
+                                                else
+                                                {
+                                                    <button type="button" class="btn btn-sm btn-success" 
+                                                            onclick="toggleStatus(@book.Id, '@book.Title', true)" 
+                                                            title="Activate Book">
+                                                        <i class="fas fa-eye"></i>
+                                                    </button>
+                                                }
+                                                <button type="button" class="btn btn-sm btn-danger" 
+                                                        onclick="deleteBook(@book.Id, '@book.Title')" title="Delete Book">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <div class="py-5 text-center" id="noBooksMessage">
+                        <i class="fas fa-book fa-4x text-muted mb-3"></i>
+                        <h4>No books found</h4>
+                        <p class="text-muted">Start by adding your first book to the library.</p>
+                        <a href="@Url.Action("AddBook", "AdminHome")" class="btn btn-success mt-3">
+                            <i class="fas fa-plus"></i> Add Your First Book
+                        </a>
+                    </div>
+                }
+            </div>
         </div>
+    </div>
+
+    <!-- Pagination Section -->
+    <div class="pagination-wrapper" id="paginationSection" style="display: none;">
+        <div class="pagination-info" id="paginationInfo"></div>
+        <div class="pagination-controls" id="paginationControls"></div>
     </div>
 </div>
 
@@ -172,6 +489,356 @@
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
+    // Pagination variables
+    let allBooks = [];
+    let filteredBooks = [];
+    let currentPage = 1;
+    const itemsPerPage = 25;
+
+    // Initialize the page
+    $(document).ready(function() {
+        loadBooks();
+        populateFilterOptions();
+        filterBooks();
+        
+        // Event listeners
+        $('#searchBtn').on('click', function() {
+            currentPage = 1;
+            filterBooks();
+        });
+        
+        $('#clearBtn').on('click', function() {
+            clearFilters();
+        });
+        
+        // Enter key in search input
+        $('#searchInput').on('keypress', function(e) {
+            if (e.which === 13) {
+                currentPage = 1;
+                filterBooks();
+            }
+        });
+    });
+
+    function loadBooks() {
+        allBooks = [];
+        $('#booksTableBody tr').each(function() {
+            const row = $(this);
+            const book = {
+                id: row.data('book-id'),
+                title: row.data('title'),
+                author: row.data('author'),
+                isbn: row.data('isbn'),
+                publisher: row.data('publisher'),
+                category: row.data('category'),
+                genre: row.data('genre'),
+                status: row.data('status'),
+                availability: row.data('availability'),
+                dateAdded: row.data('date-added'),
+                copiesAvailable: row.data('copies-available'),
+                element: row[0].outerHTML
+            };
+            allBooks.push(book);
+        });
+    }
+
+    function populateFilterOptions() {
+        // Get unique categories and genres
+        const categories = [...new Set(allBooks.map(book => book.category).filter(cat => cat))];
+        const genres = [...new Set(allBooks.map(book => book.genre).filter(genre => genre))];
+        
+        // Populate category filter
+        const categoryFilter = $('#categoryFilter');
+        categories.forEach(category => {
+            categoryFilter.append(`<option value="${category}">${category}</option>`);
+        });
+        
+        // Populate genre filter
+        const genreFilter = $('#genreFilter');
+        genres.forEach(genre => {
+            genreFilter.append(`<option value="${genre}">${genre}</option>`);
+        });
+    }
+
+    function filterBooks() {
+        const searchQuery = $('#searchInput').val().toLowerCase();
+        const category = $('#categoryFilter').val();
+        const genre = $('#genreFilter').val();
+        const status = $('#statusFilter').val();
+        const availability = $('#availabilityFilter').val();
+        const sortBy = $('#sortBy').val();
+
+        // Apply filters
+        filteredBooks = allBooks.filter(book => {
+            // Search filter
+            if (searchQuery && !book.title.includes(searchQuery) && 
+                !book.author.includes(searchQuery) && 
+                !book.isbn.includes(searchQuery) && 
+                !book.publisher.includes(searchQuery)) {
+                return false;
+            }
+            
+            // Category filter
+            if (category && book.category !== category) {
+                return false;
+            }
+            
+            // Genre filter
+            if (genre && book.genre !== genre) {
+                return false;
+            }
+            
+            // Status filter
+            if (status && book.status !== status) {
+                return false;
+            }
+            
+            // Availability filter
+            if (availability && book.availability !== availability) {
+                return false;
+            }
+            
+            return true;
+        });
+
+        // Apply sorting
+        switch (sortBy) {
+            case 'title':
+                filteredBooks.sort((a, b) => a.title.localeCompare(b.title));
+                break;
+            case 'author':
+                filteredBooks.sort((a, b) => a.author.localeCompare(b.author));
+                break;
+            case 'date-added':
+                filteredBooks.sort((a, b) => new Date(b.dateAdded) - new Date(a.dateAdded));
+                break;
+            case 'copies-available':
+                filteredBooks.sort((a, b) => b.copiesAvailable - a.copiesAvailable);
+                break;
+        }
+
+        renderTable();
+        renderPagination();
+        updateResultsInfo();
+    }
+
+    function renderTable() {
+        const start = (currentPage - 1) * itemsPerPage;
+        const end = start + itemsPerPage;
+        const pageBooks = filteredBooks.slice(start, end);
+        
+        const tbody = $('#booksTableBody');
+        tbody.empty();
+        
+        if (pageBooks.length === 0) {
+            $('#booksTableContainer').html(`
+                <div class="py-5 text-center">
+                    <i class="fas fa-search fa-4x text-muted mb-3"></i>
+                    <h4>No books found</h4>
+                    <p class="text-muted">No books match your search criteria. Try adjusting your filters.</p>
+                    <button type="button" class="btn btn-primary mt-3" onclick="clearFilters()">
+                        <i class="fas fa-times"></i> Clear Filters
+                    </button>
+                </div>
+            `);
+            $('#paginationSection').hide();
+            return;
+        }
+        
+        // Restore table if it was replaced
+        if (!$('#booksTable').length) {
+            $('#booksTableContainer').html(`
+                <div class="table-responsive">
+                    <table class="table-hover table-striped table" id="booksTable">
+                        <thead class="thead-dark">
+                            <tr>
+                                <th>Cover</th>
+                                <th>Title</th>
+                                <th>Author</th>
+                                <th>ISBN</th>
+                                <th>Publisher</th>
+                                <th>Category</th>
+                                <th>Genre</th>
+                                <th>Copies (Total/Avail)</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="booksTableBody"></tbody>
+                    </table>
+                </div>
+            `);
+        }
+        
+        pageBooks.forEach(book => {
+            tbody.append(book.element);
+        });
+        
+        $('#paginationSection').show();
+    }
+
+    function renderPagination() {
+        const totalPages = Math.ceil(filteredBooks.length / itemsPerPage);
+        const paginationControls = $('#paginationControls');
+        paginationControls.empty();
+        
+        if (totalPages <= 1) {
+            $('#paginationSection').hide();
+            return;
+        }
+        
+        // Create page numbers container
+        const pageNumbers = $('<div class="page-numbers"></div>');
+        
+        // Previous button
+        if (currentPage > 1) {
+            const prevBtn = $('<a href="#" class="page-btn page-prev">Previous</a>');
+            prevBtn.on('click', (e) => {
+                e.preventDefault();
+                currentPage--;
+                renderTable();
+                renderPagination();
+            });
+            pageNumbers.append(prevBtn);
+        }
+        
+        // Calculate page range
+        const startPage = Math.max(1, currentPage - 2);
+        const endPage = Math.min(totalPages, currentPage + 2);
+        
+        // Adjust if we're near the start or end
+        let adjustedStartPage = startPage;
+        let adjustedEndPage = endPage;
+        if (endPage - startPage < 4) {
+            if (startPage === 1) {
+                adjustedEndPage = Math.min(totalPages, startPage + 4);
+            } else if (endPage === totalPages) {
+                adjustedStartPage = Math.max(1, endPage - 4);
+            }
+        }
+        
+        // First page and ellipsis
+        if (adjustedStartPage > 1) {
+            const firstBtn = $('<a href="#" class="page-btn">1</a>');
+            firstBtn.on('click', (e) => {
+                e.preventDefault();
+                currentPage = 1;
+                renderTable();
+                renderPagination();
+            });
+            pageNumbers.append(firstBtn);
+            
+            if (adjustedStartPage > 2) {
+                pageNumbers.append('<span class="page-ellipsis">...</span>');
+            }
+        }
+        
+        // Page numbers
+        for (let i = adjustedStartPage; i <= adjustedEndPage; i++) {
+            const pageBtn = $(`<a href="#" class="page-btn ${i === currentPage ? 'active' : ''}">${i}</a>`);
+            if (i !== currentPage) {
+                pageBtn.on('click', (e) => {
+                    e.preventDefault();
+                    currentPage = i;
+                    renderTable();
+                    renderPagination();
+                });
+            }
+            pageNumbers.append(pageBtn);
+        }
+        
+        // Last page and ellipsis
+        if (adjustedEndPage < totalPages) {
+            if (adjustedEndPage < totalPages - 1) {
+                pageNumbers.append('<span class="page-ellipsis">...</span>');
+            }
+            
+            const lastBtn = $(`<a href="#" class="page-btn">${totalPages}</a>`);
+            lastBtn.on('click', (e) => {
+                e.preventDefault();
+                currentPage = totalPages;
+                renderTable();
+                renderPagination();
+            });
+            pageNumbers.append(lastBtn);
+        }
+        
+        // Next button
+        if (currentPage < totalPages) {
+            const nextBtn = $('<a href="#" class="page-btn page-next">Next</a>');
+            nextBtn.on('click', (e) => {
+                e.preventDefault();
+                currentPage++;
+                renderTable();
+                renderPagination();
+            });
+            pageNumbers.append(nextBtn);
+        }
+        
+        paginationControls.append(pageNumbers);
+        
+        // Items per page selector
+        const itemsPerPageDiv = $(`
+            <div class="items-per-page">
+                <select class="page-size-select" id="itemsPerPageSelect">
+                    <option value="25" ${itemsPerPage === 25 ? 'selected' : ''}>25 / page</option>
+                    <option value="50" ${itemsPerPage === 50 ? 'selected' : ''}>50 / page</option>
+                    <option value="100" ${itemsPerPage === 100 ? 'selected' : ''}>100 / page</option>
+                </select>
+            </div>
+        `);
+        
+        itemsPerPageDiv.find('#itemsPerPageSelect').on('change', function() {
+            itemsPerPage = parseInt($(this).val());
+            currentPage = 1;
+            renderTable();
+            renderPagination();
+        });
+        
+        paginationControls.append(itemsPerPageDiv);
+        
+        // Go to page
+        const goToPageDiv = $(`
+            <div class="go-to-page">
+                <span class="go-to-label">Go to</span>
+                <input type="number" class="page-input" min="1" max="${totalPages}" value="${currentPage}" id="gotoPageInput" />
+                <span class="go-to-label">Page</span>
+            </div>
+        `);
+        
+        goToPageDiv.find('#gotoPageInput').on('keypress', function(e) {
+            if (e.key === 'Enter') {
+                const page = Math.max(1, Math.min(parseInt(this.value) || 1, totalPages));
+                currentPage = page;
+                renderTable();
+                renderPagination();
+            }
+        });
+        
+        paginationControls.append(goToPageDiv);
+    }
+
+    function updateResultsInfo() {
+        const totalBooks = filteredBooks.length;
+        const startBook = totalBooks === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1;
+        const endBook = Math.min(currentPage * itemsPerPage, totalBooks);
+        const totalPages = Math.ceil(totalBooks / itemsPerPage);
+        
+        $('#resultsInfo').text(`Showing ${startBook}-${endBook} of ${totalBooks} books (Page ${currentPage} of ${totalPages})`);
+    }
+
+    function clearFilters() {
+        $('#searchInput').val('');
+        $('#categoryFilter').val('');
+        $('#genreFilter').val('');
+        $('#statusFilter').val('');
+        $('#availabilityFilter').val('');
+        $('#sortBy').val('title');
+        currentPage = 1;
+        filterBooks();
+    }
+
+    // Original functions for book management
     function deleteBook(id, title) {
         if (confirm('Are you sure you want to delete "' + title + '"?')) {
             document.getElementById('deleteBookId').value = id;

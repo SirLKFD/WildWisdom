@@ -25,6 +25,22 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* 5 books per row for XL screens */
+        @@media (min-width: 1200px) {
+            .col-xl-custom-5 {
+                flex: 0 0 20%;
+                max-width: 20%;
+            }
+        }
+
+        @@media (max-width: 1199px) {
+            .col-xl-custom-5 {
+                flex: 0 0 25%;
+                max-width: 25%;
+            }
+        }
+    </style>
 </head>
 <body>
 
@@ -67,6 +83,18 @@
                                 <option value="">All</option>
                                 <option value="available" @@(selectedAvailability == "available" ? "selected" : "")>Available</option>
                                 <option value="checkedout" @@(selectedAvailability == "checkedout" ? "selected" : "")>Checked Out</option>
+                            </select>
+                        </div>
+
+                        <div class="filter-section">
+                            <label class="filter-label">Sort By</label>
+                            <select name="sortBy" class="form-control filter-input">
+                                <option value="">Default</option>
+                                <option value="latest" @@(ViewBag.SortBy == "latest" ? "selected" : "")>Latest Added</option>
+                                <option value="oldest" @@(ViewBag.SortBy == "oldest" ? "selected" : "")>Oldest Added</option>
+                                <option value="title-az" @@(ViewBag.SortBy == "title-az" ? "selected" : "")>Title A-Z</option>
+                                <option value="title-za" @@(ViewBag.SortBy == "title-za" ? "selected" : "")>Title Z-A</option>
+                                <option value="most-available" @@(ViewBag.SortBy == "most-available" ? "selected" : "")>Most Available</option>
                             </select>
                         </div>
 
@@ -127,12 +155,46 @@
                                     filteredBooks = filteredBooks.Where(b => b.CopiesAvailable == 0).ToList();
                                 }
                             }
+                            
+                            // Apply sorting
+                            var sortBy = ViewBag.SortBy as string ?? "";
+                            if (!string.IsNullOrEmpty(sortBy))
+                            {
+                                switch (sortBy.ToLower())
+                                {
+                                    case "latest":
+                                        filteredBooks = filteredBooks.OrderByDescending(b => b.CreatedTime).ToList();
+                                        break;
+                                    case "oldest":
+                                        filteredBooks = filteredBooks.OrderBy(b => b.CreatedTime).ToList();
+                                        break;
+                                    case "title-az":
+                                        filteredBooks = filteredBooks.OrderBy(b => b.Title).ToList();
+                                        break;
+                                    case "title-za":
+                                        filteredBooks = filteredBooks.OrderByDescending(b => b.Title).ToList();
+                                        break;
+                                    case "most-available":
+                                        filteredBooks = filteredBooks.OrderByDescending(b => b.CopiesAvailable).ToList();
+                                        break;
+                                    default:
+                                        // Default sorting (by title A-Z)
+                                        filteredBooks = filteredBooks.OrderBy(b => b.Title).ToList();
+                                        break;
+                                }
+                            }
+                            else
+                            {
+                                // Default sorting when no sort is specified
+                                filteredBooks = filteredBooks.OrderBy(b => b.Title).ToList();
+                            }
                         }
                         
                         var hasActiveFilters = !string.IsNullOrEmpty(searchTerm) || 
                                               !string.IsNullOrEmpty(selectedCategory) || 
                                               !string.IsNullOrEmpty(selectedGenre) || 
-                                              !string.IsNullOrEmpty(selectedAvailability);
+                                              !string.IsNullOrEmpty(selectedAvailability) ||
+                                              !string.IsNullOrEmpty(ViewBag.SortBy as string);
                         
                         // Calculate pagination
                         var totalBooks = filteredBooks?.Count() ?? 0;
@@ -186,7 +248,7 @@
                         <div class="row books-grid">
                             @foreach (var book in paginatedBooks)
                             {
-                                <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6 col-6 mb-4">
+                                <div class="col-xl-custom-5 col-lg-3 col-md-4 col-sm-6 col-6 mb-4">
                                     <div class="book-card-simple" onclick="window.location.href='@Url.Action("BookDetails", new { id = book.Id })'">
                                         <div class="book-cover-wrapper">
                                             @if (!string.IsNullOrEmpty(book.CoverImage))

@@ -71,10 +71,11 @@ namespace ASI.Basecode.WebApp.Controllers
         /// <param name="category">Category filter</param>
         /// <param name="genre">Genre filter</param>
         /// <param name="availability">Availability filter</param>
+        /// <param name="sortBy">Sort order</param>
         /// <param name="page">Page number</param>
         /// <param name="pageSize">Items per page</param>
         /// <returns> User Home View </returns>
-        public IActionResult Index(string search = "", string category = "", string genre = "", string availability = "", int page = 1, int pageSize = 25)
+        public IActionResult Index(string search = "", string category = "", string genre = "", string availability = "", string sortBy = "", int page = 1, int pageSize = 25)
         {
             // Check if user is logged in
             var username = this._session.GetString("UserName");
@@ -115,6 +116,7 @@ namespace ASI.Basecode.WebApp.Controllers
             ViewBag.SelectedCategory = category;
             ViewBag.SelectedGenre = genre;
             ViewBag.SelectedAvailability = availability;
+            ViewBag.SortBy = sortBy;
             ViewBag.CurrentPage = page;
             ViewBag.PageSize = pageSize;
             
