@@ -117,13 +117,28 @@ namespace ASI.Basecode.WebApp.Controllers
                     t.DueAt.HasValue && 
                     t.DueAt.Value < DateTime.Now);
 
+                // Get recent activities (last 5)
+                var recentActivities = allTickets
+                    .OrderByDescending(t => t.ReturnedAt ?? t.CheckedOutAt ?? t.ClaimedAt ?? t.CreatedAt)
+                    .Take(5)
+                    .ToList();
+
+                // Get recent books (last 5)
+                var recentBooks = allBooks
+                    .Where(b => b.IsActive)
+                    .OrderByDescending(b => b.CreatedTime)
+                    .Take(5)
+                    .ToList();
+
                 var model = new DashboardViewModel
                 {
                     TotalBooks = totalBooks,
                     BorrowedToday = borrowedToday,
                     PendingClaims = pendingClaims,
                     ActiveBorrows = activeBorrows,
-                    OverdueCount = overdueCount
+                    OverdueCount = overdueCount,
+                    RecentActivities = recentActivities,
+                    RecentBooks = recentBooks
                 };
 
                 return View(model);
@@ -723,6 +738,158 @@ namespace ASI.Basecode.WebApp.Controllers
 
                 _borrowTicketService.ReturnBook(referenceCode, adminId);
                 return Json(new { success = true, message = "Book return confirmed successfully." });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Return History Page
+        /// </summary>
+        /// <returns>History View</returns>
+        [HttpGet]
+        public IActionResult History()
+        {
+            var accessCheck = VerifyAdminAccess();
+            if (accessCheck != null) return accessCheck;
+
+            return View();
+        }
+
+        /// <summary>
+        /// Get return history with filtering and pagination
+        /// </summary>
+        /// <param name="searchQuery">Search by book title, user name, or reference code</param>
+        /// <param name="startDate">Start date filter</param>
+        /// <param name="endDate">End date filter</param>
+        /// <param name="statusFilter">Status filter (all, returned, cancelled, expired, lost)</param>
+        /// <param name="fineStatusFilter">Fine status filter (all, has-fine, no-fine, fine-paid, fine-unpaid)</param>
+        /// <param name="sortBy">Sort order (latest, oldest, highest-fine, lowest-fine)</param>
+        /// <param name="page">Page number</param>
+        /// <param name="pageSize">Records per page</param>
+        /// <returns>JSON with return history data</returns>
+        [HttpGet]
+        public IActionResult GetReturnHistory(string searchQuery, DateTime? startDate, DateTime? endDate, 
+            string statusFilter = "all", string fineStatusFilter = "all", string sortBy = "latest", 
+            int page = 1, int pageSize = 20)
+        {
+            var username = this._session.GetString("UserName");
+            if (string.IsNullOrEmpty(username) || !IsAdminUser())
+            {
+                return Json(new { success = false, message = "Unauthorized. Please login as an administrator." });
+            }
+
+            try
+            {
+                var orgId = this._session.GetInt32("OrganizationId") ?? 0;
+                
+                // Get all tickets for the organization (not just returned)
+                var allTickets = _borrowTicketService.GetOrganizationTickets(orgId);
+                
+                // Apply status filter
+                if (!string.IsNullOrWhiteSpace(statusFilter) && statusFilter != "all")
+                {
+                    TicketStatus? targetStatus = statusFilter.ToLower() switch
+                    {
+                        "returned" => TicketStatus.Returned,
+                        "cancelled" => TicketStatus.Cancelled,
+                        "expired" => TicketStatus.Expired,
+                        "lost" => TicketStatus.Lost,
+                        _ => null
+                    };
+                    
+                    if (targetStatus.HasValue)
+                    {
+                        allTickets = allTickets.Where(t => t.Status == targetStatus.Value).ToList();
+                    }
+                }
+                
+                // Apply search filter
+                if (!string.IsNullOrWhiteSpace(searchQuery))
+                {
+                    var query = searchQuery.ToLower();
+                    allTickets = allTickets.Where(t => 
+                        t.BookTitle.ToLower().Contains(query) ||
+                        t.UserName.ToLower().Contains(query) ||
+                        t.ReferenceCode.ToLower().Contains(query)
+                    ).ToList();
+                }
+
+                // Apply date range filter
+                if (startDate.HasValue)
+                {
+                    allTickets = allTickets.Where(t => t.ReturnedAt >= startDate.Value).ToList();
+                }
+                if (endDate.HasValue)
+                {
+                    allTickets = allTickets.Where(t => t.ReturnedAt <= endDate.Value.AddDays(1).AddTicks(-1)).ToList();
+                }
+                
+                // Apply fine status filter
+                if (!string.IsNullOrWhiteSpace(fineStatusFilter) && fineStatusFilter != "all")
+                {
+                    allTickets = fineStatusFilter.ToLower() switch
+                    {
+                        "has-fine" => allTickets.Where(t => t.AccruedFine > 0).ToList(),
+                        "no-fine" => allTickets.Where(t => t.AccruedFine == 0).ToList(),
+                        "fine-paid" => allTickets.Where(t => t.AccruedFine > 0 && t.IsFinePaid).ToList(),
+                        "fine-unpaid" => allTickets.Where(t => t.AccruedFine > 0 && !t.IsFinePaid).ToList(),
+                        _ => allTickets
+                    };
+                }
+                
+                // Apply sorting
+                allTickets = sortBy.ToLower() switch
+                {
+                    "oldest" => allTickets.OrderBy(t => t.ReturnedAt ?? t.CreatedAt).ToList(),
+                    "highest-fine" => allTickets.OrderByDescending(t => t.AccruedFine).ToList(),
+                    "lowest-fine" => allTickets.OrderBy(t => t.AccruedFine).ToList(),
+                    _ => allTickets.OrderByDescending(t => t.ReturnedAt ?? t.CreatedAt).ToList() // default: latest
+                };
+
+                // Calculate pagination
+                var totalCount = allTickets.Count;
+                var totalPages = (int)Math.Ceiling((double)totalCount / pageSize);
+                var skip = (page - 1) * pageSize;
+                var pagedTickets = allTickets.Skip(skip).Take(pageSize).ToList();
+
+                // Format the data for display
+                var result = pagedTickets.Select(ticket => new
+                {
+                    id = ticket.Id,
+                    referenceCode = ticket.ReferenceCode,
+                    bookTitle = ticket.BookTitle,
+                    bookAuthor = ticket.BookAuthor,
+                    userName = ticket.UserName,
+                    checkedOutAt = ticket.CheckedOutAt?.ToString("MMM dd, yyyy"),
+                    dueAt = ticket.DueAt?.ToString("MMM dd, yyyy"),
+                    returnedAt = ticket.ReturnedAt?.ToString("MMM dd, yyyy h:mm tt"),
+                    duration = ticket.CheckedOutAt.HasValue && ticket.ReturnedAt.HasValue 
+                        ? (int)(ticket.ReturnedAt.Value - ticket.CheckedOutAt.Value).TotalDays 
+                        : 0,
+                    fineAmount = ticket.AccruedFine,
+                    isFinePaid = ticket.IsFinePaid,
+                    returnedToEmployeeId = ticket.ReturnedToEmployeeId,
+                    notes = ticket.Notes,
+                    status = ticket.StatusDisplay
+                }).ToList();
+
+                return Json(new
+                {
+                    success = true,
+                    data = result,
+                    pagination = new
+                    {
+                        currentPage = page,
+                        totalPages = totalPages,
+                        totalCount = totalCount,
+                        pageSize = pageSize,
+                        hasNext = page < totalPages,
+                        hasPrevious = page > 1
+                    }
+                });
             }
             catch (Exception ex)
             {
