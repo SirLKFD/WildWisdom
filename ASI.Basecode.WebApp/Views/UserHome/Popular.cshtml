@@ -1,11 +1,11 @@
 @model List<ASI.Basecode.Services.ServiceModels.OrgBooksViewModel>
 
-@{
-    ViewData["Title"] = "Popular Books - WildWisdom";
+@{    ViewData["Title"] = "Popular Books - WildWisdom";
     Layout = null;
-    var searchTerm = ViewBag.SearchTerm as string ?? "";
-    var currentPage = ViewBag.CurrentPage as int? ?? 1;
-    var pageSize = ViewBag.PageSize as int? ?? 10;
+    var top10Overall = ViewBag.Top10Overall as List<ASI.Basecode.Services.ServiceModels.OrgBooksViewModel> ?? new List<ASI.Basecode.Services.ServiceModels.OrgBooksViewModel>();
+    var top10Fiction = ViewBag.Top10Fiction as List<ASI.Basecode.Services.ServiceModels.OrgBooksViewModel> ?? new List<ASI.Basecode.Services.ServiceModels.OrgBooksViewModel>();
+    var top10NonFiction = ViewBag.Top10NonFiction as List<ASI.Basecode.Services.ServiceModels.OrgBooksViewModel> ?? new List<ASI.Basecode.Services.ServiceModels.OrgBooksViewModel>();
+    var topGenres = ViewBag.TopGenres as List<dynamic> ?? new List<dynamic>();
 }
 
 <!DOCTYPE html>
@@ -20,152 +20,920 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/color-thief/2.3.0/color-thief.umd.js"></script>
+    <style>
+        /* Netflix-Style Popular Books Page */
+        body {
+            background: #141414;
+            color: #ffffff;
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+        }
+
+        .netflix-container {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            transition: background 0.8s ease-in-out;
+        }
+
+        .netflix-content {
+            background: transparent;
+        }
+
+        /* Header */
+        .netflix-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            background: linear-gradient(180deg, rgba(0,0,0,0.7) 0%, transparent 100%);
+            padding: 20px 60px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .netflix-logo {
+            font-size: 24px;
+            font-weight: 700;
+            color: #e50914;
+            text-decoration: none;
+        }
+
+        .netflix-nav {
+            display: flex;
+            gap: 30px;
+        }
+
+        .netflix-nav a {
+            color: #ffffff;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        .netflix-nav a:hover {
+            color: #e50914;
+        }
+
+        /* Hero Section */
+        .netflix-hero {
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            position: relative;
+        }
+
+        .hero-content {
+            max-width: 800px;
+            padding: 0 40px;
+        }
+
+        .hero-title {
+            font-size: 4rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            background: linear-gradient(45deg, #ffffff, #e50914);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-subtitle {
+            font-size: 1.5rem;
+            margin-bottom: 40px;
+            opacity: 0.9;
+        }
+
+        .hero-book {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 40px;
+            margin-top: 40px;
+        }
+
+        .hero-book-cover {
+            width: 280px;
+            height: 420px;
+            border-radius: 12px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            transition: all 0.5s ease;
+            object-fit: cover;
+        }
+
+        .hero-book-cover:hover {
+            transform: scale(1.05);
+        }
+
+        .hero-book-info h3 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .hero-book-info p {
+            font-size: 1.2rem;
+            opacity: 0.8;
+            margin-bottom: 20px;
+        }
+
+        .hero-book-info .rating {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.1rem;
+        }
+
+        .hero-navigation {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0,0,0,0.5);
+            border: none;
+            color: white;
+            font-size: 2rem;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .hero-navigation:hover {
+            background: rgba(0,0,0,0.8);
+            transform: translateY(-50%) scale(1.1);
+        }
+
+        .hero-nav-left {
+            left: 40px;
+        }
+
+        .hero-nav-right {
+            right: 40px;
+        }
+
+        /* Content Sections */
+        .netflix-content {
+            padding: 60px 0;
+            background: transparent;
+        }
+
+        .netflix-row {
+            margin-bottom: 60px;
+            padding: 0 60px;
+        }
+
+        .row-title {
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #ffffff;
+        }
+
+        .row-container {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .books-slider {
+            display: flex;
+            gap: 20px;
+            overflow-x: auto;
+            scroll-behavior: smooth;
+            padding: 20px 0;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        .books-slider::-webkit-scrollbar {
+            display: none;
+        }
+
+        .book-card {
+            flex: 0 0 200px;
+            background: #2a2a2a;
+            border-radius: 12px;
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .book-card:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .book-cover {
+            width: 100%;
+            height: 280px;
+            object-fit: cover;
+        }
+
+        .book-info {
+            padding: 15px;
+        }
+
+        .book-title {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #ffffff;
+            line-height: 1.3;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .book-author {
+            font-size: 0.9rem;
+            color: #b3b3b3;
+            margin-bottom: 10px;
+        }
+
+        .book-rating {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.9rem;
+            color: #ffd700;
+        }
+
+        .star-rating-display {
+            display: flex;
+            gap: 2px;
+        }
+
+        .star-rating-display .star {
+            color: #666;
+            font-size: 0.9rem;
+            transition: color 0.2s ease;
+        }
+
+        .star-rating-display .star.filled {
+            color: #ffd700;
+        }
+
+        .book-borrow-count {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(229, 9, 20, 0.9);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        /* Navigation Arrows */
+        .scroll-arrow {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0,0,0,0.7);
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .scroll-arrow:hover {
+            background: rgba(0,0,0,0.9);
+            transform: translateY(-50%) scale(1.1);
+        }
+
+        .scroll-arrow.left {
+            left: -25px;
+        }
+
+        .scroll-arrow.right {
+            right: -25px;
+        }
+
+        .scroll-arrow:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .hero-navigation:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+
+        /* Book transition animations */
+        .hero-book-cover, .hero-book-info {
+            transition: all 0.5s ease-in-out;
+        }
+
+        .fade-out {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        .fade-in {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Book description styling */
+        .book-description {
+            font-size: 1rem;
+            line-height: 1.5;
+            color: #e0e0e0;
+            margin-top: 10px;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Book cover placeholder */
+        .book-cover-placeholder {
+            width: 100%;
+            height: 280px; /* Match the height of .book-cover */
+            background: linear-gradient(135deg, #4a5568 0%, #2d3748 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #a0aec0;
+            font-size: 4rem;
+            border-radius: 12px;
+            border: 2px solid #4a5568;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+            object-fit: cover;
+        }
+
+        .book-cover-placeholder:hover {
+            transform: scale(1.02);
+            box-shadow: 0 12px 24px rgba(0,0,0,0.3);
+        }
+
+        .hero-book-cover.book-cover-placeholder {
+            width: 280px;
+            height: 420px; /* Match hero book cover dimensions */
+            font-size: 5rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: rgba(255,255,255,0.8);
+            border: 2px solid rgba(255,255,255,0.2);
+        }
+
+        /* Responsive Design */
+        @@media (max-width: 768px) {
+            .netflix-header {
+                padding: 15px 20px;
+            }
+
+            .netflix-nav {
+                gap: 15px;
+            }
+
+            .hero-title {
+                font-size: 2.5rem;
+            }
+
+            .hero-subtitle {
+                font-size: 1.2rem;
+            }
+
+            .hero-book {
+                flex-direction: column;
+                gap: 20px;
+            }
+
+            .hero-book-cover {
+                width: 200px;
+                height: 300px;
+            }
+
+            .hero-book-cover.book-cover-placeholder {
+                width: 200px;
+                height: 300px;
+            }
+
+            .netflix-row {
+                padding: 0 20px;
+            }
+
+            .book-card {
+                flex: 0 0 150px;
+            }
+
+            .book-cover {
+                height: 200px;
+            }
+
+            .scroll-arrow {
+                width: 40px;
+                height: 40px;
+                font-size: 1.2rem;
+            }
+
+            .scroll-arrow.left {
+                left: -20px;
+            }
+
+            .scroll-arrow.right {
+                right: -20px;
+            }
+        }
+
+        /* Loading Animation */
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 200px;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #333;
+            border-top: 4px solid #e50914;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @@keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
 </head>
 <body>
 
 @Html.Partial("_UserHomeHeader")
 
-<div class="userhome-content">
-    <div class="container-fluid px-4 py-4">
-        <!-- Page Header -->
-        <div class="page-header mb-4">
-            <h2 class="userhome-section-title">
-                <i class="fas fa-fire"></i> Popular Books
-            </h2>
-            <p class="userhome-section-subtitle">Most borrowed and highly rated books</p>
-        </div>
-
-        <!-- Search Section -->
-        <div class="search-section mb-4">
-            <form method="get" asp-action="Popular" class="search-form">
-                <div class="search-input-wrapper">
-                    <input type="text" 
-                           id="searchInput"
-                           name="search" 
-                           value="@searchTerm"
-                           class="form-control search-input" 
-                           placeholder="Search popular books..."
-                           autocomplete="off" />
-                    <button type="submit" class="btn search-btn">
-                        <i class="fas fa-search"></i> Search
-                    </button>
-                    
-                    <!-- Search Suggestions Dropdown -->
-                    <div id="searchSuggestions" class="search-suggestions" style="display: none;">
-                        <!-- Suggestions will be populated here -->
+<div class="netflix-container">
+        <!-- Hero Section: Top 10 Overall -->
+    <div class="netflix-hero" id="heroSection">
+        <button class="hero-navigation hero-nav-left" onclick="changeHeroBook(-1)" id="heroNavLeft" disabled>
+            <i class="fas fa-chevron-left"></i>
+        </button>
+        
+        <div class="hero-content">
+            <h1 class="hero-title">TOP 10 OVERALL BOOKS THIS WEEK</h1>
+            <p class="hero-subtitle">Most borrowed books from all users</p>
+            
+            
+            @if (top10Overall.Any())
+            {
+                <div class="hero-book" id="heroBook">
+                    @if (!string.IsNullOrEmpty(top10Overall[0].CoverImage))
+                    {
+                        <img src="@top10Overall[0].CoverImage" alt="@top10Overall[0].Title" class="hero-book-cover" id="heroBookCover">
+                    }
+                    else
+                    {
+                        <div class="hero-book-cover book-cover-placeholder" id="heroBookCover">
+                            <i class="fas fa-book"></i>
+                        </div>
+                    }
+                    <div class="hero-book-info">
+                        <h3 id="heroBookTitle">@top10Overall[0].Title</h3>
+                        <p id="heroBookAuthor">by @top10Overall[0].Author</p>
+                        @if (!string.IsNullOrEmpty(top10Overall[0].Description))
+                        {
+                            <p class="book-description" id="heroBookDescription">@top10Overall[0].Description</p>
+                        }
+                        <div class="rating">
+                            <div class="star-rating-display" data-rating="@(top10Overall[0].AverageRating ?? 0)" id="heroBookRating">
+                                @for (int i = 1; i <= 5; i++)
+                                {
+                                    <i class="star fas fa-star" data-value="@i"></i>
+                                }
+                            </div>
+                            <span id="heroBookBorrows">@top10Overall[0].BorrowCount borrows</span>
+                        </div>
                     </div>
                 </div>
-                <input type="hidden" name="page" value="1" />
-                <input type="hidden" name="pageSize" value="@pageSize" />
-            </form>
+            }
         </div>
+        
+        <button class="hero-navigation hero-nav-right" onclick="changeHeroBook(1)" id="heroNavRight" disabled>
+            <i class="fas fa-chevron-right"></i>
+        </button>
+    </div>
 
-        <!-- Books Grid - Placeholder -->
-        <div class="books-grid">
-            <div class="placeholder-content">
-                <i class="fas fa-fire placeholder-icon"></i>
-                <h3>Popular Books Coming Soon</h3>
-                <p>We're curating the most popular books based on borrowing history and ratings.</p>
-                @if (!string.IsNullOrEmpty(searchTerm))
-                {
-                    <p class="mt-3"><strong>Search term:</strong> @searchTerm</p>
-                }
+    <!-- Content Sections -->
+    <div class="netflix-content">
+        <!-- Top 10 Fiction -->
+        @if (top10Fiction.Any())
+        {
+            <div class="netflix-row">
+                <h2 class="row-title">Top 10 Fiction</h2>
+                <div class="row-container">
+                    <button class="scroll-arrow left" onclick="scrollRow(this, -1)">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <div class="books-slider" id="fictionSlider">
+                        @foreach (var book in top10Fiction)
+                        {
+                            <div class="book-card" onclick="window.location.href='@Url.Action("BookDetails", new { id = book.Id })"'>
+                                <div class="book-borrow-count">@book.BorrowCount</div>
+                                @if (!string.IsNullOrEmpty(book.CoverImage))
+                                {
+                                    <img src="@book.CoverImage" alt="@book.Title" class="book-cover" loading="lazy">
+                                }
+                                else
+                                {
+                                    <div class="book-cover book-cover-placeholder">
+                                        <i class="fas fa-book"></i>
+                                    </div>
+                                }
+                                <div class="book-info">
+                                    <h4 class="book-title">@book.Title</h4>
+                                    <p class="book-author">by @book.Author</p>
+                                    <div class="book-rating">
+                                        <div class="star-rating-display" data-rating="@(book.AverageRating ?? 0)">
+                                            @for (int i = 1; i <= 5; i++)
+                                            {
+                                                <i class="star fas fa-star" data-value="@i"></i>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                    <button class="scroll-arrow right" onclick="scrollRow(this, 1)">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
             </div>
-        </div>
+        }
 
-        <!-- Pagination Controls -->
-        <div class="pagination-wrapper">
-            <div class="pagination-controls">
-                <!-- Page Numbers -->
-                <div class="page-numbers">
-                    <button class="page-btn active">1</button>
-                    <button class="page-btn">2</button>
-                    <button class="page-btn">3</button>
-                    <button class="page-btn">4</button>
-                    <button class="page-btn page-next">Next</button>
-                </div>
-
-                <!-- Items per Page -->
-                <div class="items-per-page">
-                    <select class="form-control page-size-select">
-                        <option value="10" selected>10 / page</option>
-                        <option value="20">20 / page</option>
-                        <option value="50">50 / page</option>
-                        <option value="100">100 / page</option>
-                    </select>
-                </div>
-
-                <!-- Go to Page -->
-                <div class="go-to-page">
-                    <span class="go-to-label">Go to</span>
-                    <input type="number" class="form-control page-input" min="1" value="1" />
-                    <span class="go-to-label">Page</span>
+        <!-- Top 10 Non-Fiction -->
+        @if (top10NonFiction.Any())
+        {
+            <div class="netflix-row">
+                <h2 class="row-title">Top 10 Non-Fiction</h2>
+                <div class="row-container">
+                    <button class="scroll-arrow left" onclick="scrollRow(this, -1)">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <div class="books-slider" id="nonFictionSlider">
+                        @foreach (var book in top10NonFiction)
+                        {
+                            <div class="book-card" onclick="window.location.href='@Url.Action("BookDetails", new { id = book.Id })"'>
+                                <div class="book-borrow-count">@book.BorrowCount</div>
+                                @if (!string.IsNullOrEmpty(book.CoverImage))
+                                {
+                                    <img src="@book.CoverImage" alt="@book.Title" class="book-cover" loading="lazy">
+                                }
+                                else
+                                {
+                                    <div class="book-cover book-cover-placeholder">
+                                        <i class="fas fa-book"></i>
+                                    </div>
+                                }
+                                <div class="book-info">
+                                    <h4 class="book-title">@book.Title</h4>
+                                    <p class="book-author">by @book.Author</p>
+                                    <div class="book-rating">
+                                        <div class="star-rating-display" data-rating="@(book.AverageRating ?? 0)">
+                                            @for (int i = 1; i <= 5; i++)
+                                            {
+                                                <i class="star fas fa-star" data-value="@i"></i>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                    <button class="scroll-arrow right" onclick="scrollRow(this, 1)">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
                 </div>
             </div>
-        </div>
+        }
+
+        <!-- Top 10 Books per Genre -->
+        @foreach (var genre in topGenres)
+        {
+            <div class="netflix-row">
+                <h2 class="row-title">Top 10 @genre.Genre</h2>
+                <div class="row-container">
+                    <button class="scroll-arrow left" onclick="scrollRow(this, -1)">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <div class="books-slider" id="@(genre.Genre.Replace(" ", "").ToLower())Slider">
+                        @foreach (var book in genre.Books)
+                        {
+                            <div class="book-card" onclick="window.location.href='@Url.Action("BookDetails", new { id = book.Id })"'>
+                                <div class="book-borrow-count">@book.BorrowCount</div>
+                                @if (!string.IsNullOrEmpty(book.CoverImage))
+                                {
+                                    <img src="@book.CoverImage" alt="@book.Title" class="book-cover" loading="lazy">
+                                }
+                                else
+                                {
+                                    <div class="book-cover book-cover-placeholder">
+                                        <i class="fas fa-book"></i>
+                                    </div>
+                                }
+                                <div class="book-info">
+                                    <h4 class="book-title">@book.Title</h4>
+                                    <p class="book-author">by @book.Author</p>
+                                    <div class="book-rating">
+                                        <div class="star-rating-display" data-rating="@(book.AverageRating ?? 0)">
+                                            @for (int i = 1; i <= 5; i++)
+                                            {
+                                                <i class="star fas fa-star" data-value="@i"></i>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                    <button class="scroll-arrow right" onclick="scrollRow(this, 1)">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+        }
     </div>
 </div>
 
 <script>
-    // Search suggestions (YouTube-style)
-    const searchInput = document.getElementById('searchInput');
-    const suggestionsBox = document.getElementById('searchSuggestions');
-    
-    // Sample popular book titles for suggestions
-    const popularBooks = [
-        'The Great Gatsby',
-        'To Kill a Mockingbird',
-        'Pride and Prejudice',
-        '1984 by George Orwell',
-        'Harry Potter Series',
-        'The Hobbit'
-    ];
+    // Dynamic background gradients based on book cover colors
+    let currentBookIndex = 0;
+    const top10Books = @Html.Raw(Json.Serialize(top10Overall));
+    let bookGradients = [];
+    let colorThief = new ColorThief();
+    let preloadedImages = [];
 
-    searchInput.addEventListener('input', function(e) {
-        const value = e.target.value.toLowerCase().trim();
+    // Initialize color extraction when page loads
+    document.addEventListener('DOMContentLoaded', async function() {
+        await extractColorsFromBooks();
+        enableNavigation();
+        initializeStarDisplays();
+    });
+
+    // Extract dominant colors from book covers and generate gradients
+    async function extractColorsFromBooks() {
+        if (top10Books.length === 0) return;
         
-        if (value.length > 0) {
-            const matches = popularBooks.filter(item => 
-                item.toLowerCase().includes(value)
-            ).slice(0, 5);
-            
-            if (matches.length > 0) {
-                suggestionsBox.innerHTML = matches.map(match => 
-                    `<div class="suggestion-item">${match}</div>`
-                ).join('');
-                suggestionsBox.style.display = 'block';
+        bookGradients = [];
+        preloadedImages = [];
+        
+        // Create promises for all image loads
+        const imageLoadPromises = top10Books.map((book, index) => {
+            return new Promise((resolve) => {
+                const img = new Image();
+                img.crossOrigin = 'anonymous';
                 
-                // Add click handlers to suggestions
-                document.querySelectorAll('.suggestion-item').forEach(item => {
-                    item.addEventListener('click', function() {
-                        searchInput.value = this.textContent;
-                        suggestionsBox.style.display = 'none';
-                    });
-                });
+                img.onload = function() {
+                    try {
+                        // Store the preloaded image for instant display
+                        preloadedImages[index] = img;
+                        
+                        // Extract a palette of 3 colors
+                        const palette = colorThief.getPalette(img, 3);
+                        const gradient = `linear-gradient(135deg, rgb(${palette[0][0]}, ${palette[0][1]}, ${palette[0][2]}) 0%, rgb(${palette[1][0]}, ${palette[1][1]}, ${palette[1][2]}) 50%, rgb(${palette[2][0]}, ${palette[2][1]}, ${palette[2][2]}) 100%)`;
+                        bookGradients[index] = gradient;
+                        resolve({ index, gradient });
+                    } catch (error) {
+                        console.log('Color extraction failed for book:', book.title);
+                        // Fallback to default gradient
+                        const fallbackGradient = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+                        bookGradients[index] = fallbackGradient;
+                        preloadedImages[index] = img; // Still store the image even if color extraction fails
+                        resolve({ index, gradient: fallbackGradient });
+                    }
+                };
+                
+                img.onerror = function() {
+                    // Fallback gradient if image fails to load
+                    const fallbackGradient = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+                    bookGradients[index] = fallbackGradient;
+                    resolve({ index, gradient: fallbackGradient });
+                };
+                
+                img.src = book.coverImage;
+            });
+        });
+        
+        // Wait for all images to load and gradients to be extracted
+        await Promise.all(imageLoadPromises);
+        
+        // Set initial background for first book
+        if (bookGradients[0]) {
+            document.querySelector('.netflix-container').style.background = bookGradients[0];
+        }
+    }
+
+    // Initialize star displays
+    function initializeStarDisplays() {
+        document.querySelectorAll('.star-rating-display').forEach(function(container) {
+            updateStarDisplay(container);
+        });
+    }
+
+    // Update star display based on rating
+    function updateStarDisplay(container) {
+        const rating = parseFloat(container.getAttribute('data-rating')) || 0;
+        
+        container.querySelectorAll('.star').forEach(function(star) {
+            const starValue = parseInt(star.getAttribute('data-value'));
+            if (starValue <= rating) {
+                star.classList.add('filled');
             } else {
-                suggestionsBox.style.display = 'none';
+                star.classList.remove('filled');
             }
-        } else {
-            suggestionsBox.style.display = 'none';
+        });
+    }
+
+    // Enable navigation
+    function enableNavigation() {
+        const leftButton = document.getElementById('heroNavLeft');
+        const rightButton = document.getElementById('heroNavRight');
+        
+        if (leftButton && rightButton) {
+            leftButton.disabled = false;
+            rightButton.disabled = false;
         }
+    }
+
+    function changeHeroBook(direction) {
+        if (top10Books.length === 0) return;
+        
+        // Check if gradients are ready (button should be disabled if not)
+        const leftButton = document.getElementById('heroNavLeft');
+        if (leftButton && leftButton.disabled) return;
+        
+        // Fade out current content
+        const heroBook = document.getElementById('heroBook');
+        heroBook.classList.add('fade-out');
+        
+        // Wait for fade out to complete, then update content
+        setTimeout(() => {
+            currentBookIndex = (currentBookIndex + direction + top10Books.length) % top10Books.length;
+            
+            // Update background with smooth transition - gradient should always be available now
+            const gradient = bookGradients[currentBookIndex];
+            if (gradient) {
+                document.querySelector('.netflix-container').style.background = gradient;
+            }
+            
+            // Update displayed book content with preloaded image for instant display
+            const book = top10Books[currentBookIndex];
+            const bookCover = document.getElementById('heroBookCover');
+            const bookDescription = document.getElementById('heroBookDescription');
+            
+            // Update book cover - handle both img and placeholder div
+            if (preloadedImages[currentBookIndex]) {
+                if (bookCover.tagName === 'IMG') {
+                    bookCover.src = preloadedImages[currentBookIndex].src;
+                } else {
+                    // Replace placeholder with img
+                    const newImg = document.createElement('img');
+                    newImg.src = preloadedImages[currentBookIndex].src;
+                    newImg.alt = book.title;
+                    newImg.className = 'hero-book-cover';
+                    newImg.id = 'heroBookCover';
+                    bookCover.parentNode.replaceChild(newImg, bookCover);
+                }
+            } else if (book.coverImage) {
+                if (bookCover.tagName === 'IMG') {
+                    bookCover.src = book.coverImage;
+                } else {
+                    // Replace placeholder with img
+                    const newImg = document.createElement('img');
+                    newImg.src = book.coverImage;
+                    newImg.alt = book.title;
+                    newImg.className = 'hero-book-cover';
+                    newImg.id = 'heroBookCover';
+                    bookCover.parentNode.replaceChild(newImg, bookCover);
+                }
+            } else {
+                // Replace img with placeholder
+                if (bookCover.tagName === 'IMG') {
+                    const placeholder = document.createElement('div');
+                    placeholder.className = 'hero-book-cover book-cover-placeholder';
+                    placeholder.id = 'heroBookCover';
+                    placeholder.innerHTML = '<i class="fas fa-book"></i>';
+                    bookCover.parentNode.replaceChild(placeholder, bookCover);
+                }
+            }
+            
+            // Update other content
+            document.getElementById('heroBookTitle').textContent = book.title;
+            document.getElementById('heroBookAuthor').textContent = 'by ' + book.author;
+            
+            // Update description
+            if (book.description && book.description.trim() !== '') {
+                if (bookDescription) {
+                    bookDescription.textContent = book.description;
+                    bookDescription.style.display = 'block';
+                } else {
+                    // Create description element
+                    const descElement = document.createElement('p');
+                    descElement.className = 'book-description';
+                    descElement.id = 'heroBookDescription';
+                    descElement.textContent = book.description;
+                    document.getElementById('heroBookAuthor').parentNode.insertBefore(descElement, document.getElementById('heroBookAuthor').nextSibling);
+                }
+            } else if (bookDescription) {
+                bookDescription.style.display = 'none';
+            }
+            
+            // Update star rating display
+            const heroRatingContainer = document.getElementById('heroBookRating');
+            heroRatingContainer.setAttribute('data-rating', book.averageRating || 0);
+            updateStarDisplay(heroRatingContainer);
+            document.getElementById('heroBookBorrows').textContent = book.borrowCount + ' borrows';
+            
+            // Fade in new content
+            heroBook.classList.remove('fade-out');
+            heroBook.classList.add('fade-in');
+            
+            // Remove fade-in class after animation completes
+            setTimeout(() => {
+                heroBook.classList.remove('fade-in');
+            }, 500);
+            
+        }, 250); // Half of the transition duration
+    }
+
+    // Horizontal scrolling for rows
+    function scrollRow(button, direction) {
+        const container = button.parentElement;
+        const slider = container.querySelector('.books-slider');
+        const scrollAmount = 220; // Width of book card + gap
+        
+        slider.scrollBy({
+            left: direction * scrollAmount,
+            behavior: 'smooth'
+        });
+        
+        // Update arrow states
+        updateArrowStates(container);
+    }
+
+    // Update arrow states based on scroll position
+    function updateArrowStates(container) {
+        const slider = container.querySelector('.books-slider');
+        const leftArrow = container.querySelector('.scroll-arrow.left');
+        const rightArrow = container.querySelector('.scroll-arrow.right');
+        
+        leftArrow.disabled = slider.scrollLeft <= 0;
+        rightArrow.disabled = slider.scrollLeft >= (slider.scrollWidth - slider.clientWidth);
+    }
+
+    // Initialize arrow states on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        const rows = document.querySelectorAll('.netflix-row');
+        rows.forEach(row => {
+            updateArrowStates(row.querySelector('.row-container'));
+        });
     });
 
-    // Hide suggestions when clicking outside
-    document.addEventListener('click', function(e) {
-        if (!e.target.closest('.search-input-wrapper')) {
-            suggestionsBox.style.display = 'none';
-        }
-    });
 
-    // Submit on Enter key
-    searchInput.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            suggestionsBox.style.display = 'none';
-            this.closest('form').submit();
-        }
+    // Touch/swipe support for mobile
+    let startX = 0;
+    let scrollLeft = 0;
+
+    document.querySelectorAll('.books-slider').forEach(slider => {
+        slider.addEventListener('touchstart', function(e) {
+            startX = e.touches[0].pageX - slider.offsetLeft;
+            scrollLeft = slider.scrollLeft;
+        });
+
+        slider.addEventListener('touchmove', function(e) {
+            e.preventDefault();
+            const x = e.touches[0].pageX - slider.offsetLeft;
+            const walk = (x - startX) * 2;
+            slider.scrollLeft = scrollLeft - walk;
+        });
     });
 </script>
 
+
 </body>
 </html>
-

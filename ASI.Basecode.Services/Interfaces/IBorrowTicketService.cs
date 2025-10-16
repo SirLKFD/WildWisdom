@@ -25,6 +25,7 @@ namespace ASI.Basecode.Services.Interfaces
         List<BorrowTicketViewModel> GetUserBorrowedBooks(int userId);
         List<BorrowTicketViewModel> GetUserOverdueBooks(int userId);
         List<BorrowTicketViewModel> GetUserBorrowHistory(int userId);
+        List<BorrowTicketViewModel> GetAllTickets();
     }
 }
 
