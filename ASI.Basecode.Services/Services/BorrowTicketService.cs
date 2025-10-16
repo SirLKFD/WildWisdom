@@ -361,6 +361,15 @@ namespace ASI.Basecode.Services.Services
             return MapTicketsToViewModels(tickets);
         }
 
+        public List<BorrowTicketViewModel> GetAllTickets()
+        {
+            var tickets = _ticketRepository.GetAllTickets()
+                .OrderByDescending(t => t.CreatedAt)
+                .ToList();
+
+            return MapTicketsToViewModels(tickets);
+        }
+
         public decimal CalculateFine(BorrowTicket ticket)
         {
             if (ticket.Status != TicketStatus.NotYetReturned || !ticket.DueAt.HasValue)

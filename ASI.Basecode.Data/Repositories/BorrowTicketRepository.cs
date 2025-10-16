@@ -66,6 +66,11 @@ namespace ASI.Basecode.Data.Repositories
         {
             return this.GetDbSet<BorrowTicket>().FirstOrDefault(x => x.Id == id);
         }
+
+        public IQueryable<BorrowTicket> GetAllTickets()
+        {
+            return this.GetDbSet<BorrowTicket>();
+        }
     }
 }
 

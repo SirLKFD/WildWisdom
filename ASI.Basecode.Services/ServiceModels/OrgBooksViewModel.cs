@@ -56,6 +56,7 @@ namespace ASI.Basecode.Services.ServiceModels
         public decimal? AverageRating { get; set; }
         public int? UserRating { get; set; }
         public string UserReviewText { get; set; }
+        public int BorrowCount { get; set; }
         
         // Admin/Organization contact details
         public string AdminName { get; set; }
