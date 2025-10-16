@@ -39,6 +39,13 @@
                     </a>
                 </li>
                 <li>
+                    <a asp-controller="AdminHome" asp-action="History" 
+                       class="admin-nav-link @(currentAction == "History" ? "active" : "")">
+                        <i class="fas fa-history"></i>
+                        <span>Return History</span>
+                    </a>
+                </li>
+                <li>
                     <a asp-controller="AdminHome" asp-action="AdminSettings" 
                        class="admin-nav-link @(currentAction == "AdminSettings" ? "active" : "")">
                         <i class="fas fa-cog"></i>
