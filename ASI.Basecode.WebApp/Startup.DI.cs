@@ -47,6 +47,7 @@ namespace ASI.Basecode.WebApp
             this._services.AddScoped<IBookReviewService, BookReviewService>();
             this._services.AddScoped<IBookCheckoutService, BookCheckoutService>();
             this._services.AddScoped<IWishlistService, WishlistService>();
+            this._services.AddScoped<IBookRecommendationService, BookRecommendationService>();
 
             // Repositories
             this._services.AddScoped<IUserRepository, UserRepository>();

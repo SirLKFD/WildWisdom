@@ -27,6 +27,7 @@ namespace ASI.Basecode.WebApp.Controllers
         private readonly IBookReviewService _reviewService;
         private readonly IBookCheckoutService _bookCheckoutService;
         private readonly IWishlistService _wishlistService;
+        private readonly IBookRecommendationService _recommendationService;
         private readonly IWebHostEnvironment _webHostEnvironment;
 
         /// <summary>
@@ -51,6 +52,7 @@ namespace ASI.Basecode.WebApp.Controllers
                               IBookReviewService reviewService,
                               IBookCheckoutService bookCheckoutService,
                               IWishlistService wishlistService,
+                              IBookRecommendationService recommendationService,
                               IWebHostEnvironment webHostEnvironment,
                               IMapper mapper = null) : base(httpContextAccessor, loggerFactory, configuration, mapper)
         {
@@ -61,6 +63,7 @@ namespace ASI.Basecode.WebApp.Controllers
             _reviewService = reviewService;
             _bookCheckoutService = bookCheckoutService;
             _wishlistService = wishlistService;
+            _recommendationService = recommendationService;
             _webHostEnvironment = webHostEnvironment;
         }
 
@@ -127,10 +130,11 @@ namespace ASI.Basecode.WebApp.Controllers
         /// Returns Browse Books View.
         /// </summary>
         /// <param name="search">Search term</param>
+        /// <param name="category">Category filter</param>
         /// <param name="page">Page number</param>
         /// <param name="pageSize">Items per page</param>
         /// <returns> Browse View </returns>
-        public IActionResult Browse(string search = "", int page = 1, int pageSize = 10)
+        public IActionResult Browse(string search = "", string category = "", int page = 1, int pageSize = 12)
         {
             // Check if user is logged in
             var username = this._session.GetString("UserName");
@@ -139,15 +143,228 @@ namespace ASI.Basecode.WebApp.Controllers
                 return RedirectToAction("LoginUser", "Account");
             }
 
-            // Fetch active books from user's organization
-            var orgId = this._session.GetInt32("OrganizationId") ?? 0;
-            var books = _booksService.GetBookCatalog(orgId);
+            // Get all books from all organizations (Browse all) - optimized query
+            var allBooks = _booksService.GetAllBooks();
+            
+            // Declare variables at method level
+            List<OrgBooksViewModel> featuredBooks;
+            List<CategoryGroupViewModel> booksByCategory;
+            
+            // Handle special filters
+            if (category == "new-arrivals")
+            {
+                // Show only recently added books (last 30 days)
+                var thirtyDaysAgo = DateTime.Now.AddDays(-30);
+                featuredBooks = allBooks
+                    .Where(b => b.IsActive && b.CreatedTime >= thirtyDaysAgo)
+                    .OrderByDescending(b => b.CreatedTime)
+                    .Take(12)
+                    .Select(b => new OrgBooksViewModel
+                    {
+                        Id = b.Id,
+                        Title = b.Title,
+                        Author = b.Author,
+                        CoverImage = b.CoverImage,
+                        AverageRating = b.AverageRating,
+                        Category = b.Category
+                    })
+                    .ToList();
+                
+                // Group new arrivals by category
+                booksByCategory = allBooks
+                    .Where(b => b.IsActive && !string.IsNullOrEmpty(b.Category) && b.CreatedTime >= thirtyDaysAgo)
+                    .GroupBy(b => b.Category)
+                    .Select(g => new CategoryGroupViewModel {
+                        CategoryName = g.Key,
+                        Books = g.Take(6).Select(b => new OrgBooksViewModel
+                        {
+                            Id = b.Id,
+                            Title = b.Title,
+                            Author = b.Author,
+                            CoverImage = b.CoverImage,
+                            AverageRating = b.AverageRating,
+                            Category = b.Category
+                        }).ToList(),
+                        TotalCount = g.Count(),
+                        CategoryIcon = GetCategoryIcon(g.Key)
+                    })
+                    .OrderByDescending(c => c.TotalCount)
+                    .Take(6)
+                    .OrderBy(c => c.CategoryName)
+                    .ToList();
+            }
+            else if (!string.IsNullOrEmpty(category))
+            {
+                // Filter by specific category
+                featuredBooks = allBooks
+                    .Where(b => b.IsActive && b.Category == category)
+                    .OrderByDescending(b => b.AverageRating ?? 0)
+                    .ThenByDescending(b => b.CreatedTime)
+                    .Take(12)
+                    .Select(b => new OrgBooksViewModel
+                    {
+                        Id = b.Id,
+                        Title = b.Title,
+                        Author = b.Author,
+                        CoverImage = b.CoverImage,
+                        AverageRating = b.AverageRating,
+                        Category = b.Category
+                    })
+                    .ToList();
+                
+                // Show only the selected category
+                booksByCategory = allBooks
+                    .Where(b => b.IsActive && b.Category == category)
+                    .GroupBy(b => b.Category)
+                    .Select(g => new CategoryGroupViewModel {
+                        CategoryName = g.Key,
+                        Books = g.Take(6).Select(b => new OrgBooksViewModel
+                        {
+                            Id = b.Id,
+                            Title = b.Title,
+                            Author = b.Author,
+                            CoverImage = b.CoverImage,
+                            AverageRating = b.AverageRating,
+                            Category = b.Category
+                        }).ToList(),
+                        TotalCount = g.Count(),
+                        CategoryIcon = GetCategoryIcon(g.Key)
+                    })
+                    .ToList();
+            }
+            else
+            {
+                // Default: Get featured/popular books (top 12) - optimized with only necessary fields
+                featuredBooks = allBooks
+                    .Where(b => b.IsActive)
+                    .OrderByDescending(b => b.AverageRating ?? 0)
+                    .ThenByDescending(b => b.CreatedTime)
+                    .Take(12)
+                    .Select(b => new OrgBooksViewModel
+                    {
+                        Id = b.Id,
+                        Title = b.Title,
+                        Author = b.Author,
+                        CoverImage = b.CoverImage,
+                        AverageRating = b.AverageRating,
+                        Category = b.Category
+                    })
+                    .ToList();
+                
+                // Default: Group books by category - limit to top 6 categories by book count
+                booksByCategory = allBooks
+                    .Where(b => b.IsActive && !string.IsNullOrEmpty(b.Category))
+                    .GroupBy(b => b.Category)
+                    .Select(g => new CategoryGroupViewModel {
+                        CategoryName = g.Key,
+                        Books = g.Take(6).Select(b => new OrgBooksViewModel
+                        {
+                            Id = b.Id,
+                            Title = b.Title,
+                            Author = b.Author,
+                            CoverImage = b.CoverImage,
+                            AverageRating = b.AverageRating,
+                            Category = b.Category
+                        }).ToList(),
+                        TotalCount = g.Count(),
+                        CategoryIcon = GetCategoryIcon(g.Key)
+                    })
+                    .OrderByDescending(c => c.TotalCount)
+                    .Take(6)
+                    .OrderBy(c => c.CategoryName)
+                    .ToList();
+            }
+            
+            // Get recently viewed books (placeholder - would need to implement tracking)
+            var recentlyViewed = allBooks
+                .Where(b => b.IsActive)
+                .OrderByDescending(b => b.CreatedTime)
+                .Take(5)
+                .Select(b => new OrgBooksViewModel
+                {
+                    Id = b.Id,
+                    Title = b.Title,
+                    Author = b.Author,
+                    CoverImage = b.CoverImage,
+                    AverageRating = b.AverageRating,
+                    Category = b.Category
+                })
+                .ToList();
+            
+            // Get recommended books (placeholder - would need to implement algorithm)
+            var recommendedBooks = allBooks
+                .Where(b => b.IsActive)
+                .OrderByDescending(b => b.AverageRating ?? 0)
+                .Take(5)
+                .Select(b => new OrgBooksViewModel
+                {
+                    Id = b.Id,
+                    Title = b.Title,
+                    Author = b.Author,
+                    CoverImage = b.CoverImage,
+                    AverageRating = b.AverageRating,
+                    Category = b.Category
+                })
+                .ToList();
 
+            // Calculate pagination info
+            var totalBooks = allBooks.Count(b => b.IsActive);
+            var totalPages = (int)Math.Ceiling((double)totalBooks / pageSize);
+            
+            // Apply pagination to featured books if needed
+            if (page > 1)
+            {
+                var skip = (page - 1) * pageSize;
+                featuredBooks = featuredBooks.Skip(skip).Take(pageSize).ToList();
+            }
+            else
+            {
+                featuredBooks = featuredBooks.Take(pageSize).ToList();
+            }
+
+            ViewBag.FeaturedBooks = featuredBooks;
+            ViewBag.BooksByCategory = booksByCategory;
+            ViewBag.RecentlyViewed = recentlyViewed;
+            ViewBag.RecommendedBooks = recommendedBooks;
             ViewBag.SearchTerm = search;
+            ViewBag.SelectedCategory = category;
             ViewBag.CurrentPage = page;
             ViewBag.PageSize = pageSize;
+            ViewBag.TotalPages = totalPages;
+            ViewBag.TotalBooks = totalBooks;
             
-            return View(books);
+            return View(allBooks);
+        }
+
+        /// <summary>
+        /// Get category icon based on category name
+        /// </summary>
+        /// <param name="categoryName">Category name</param>
+        /// <returns>Icon class</returns>
+        private string GetCategoryIcon(string categoryName)
+        {
+            return categoryName?.ToLower() switch
+            {
+                "fiction" => "fas fa-book-open",
+                "science" => "fas fa-flask",
+                "literature" => "fas fa-scroll",
+                "history" => "fas fa-landmark",
+                "biography" => "fas fa-user",
+                "technology" => "fas fa-laptop-code",
+                "art" => "fas fa-palette",
+                "music" => "fas fa-music",
+                "cooking" => "fas fa-utensils",
+                "travel" => "fas fa-map-marked-alt",
+                "health" => "fas fa-heartbeat",
+                "business" => "fas fa-briefcase",
+                "education" => "fas fa-graduation-cap",
+                "children" => "fas fa-child",
+                "mystery" => "fas fa-search",
+                "romance" => "fas fa-heart",
+                "fantasy" => "fas fa-magic",
+                "thriller" => "fas fa-exclamation-triangle",
+                _ => "fas fa-book"
+            };
         }
 
         /// <summary>
@@ -166,25 +383,121 @@ namespace ASI.Basecode.WebApp.Controllers
                 return RedirectToAction("LoginUser", "Account");
             }
 
-            // Fetch active books from user's organization
-            var orgId = this._session.GetInt32("OrganizationId") ?? 0;
-            var books = _booksService.GetBookCatalog(orgId);
-
+            // Get all books and borrow tickets across all organizations
+            var allBooks = _booksService.GetAllBooks();
+            var allTickets = _borrowTicketService.GetAllTickets();
+            
+            // Calculate borrow counts for each book
+            var borrowCounts = allTickets
+                .Where(t => t.Status != TicketStatus.Cancelled && t.Status != TicketStatus.Expired)
+                .GroupBy(t => t.OrgBookId)
+                .ToDictionary(g => g.Key, g => g.Count());
+            
+            // Top 10 Overall Books (most borrowed from all users)
+            var top10Overall = allBooks
+                .Where(b => b.IsActive)
+                .OrderByDescending(b => borrowCounts.ContainsKey(b.Id) ? borrowCounts[b.Id] : 0)
+                .ThenByDescending(b => b.AverageRating ?? 0)
+                .Take(10)
+                .Select(b => new OrgBooksViewModel
+                {
+                    Id = b.Id,
+                    Title = b.Title,
+                    Author = b.Author,
+                    CoverImage = b.CoverImage,
+                    AverageRating = b.AverageRating,
+                    Category = b.Category,
+                    Genre = b.Genre,
+                    Description = b.Description,
+                    BorrowCount = borrowCounts.ContainsKey(b.Id) ? borrowCounts[b.Id] : 0
+                })
+                .ToList();
+            
+            // Top 10 Fiction Books
+            var top10Fiction = allBooks
+                .Where(b => b.IsActive && b.Category == "Fiction")
+                .OrderByDescending(b => borrowCounts.ContainsKey(b.Id) ? borrowCounts[b.Id] : 0)
+                .ThenByDescending(b => b.AverageRating ?? 0)
+                .Take(10)
+                .Select(b => new OrgBooksViewModel
+                {
+                    Id = b.Id,
+                    Title = b.Title,
+                    Author = b.Author,
+                    CoverImage = b.CoverImage,
+                    AverageRating = b.AverageRating,
+                    Category = b.Category,
+                    Genre = b.Genre,
+                    Description = b.Description,
+                    BorrowCount = borrowCounts.ContainsKey(b.Id) ? borrowCounts[b.Id] : 0
+                })
+                .ToList();
+            
+            // Top 10 Non-Fiction Books
+            var top10NonFiction = allBooks
+                .Where(b => b.IsActive && b.Category == "Non-Fiction")
+                .OrderByDescending(b => borrowCounts.ContainsKey(b.Id) ? borrowCounts[b.Id] : 0)
+                .ThenByDescending(b => b.AverageRating ?? 0)
+                .Take(10)
+                .Select(b => new OrgBooksViewModel
+                {
+                    Id = b.Id,
+                    Title = b.Title,
+                    Author = b.Author,
+                    CoverImage = b.CoverImage,
+                    AverageRating = b.AverageRating,
+                    Category = b.Category,
+                    Genre = b.Genre,
+                    Description = b.Description,
+                    BorrowCount = borrowCounts.ContainsKey(b.Id) ? borrowCounts[b.Id] : 0
+                })
+                .ToList();
+            
+            // Top genres and their books (limit to top 6 genres by book count)
+            var topGenres = allBooks
+                .Where(b => b.IsActive && !string.IsNullOrEmpty(b.Genre))
+                .GroupBy(b => b.Genre)
+                .OrderByDescending(g => g.Count())
+                .Take(6)
+                .Select(g => new {
+                    Genre = g.Key,
+                    Books = g.OrderByDescending(b => borrowCounts.ContainsKey(b.Id) ? borrowCounts[b.Id] : 0)
+                            .ThenByDescending(b => b.AverageRating ?? 0)
+                            .Take(10)
+                            .Select(b => new OrgBooksViewModel
+                            {
+                                Id = b.Id,
+                                Title = b.Title,
+                                Author = b.Author,
+                                CoverImage = b.CoverImage,
+                                AverageRating = b.AverageRating,
+                                Category = b.Category,
+                                Genre = b.Genre,
+                                Description = b.Description,
+                                BorrowCount = borrowCounts.ContainsKey(b.Id) ? borrowCounts[b.Id] : 0
+                            }).ToList()
+                })
+                .ToList();
+                
+            ViewBag.Top10Overall = top10Overall;
+            ViewBag.Top10Fiction = top10Fiction;
+            ViewBag.Top10NonFiction = top10NonFiction;
+            ViewBag.TopGenres = topGenres;
             ViewBag.SearchTerm = search;
             ViewBag.CurrentPage = page;
             ViewBag.PageSize = pageSize;
             
-            return View(books);
+            return View(allBooks);
         }
 
         /// <summary>
-        /// Returns Book Recommendations View.
+        /// Returns Book Recommendations View with personalized suggestions.
         /// </summary>
         /// <param name="search">Search term</param>
         /// <param name="page">Page number</param>
         /// <param name="pageSize">Items per page</param>
-        /// <returns> BookRecommendations View </returns>
-        public IActionResult BookRecommendations(string search = "", int page = 1, int pageSize = 10)
+        /// <returns>Book Recommendations View</returns>
+        public IActionResult BookRecommendations(string search = "", int page = 1, int pageSize = 20)
         {
             // Check if user is logged in
             var username = this._session.GetString("UserName");
@@ -193,15 +506,93 @@ namespace ASI.Basecode.WebApp.Controllers
                 return RedirectToAction("LoginUser", "Account");
             }
 
-            // Fetch active books from user's organization
-            var orgId = this._session.GetInt32("OrganizationId") ?? 0;
-            var books = _booksService.GetBookCatalog(orgId);
+            // Check if user has the correct role (0 = User)
+            var userRole = this._session.GetInt32("UserRole");
+            if (userRole == 1) // Explicitly check if Admin
+            {
+                // User is logged in as Admin, redirect to AdminHome
+                TempData["ErrorMessage"] = "Access denied. You are logged in as an Administrator.";
+                return RedirectToAction("Index", "AdminHome");
+            }
 
+            var userIdString = this._session.GetString("UserId");
+            var userId = int.Parse(userIdString);
+            var orgId = this._session.GetInt32("OrganizationId") ?? 0;
+
+            // Get user preferences
+            var preferenceStats = _recommendationService.GetUserPreferenceStats(userId);
+
+            // Get recommendations based on user preferences
+            var recommendedBooks = _recommendationService.GetRecommendedBooks(userId, pageSize * 3);
+
+            // Get specific recommendation categories
+            var favoriteGenreBooks = _recommendationService.GetBooksFromFavoriteGenres(userId, 10);
+            var favoriteAuthorBooks = _recommendationService.GetBooksFromFavoriteAuthors(userId, 8);
+            var trendingBooks = _recommendationService.GetTrendingInPreferredCategories(userId, 10);
+
+            // Apply search filter if provided
+            if (!string.IsNullOrEmpty(search))
+            {
+                var searchLower = search.ToLower();
+                recommendedBooks = recommendedBooks.Where(b => 
+                    b.Title.ToLower().Contains(searchLower) || 
+                    b.Author.ToLower().Contains(searchLower) ||
+                    b.Genre?.ToLower().Contains(searchLower) == true ||
+                    b.Description?.ToLower().Contains(searchLower) == true
+                ).ToList();
+
+                favoriteGenreBooks = favoriteGenreBooks.Where(b => 
+                    b.Title.ToLower().Contains(searchLower) || 
+                    b.Author.ToLower().Contains(searchLower)
+                ).ToList();
+
+                favoriteAuthorBooks = favoriteAuthorBooks.Where(b => 
+                    b.Title.ToLower().Contains(searchLower) || 
+                    b.Author.ToLower().Contains(searchLower)
+                ).ToList();
+
+                trendingBooks = trendingBooks.Where(b => 
+                    b.Title.ToLower().Contains(searchLower) || 
+                    b.Author.ToLower().Contains(searchLower)
+                ).ToList();
+            }
+
+            // If no borrowing history, get popular books as fallback
+            if (!preferenceStats.HasBorrowingHistory)
+            {
+                var popularBooks = _booksService.GetBookCatalog(orgId)
+                    .Where(b => b.IsActive)
+                    .OrderByDescending(b => b.AverageRating ?? 0)
+                    .ThenByDescending(b => b.CreatedTime)
+                    .Take(pageSize)
+                    .ToList();
+
+                recommendedBooks = popularBooks;
+                favoriteGenreBooks = popularBooks.Take(10).ToList();
+                favoriteAuthorBooks = popularBooks.Take(8).ToList();
+                trendingBooks = popularBooks.Take(10).ToList();
+            }
+
+            // Create view model
+            var model = new BookRecommendationViewModel
+            {
+                PreferenceStats = preferenceStats,
+                RecommendedBooks = recommendedBooks,
+                FavoriteGenreBooks = favoriteGenreBooks,
+                FavoriteAuthorBooks = favoriteAuthorBooks,
+                TrendingBooks = trendingBooks,
+                SearchTerm = search,
+                CurrentPage = page,
+                PageSize = pageSize,
+                HasSearchResults = !string.IsNullOrEmpty(search) && recommendedBooks.Any()
+            };
+
+            // Set ViewBag properties
             ViewBag.SearchTerm = search;
             ViewBag.CurrentPage = page;
             ViewBag.PageSize = pageSize;
-            
-            return View(books);
+
+            return View(model);
         }
 
         /// <summary>
@@ -1011,6 +1402,62 @@ namespace ASI.Basecode.WebApp.Controllers
             catch (Exception ex)
             {
                 return Json(new { success = false, message = $"Error: {ex.Message}" });
+            }
+        }
+
+        /// <summary>
+        /// Get search suggestions for Browse page
+        /// </summary>
+        /// <param name="q">Search query</param>
+        /// <returns>JSON result with suggestions</returns>
+        [HttpGet]
+        public IActionResult GetSearchSuggestions(string q)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(q) || q.Length < 2)
+                {
+                    return Json(new { suggestions = new List<string>() });
+                }
+
+                var allBooks = _booksService.GetAllBooks();
+                var query = q.ToLower();
+
+                var suggestions = allBooks
+                    .Where(b => b.IsActive && 
+                               (b.Title.ToLower().Contains(query) || 
+                                b.Author.ToLower().Contains(query) ||
+                                (!string.IsNullOrEmpty(b.Category) && b.Category.ToLower().Contains(query))))
+                    .Select(b => new { 
+                        title = b.Title, 
+                        author = b.Author,
+                        category = b.Category,
+                        type = "book"
+                    })
+                    .Take(5)
+                    .ToList();
+
+                // Add category suggestions
+                var categorySuggestions = allBooks
+                    .Where(b => b.IsActive && !string.IsNullOrEmpty(b.Category) && b.Category.ToLower().Contains(query))
+                    .Select(b => b.Category)
+                    .Distinct()
+                    .Take(3)
+                    .Select(c => new { 
+                        title = c, 
+                        author = "", 
+                        category = c,
+                        type = "category"
+                    })
+                    .ToList();
+
+                var allSuggestions = suggestions.Concat(categorySuggestions).Take(8).ToList();
+
+                return Json(new { suggestions = allSuggestions });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { suggestions = new List<string>() });
             }
         }
     }

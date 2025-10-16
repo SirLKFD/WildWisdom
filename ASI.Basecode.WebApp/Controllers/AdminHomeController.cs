@@ -161,16 +161,134 @@ namespace ASI.Basecode.WebApp.Controllers
         /// <summary>
         /// Returns Admin Home View with Books List.
         /// </summary>
+        /// <param name="search">Search term</param>
+        /// <param name="category">Category filter</param>
+        /// <param name="genre">Genre filter</param>
+        /// <param name="status">Status filter</param>
+        /// <param name="availability">Availability filter</param>
+        /// <param name="sortBy">Sort order</param>
+        /// <param name="page">Page number</param>
+        /// <param name="pageSize">Items per page</param>
         /// <returns> Admin Home View </returns>
-        public IActionResult Index()
+        public IActionResult Index(string search = "", string category = "", string genre = "", string status = "", string availability = "", string sortBy = "title", int page = 1, int pageSize = 25)
         {
             var accessCheck = VerifyAdminAccess();
             if (accessCheck != null) return accessCheck;
 
             // Get all books (including inactive) from the admin's organization
             var orgId = this._session.GetInt32("OrganizationId") ?? 0;
-            var books = _booksService.GetAllBooksByOrganization(orgId);
-            return View(books);
+            var allBooks = _booksService.GetAllBooksByOrganization(orgId);
+
+            // Apply filters
+            var filteredBooks = allBooks.AsQueryable();
+
+            // Search filter
+            if (!string.IsNullOrEmpty(search))
+            {
+                var searchLower = search.ToLower();
+                filteredBooks = filteredBooks.Where(b => 
+                    b.Title.ToLower().Contains(searchLower) || 
+                    b.Author.ToLower().Contains(searchLower) ||
+                    b.ISBN.ToLower().Contains(searchLower) ||
+                    (b.Publisher != null && b.Publisher.ToLower().Contains(searchLower)));
+            }
+
+            // Category filter
+            if (!string.IsNullOrEmpty(category))
+            {
+                filteredBooks = filteredBooks.Where(b => b.Category == category);
+            }
+
+            // Genre filter
+            if (!string.IsNullOrEmpty(genre))
+            {
+                filteredBooks = filteredBooks.Where(b => b.Genre == genre);
+            }
+
+            // Status filter
+            if (!string.IsNullOrEmpty(status))
+            {
+                if (status == "active")
+                {
+                    filteredBooks = filteredBooks.Where(b => b.IsActive);
+                }
+                else if (status == "inactive")
+                {
+                    filteredBooks = filteredBooks.Where(b => !b.IsActive);
+                }
+            }
+
+            // Availability filter
+            if (!string.IsNullOrEmpty(availability))
+            {
+                if (availability == "available")
+                {
+                    filteredBooks = filteredBooks.Where(b => b.CopiesAvailable > 0);
+                }
+                else if (availability == "out-of-stock")
+                {
+                    filteredBooks = filteredBooks.Where(b => b.CopiesAvailable == 0);
+                }
+            }
+
+            // Apply sorting
+            switch (sortBy)
+            {
+                case "title":
+                    filteredBooks = filteredBooks.OrderBy(b => b.Title);
+                    break;
+                case "author":
+                    filteredBooks = filteredBooks.OrderBy(b => b.Author);
+                    break;
+                case "date-added":
+                    filteredBooks = filteredBooks.OrderByDescending(b => b.CreatedTime);
+                    break;
+                case "copies-available":
+                    filteredBooks = filteredBooks.OrderByDescending(b => b.CopiesAvailable);
+                    break;
+                default:
+                    filteredBooks = filteredBooks.OrderBy(b => b.Title);
+                    break;
+            }
+
+            // Get total count for pagination
+            var totalBooks = filteredBooks.Count();
+            var totalPages = (int)Math.Ceiling((double)totalBooks / pageSize);
+
+            // Apply pagination
+            var paginatedBooks = filteredBooks
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            // Get distinct categories and genres for filters
+            var categories = allBooks.Where(b => !string.IsNullOrEmpty(b.Category))
+                                  .Select(b => b.Category)
+                                  .Distinct()
+                                  .OrderBy(c => c)
+                                  .ToList();
+            
+            var genres = allBooks.Where(b => !string.IsNullOrEmpty(b.Genre))
+                             .Select(b => b.Genre)
+                             .Distinct()
+                             .OrderBy(g => g)
+                             .ToList();
+
+            // Set ViewBag properties
+            ViewBag.SearchTerm = search;
+            ViewBag.SelectedCategory = category;
+            ViewBag.SelectedGenre = genre;
+            ViewBag.SelectedStatus = status;
+            ViewBag.SelectedAvailability = availability;
+            ViewBag.SortBy = sortBy;
+            ViewBag.CurrentPage = page;
+            ViewBag.PageSize = pageSize;
+            ViewBag.TotalBooks = totalBooks;
+            ViewBag.TotalPages = totalPages;
+            ViewBag.Categories = categories;
+            ViewBag.Genres = genres;
+
+            return View(paginatedBooks);
         }
 
         /// <summary>

@@ -30,7 +30,7 @@ namespace ASI.Basecode.Services.Services
             var books = _repository.GetAll().ToList();
             var viewModels = _mapper.Map<List<OrgBooksViewModel>>(books);
 
-            // Use already-loaded Organization navigation property
+            // Use already-loaded Organization navigation property and add ratings
             foreach (var vm in viewModels)
             {
                 var book = books.FirstOrDefault(b => b.Id == vm.Id);
@@ -38,6 +38,9 @@ namespace ASI.Basecode.Services.Services
                 {
                     vm.OrganizationName = book.Organization.Name;
                 }
+                
+                // Add average rating
+                vm.AverageRating = _reviewRepository.GetBookAverageRating(vm.Id);
             }
 
             return viewModels;
