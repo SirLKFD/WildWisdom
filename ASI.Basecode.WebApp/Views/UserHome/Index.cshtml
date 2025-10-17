@@ -1,4 +1,4 @@
-﻿@model List<ASI.Basecode.Services.ServiceModels.OrgBooksViewModel>
+@model List<ASI.Basecode.Services.ServiceModels.OrgBooksViewModel>
 
 @{
     ViewData["Title"] = "Home - WildWisdom";
@@ -28,72 +28,11 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="dns-prefetch" href="//cdnjs.cloudflare.com">
     <link rel="preload" as="style" href="~/css/userhome.css">
-    <style>
-        /* 5 books per row for XL screens */
-        @@media (min-width: 1200px) {
-            .col-xl-custom-5 {
-                flex: 0 0 20%;
-                max-width: 20%;
-            }
-        }
-
-        @@media (max-width: 1199px) {
-            .col-xl-custom-5 {
-                flex: 0 0 25%;
-                max-width: 25%;
-            }
-        }
-
-        /* Image Loading Optimizations */
-        .book-cover-container {
-            position: relative;
-            width: 100%;
-            aspect-ratio: 2/3; /* Standard book cover ratio (width:height = 2:3) */
-            border-radius: 8px;
-            overflow: hidden;
-            background: #F5F0E8;
-        }
-
-        .book-cover-img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            transition: opacity 0.3s ease;
-            background: #F5F0E8;
-        }
-
-        .book-cover-placeholder {
-            width: 100%;
-            height: 100%;
-            background: #F5F0E8;
-            border: 1px solid #D4C4B0;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .book-cover-placeholder i {
-            color: #7B4A2C;
-            font-size: 2rem;
-        }
-
-        /* Loading skeleton for images */
-        .image-loading {
-            background: linear-gradient(90deg, #F5F0E8 25%, #E8DFD3 50%, #F5F0E8 75%);
-            background-size: 200% 100%;
-            animation: loading 1.5s infinite;
-        }
-
-        @@keyframes loading {
-            0% { background-position: 200% 0; }
-            100% { background-position: -200% 0; }
-        }
-    </style>
+    <link rel="stylesheet" href="~/css/user/index.css" asp-append-version="true" />
 </head>
 <body>
 
-@Html.Partial("_UserHomeHeader")
+<partial name="_UserHomeHeader" />
 
 <div class="userhome-content">
     <div class="container-fluid">
@@ -413,7 +352,7 @@
                                     <!-- Go to Page -->
                                     <div class="go-to-page">
                                         <span class="go-to-label">Go to</span>
-                                        <input type="number" class="form-control page-input" min="1" max="@totalPages" value="@currentPage" id="gotoPageInput" />
+                                        <input type="number" class="form-control page-input" min="1" max="@totalPages" value="@currentPage" id="gotoPageInput" data-page-size="@pageSize" data-search="@searchTerm" data-category="@selectedCategory" data-genre="@selectedGenre" data-availability="@selectedAvailability" />
                                         <span class="go-to-label">Page</span>
                                     </div>
                                 </div>
@@ -444,61 +383,10 @@
     </div>
 </div>
 
-<script>
-    // Image loading optimization
-    document.addEventListener('DOMContentLoaded', function() {
-        // Image loading optimization with Intersection Observer
-        const imageObserver = new IntersectionObserver((entries, observer) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    const img = entry.target;
-                    if (img.dataset.src) {
-                        img.src = img.dataset.src;
-                        img.removeAttribute('data-src');
-                        observer.unobserve(img);
-                    }
-                }
-            });
-        }, {
-            rootMargin: '50px 0px',
-            threshold: 0.01
-        });
-
-        // Observe all lazy-loaded images
-        const lazyImages = document.querySelectorAll('img[loading="lazy"]');
-        lazyImages.forEach(img => {
-            imageObserver.observe(img);
-        });
-
-        // Preload images for better performance
-        const preloadImages = () => {
-            const visibleImages = document.querySelectorAll('img[src]:not([data-preloaded])');
-            visibleImages.forEach(img => {
-                if (img.complete) {
-                    img.style.opacity = '1';
-                    img.classList.remove('image-loading');
-                } else {
-                    img.addEventListener('load', function() {
-                        this.style.opacity = '1';
-                        this.classList.remove('image-loading');
-                    });
-                }
-                img.setAttribute('data-preloaded', 'true');
-            });
-        };
-
-        // Run preload after a short delay to prioritize critical content
-        setTimeout(preloadImages, 100);
-    });
-
-    // Go to page functionality
-    document.getElementById('gotoPageInput')?.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            const page = Math.max(1, Math.min(parseInt(this.value) || 1, @totalPages));
-            window.location.href = '?page=' + page + '&pageSize=@pageSize&search=@searchTerm&category=@selectedCategory&genre=@selectedGenre&availability=@selectedAvailability';
-        }
-    });
-</script>
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+<script src="~/js/user/index.js" asp-append-version="true"></script>
 
 </body>
 </html>
+

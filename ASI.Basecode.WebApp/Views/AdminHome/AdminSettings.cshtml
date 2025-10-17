@@ -1,4 +1,4 @@
-﻿@model ASI.Basecode.Services.ServiceModels.AdminSettingsViewModel
+@model ASI.Basecode.Services.ServiceModels.AdminSettingsViewModel
 @{
     ViewData["Title"] = "Admin Settings";
 }
@@ -18,7 +18,7 @@
 </head>
 <body>
 
-@Html.Partial("_AdminHomeTab")
+<partial name="_AdminHomeTab" />
 
 <div class="admin-main-content admin-settings-container">
     <h1 class="admin-page-heading"><i class="fas fa-cog"></i> Settings</h1>
@@ -204,34 +204,12 @@
     </div>
 </div>
 
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-    // Profile picture preview
-    document.getElementById('profilePictureFile').addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const preview = document.getElementById('profilePreview');
-                preview.innerHTML = '<img src="' + e.target.result + '" alt="Profile" class="profile-preview" />';
-            }
-            reader.readAsDataURL(file);
-        }
-    });
-
-    // Delete confirmation
-    document.getElementById('confirmDeleteText').addEventListener('input', function() {
-        const confirmBtn = document.getElementById('confirmDeleteBtn');
-        if (this.value.trim() === 'DELETE') {
-            confirmBtn.disabled = false;
-        } else {
-            confirmBtn.disabled = true;
-        }
-    });
-</script>
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+<script src="~/js/admin/admin-settings.js" asp-append-version="true"></script>
 
 
 </body>
 </html>
+
 

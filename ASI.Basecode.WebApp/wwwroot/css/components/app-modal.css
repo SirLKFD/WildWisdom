@@ -1,0 +1,16 @@
+.app-modal { border: 0; border-radius: 16px; overflow: hidden; }
+.app-modal-header { display: flex; align-items: center; gap: 12px; border: 0; padding: 16px 20px; }
+.app-modal-footer { border-top: 0; padding: 16px 20px; }
+.app-modal-icon { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; font-size: 1.1rem; }
+/* Variants */
+.app-modal.is-success .app-modal-header { background: #e8f7ef; }
+.app-modal.is-success .app-modal-icon { background: #d4f3e3; color: #1f8d53; }
+.app-modal.is-error .app-modal-header { background: #fdecee; }
+.app-modal.is-error .app-modal-icon { background: #fbd5da; color: #c52736; }
+.app-modal.is-warning .app-modal-header { background: #fff4e5; }
+.app-modal.is-warning .app-modal-icon { background: #ffe8c7; color: #cc7a00; }
+.app-modal.is-info .app-modal-header { background: #eaf3ff; }
+.app-modal.is-info .app-modal-icon { background: #d6e9ff; color: #0b63c9; }
+.app-modal.is-confirm .app-modal-header { background: #eaf3ff; }
+.app-modal.is-confirm .app-modal-icon { background: #d6e9ff; color: #0b63c9; }
+
