@@ -421,7 +421,7 @@ namespace ASI.Basecode.WebApp.Controllers
                     ticket.BookAuthor,
                     ticket.UserName,
                     ticket.OrganizationName,
-                    ticket.StatusDisplay,
+                    status = ticket.StatusDisplay,
                     createdAt = ticket.CreatedAt.ToString("MMMM d, yyyy h:mm tt"),
                     expiresAt = ticket.ExpiresAt.ToString("MMMM d, yyyy h:mm tt"),
                     claimedAt = ticket.ClaimedAt?.ToString("MMMM d, yyyy h:mm tt"),
@@ -722,6 +722,19 @@ namespace ASI.Basecode.WebApp.Controllers
 
             try
             {
+                // Validate email uniqueness if email is being changed
+                var adminId = this._session.GetInt32("UserId") ?? 0;
+                var currentAdmin = _adminService.GetAdminSettings(adminId);
+                if (currentAdmin != null && model.Email != currentAdmin.Email)
+                {
+                    // Check if email already exists for another admin
+                    if (_adminService.AdminExists(model.Email))
+                    {
+                        ModelState.AddModelError("Email", "This email address is already registered by another admin.");
+                        return View("AdminSettings", model);
+                    }
+                }
+
                 // Handle profile picture upload
                 if (profilePictureFile != null && profilePictureFile.Length > 0)
                 {

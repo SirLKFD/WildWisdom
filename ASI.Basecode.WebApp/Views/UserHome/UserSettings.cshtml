@@ -1,4 +1,4 @@
-﻿@model ASI.Basecode.Services.ServiceModels.UserSettingsViewModel
+@model ASI.Basecode.Services.ServiceModels.UserSettingsViewModel
 
 @{
     ViewData["Title"] = "My Profile - WildWisdom";
@@ -18,378 +18,11 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        .settings-container {
-            max-width: 900px;
-            margin: 0 auto;
-        }
-
-        .settings-card {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
-            padding: 30px;
-            margin-bottom: 20px;
-        }
-
-        .settings-header {
-            border-bottom: 2px solid #D4C4B0;
-            padding-bottom: 15px;
-            margin-bottom: 25px;
-        }
-
-        .settings-header h3 {
-            color: #7B4A2C;
-            font-size: 20px;
-            font-weight: 600;
-            margin: 0;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-label {
-            font-weight: 500;
-            color: #7B4A2C;
-            margin-bottom: 8px;
-            display: block;
-        }
-
-        .form-control, .form-select {
-            border: 2px solid #D4C4B0;
-            border-radius: 8px;
-            padding: 12px 15px;
-            width: 100%;
-            transition: all 0.3s ease;
-        }
-
-        .form-control:focus, .form-select:focus {
-            border-color: #A66D3F;
-            box-shadow: 0 0 0 3px rgba(166, 109, 63, 0.1);
-            outline: none;
-        }
-
-        .profile-pic-preview {
-            width: 120px;
-            height: 120px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 3px solid #D4C4B0;
-            margin-bottom: 15px;
-        }
-
-        .profile-pic-container {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-
-        .readonly-field {
-            background-color: #F5F0E8;
-            color: #666;
-            cursor: not-allowed;
-        }
-
-        .btn-primary {
-            background-color: #D4A574;
-            border: none;
-            color: white;
-            padding: 12px 30px;
-            border-radius: 8px;
-            font-weight: 500;
-            transition: all 0.3s ease;
-        }
-
-        .btn-primary:hover {
-            background-color: #A66D3F;
-            transform: translateY(-2px);
-        }
-
-        .btn-danger {
-            background-color: #dc3545;
-            border: none;
-            color: white;
-            padding: 12px 30px;
-            border-radius: 8px;
-            font-weight: 500;
-            transition: all 0.3s ease;
-        }
-
-        .btn-danger:hover {
-            background-color: #c82333;
-            transform: translateY(-2px);
-        }
-
-        .alert {
-            border-radius: 8px;
-            padding: 15px 20px;
-            margin-bottom: 20px;
-        }
-
-        .danger-zone {
-            border: 2px solid #dc3545;
-            border-radius: 12px;
-            padding: 20px;
-            background-color: #fff5f5;
-        }
-
-        .danger-zone-header {
-            color: #dc3545;
-            font-weight: 600;
-            margin-bottom: 10px;
-        }
-
-        /* Filter Section Styles */
-        .filter-section {
-            background: #F5F0E8;
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 20px;
-            border: 1px solid #D4C4B0;
-        }
-
-        .filter-row {
-            display: flex;
-            gap: 15px;
-            align-items: end;
-            margin-bottom: 10px;
-            flex-wrap: wrap;
-        }
-
-        .filter-group {
-            display: flex;
-            flex-direction: column;
-            min-width: 150px;
-        }
-
-        .filter-label {
-            font-weight: 500;
-            color: #7B4A2C;
-            margin-bottom: 5px;
-            font-size: 0.9rem;
-        }
-
-        .filter-input, .filter-select {
-            border: 2px solid #D4C4B0;
-            border-radius: 6px;
-            padding: 8px 12px;
-            font-size: 0.9rem;
-            transition: all 0.3s ease;
-            background: white;
-        }
-
-        .filter-input:focus, .filter-select:focus {
-            border-color: #A66D3F;
-            box-shadow: 0 0 0 2px rgba(166, 109, 63, 0.1);
-            outline: none;
-        }
-
-        .btn-clear-filters {
-            background: #dc3545;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            padding: 8px 16px;
-            font-size: 0.9rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            align-self: flex-end;
-        }
-
-        .btn-clear-filters:hover {
-            background: #c82333;
-            transform: translateY(-1px);
-        }
-
-        .filter-results-info {
-            color: #7B4A2C;
-            font-size: 0.9rem;
-            font-weight: 500;
-            margin-top: 10px;
-        }
-
-        /* Search Button Styles */
-        .btn-search-filter {
-            background: #D4A574;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            padding: 8px 20px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 0.9rem;
-        }
-
-        .btn-search-filter:hover {
-            background: #B8945F;
-            transform: translateY(-1px);
-        }
-
-        /* Standardized Pagination Styles */
-        .pagination-wrapper {
-            margin-top: 50px;
-            padding: 30px 0;
-            border-top: 2px solid #E8DFD3;
-        }
-
-        .pagination-controls {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 30px;
-            flex-wrap: wrap;
-        }
-
-        .page-numbers {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .page-btn {
-            min-width: 50px;
-            height: 50px;
-            padding: 0 15px;
-            background-color: white;
-            border: 2px solid #D4C4B0;
-            color: #7B4A2C;
-            font-weight: 500;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            text-decoration: none;
-        }
-
-        .page-btn:hover {
-            background-color: #D4A574;
-            border-color: #D4A574;
-            color: white;
-            text-decoration: none;
-        }
-
-        .page-btn.active {
-            background-color: #D4A574;
-            border-color: #D4A574;
-            color: white;
-            font-weight: 600;
-            text-decoration: none;
-        }
-
-        .page-btn.disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .page-ellipsis {
-            padding: 0 8px;
-            color: #8B7355;
-            font-weight: 500;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .pagination-info {
-            color: #7B4A2C;
-            font-size: 0.9rem;
-            text-align: center;
-            margin-bottom: 10px;
-        }
-
-        .items-per-page {
-            display: flex;
-            align-items: center;
-        }
-
-        .page-size-select {
-            width: 130px;
-            height: 50px;
-            padding: 0 15px;
-            border: 2px solid #D4C4B0;
-            border-radius: 8px;
-            color: #7B4A2C;
-            font-weight: 500;
-            background-color: white;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .page-size-select:focus {
-            outline: none;
-            border-color: #A66D3F;
-            box-shadow: 0 0 0 3px rgba(166, 109, 63, 0.1);
-        }
-
-        .go-to-page {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            white-space: nowrap;
-        }
-
-        .go-to-label {
-            color: #8B7355;
-            font-weight: 500;
-            line-height: 1;
-            display: inline-flex;
-            align-items: center;
-        }
-
-        .page-input {
-            width: 70px;
-            height: 50px;
-            padding: 0 15px;
-            border: 2px solid #D4C4B0;
-            border-radius: 8px;
-            color: #7B4A2C;
-            font-weight: 500;
-            text-align: center;
-            transition: all 0.3s ease;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .page-input:focus {
-            outline: none;
-            border-color: #A66D3F;
-            box-shadow: 0 0 0 3px rgba(166, 109, 63, 0.1);
-        }
-
-        /* Responsive adjustments */
-        @@media (max-width: 768px) {
-            .filter-row {
-                flex-direction: column;
-                align-items: stretch;
-            }
-            
-            .filter-group {
-                min-width: auto;
-            }
-
-            .pagination-controls {
-                flex-wrap: wrap;
-                gap: 5px;
-            }
-
-            .pagination-btn {
-                padding: 6px 10px;
-                font-size: 0.8rem;
-            }
-
-            .page-size-select,
-            .page-input {
-                height: 45px;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="~/css/user/user-settings.css" asp-append-version="true" />
 </head>
 <body>
 
-@Html.Partial("_UserHomeHeader")
+<partial name="_UserHomeHeader" />
 
 <div class="userhome-content">
     <div class="container-fluid px-4 py-4">
@@ -995,6 +628,45 @@
                     
                     @if (Model.PendingTickets != null && Model.PendingTickets.Any())
                     {
+                        <!-- Filter Section -->
+                        <div class="filter-section">
+                            <div class="filter-row">
+                                <div class="filter-group">
+                                    <label for="pendingSearchInput" class="filter-label">
+                                        <i class="fas fa-search"></i> Search Reservations
+                                    </label>
+                                    <input type="text" 
+                                           id="pendingSearchInput" 
+                                           class="filter-input" 
+                                           placeholder="Search by title, author, or reference..."
+                                           autocomplete="off">
+                                </div>
+                                <div class="filter-group">
+                                    <label for="pendingSortSelect" class="filter-label">
+                                        <i class="fas fa-sort"></i> Sort By
+                                    </label>
+                                    <select id="pendingSortSelect" class="filter-select">
+                                        <option value="expiry-soonest">Claim Deadline (Soonest)</option>
+                                        <option value="expiry-latest">Claim Deadline (Latest)</option>
+                                        <option value="title-az">Title A-Z</option>
+                                        <option value="title-za">Title Z-A</option>
+                                    </select>
+                                </div>
+                                <div class="filter-group">
+                                    <button type="button" id="searchPendingBtn" class="btn-search-filter">
+                                        <i class="fas fa-search"></i> Search
+                                    </button>
+                                </div>
+                                <div class="filter-group">
+                                    <button type="button" id="clearPendingFilters" class="btn-clear-filters">
+                                        <i class="fas fa-times"></i> Clear
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="filter-results-info" id="pendingResultsInfo">
+                                Showing @Model.PendingTickets.Count() reservations
+                            </div>
+                        </div>
                         <div class="pending-reservations-container">
                             @foreach (var ticket in Model.PendingTickets)
                             {
@@ -1036,6 +708,16 @@
                                     </div>
                                 </div>
                             }
+                        </div>
+                        
+                        <!-- Pagination for Pending Reservations -->
+                        <div class="pagination-wrapper" id="pendingPaginationSection">
+                            <div class="pagination-info" id="pendingPaginationInfo">
+                                <!-- Pagination info will be displayed here -->
+                            </div>
+                            <div class="pagination-controls" id="pendingPaginationControls">
+                                <!-- Pagination controls will be generated here -->
+                            </div>
                         </div>
                     }
                     else
@@ -1107,6 +789,12 @@
                                 <span asp-validation-for="Name" class="text-danger"></span>
                             </div>
                         </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label asp-for="Email" class="form-label"></label>
+                        <input asp-for="Email" class="form-control" type="email" />
+                        <span asp-validation-for="Email" class="text-danger"></span>
                     </div>
 
                     <div class="form-group">
@@ -1190,7 +878,7 @@
                     <h4 class="danger-zone-header"><i class="fas fa-exclamation-triangle"></i> Danger Zone</h4>
                     <p class="mb-3">Once you delete your account, there is no going back. Please be certain.</p>
                     
-                    <form asp-action="DeleteAccount" method="post" onsubmit="return confirm('Are you absolutely sure you want to delete your account? This action cannot be undone!');">
+                    <form asp-action="DeleteAccount" method="post" onsubmit="return onDeleteAccount(event);">
                         @Html.AntiForgeryToken()
                         <button type="submit" class="btn btn-danger">
                             <i class="fas fa-trash-alt"></i> Delete My Account
@@ -1209,606 +897,9 @@
 <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
 <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
 
-<script>
-    function previewImage(input) {
-        if (input.files && input.files[0]) {
-            var reader = new FileReader();
-            reader.onload = function(e) {
-                document.getElementById('profilePreview').src = e.target.result;
-            }
-            reader.readAsDataURL(input.files[0]);
-        }
-    }
-
-    // Tab switching functionality
-    document.addEventListener('DOMContentLoaded', function() {
-        const tabItems = document.querySelectorAll('.sidebar-nav-item');
-        const tabContents = document.querySelectorAll('.profile-tab-content');
-
-        tabItems.forEach(item => {
-            item.addEventListener('click', function(e) {
-                e.preventDefault();
-                
-                const targetTab = this.getAttribute('data-tab');
-                
-                // Navigate to the same page with the tab parameter to load data from server
-                const url = new URL(window.location);
-                url.searchParams.set('tab', targetTab);
-                window.location.href = url.toString();
-            });
-        });
-    });
-
-    // Wishlist - Borrow Now button
-    $(document).on('click', '.btn-borrow-from-wishlist', function() {
-        var bookId = $(this).data('book-id');
-        
-        $.ajax({
-            url: '@Url.Action("AddToCart", "UserHome")',
-            type: 'POST',
-            data: { bookId: bookId },
-            success: function(response) {
-                if (response.success) {
-                    alert('Book added to cart!');
-                    window.location.href = '@Url.Action("BookCheckout", "UserHome")';
-                } else {
-                    alert(response.message || 'Failed to add book to cart.');
-                }
-            }
-        });
-    });
-
-    // Wishlist - Remove button
-    $(document).on('click', '.btn-remove-wishlist', function() {
-        var bookId = $(this).data('book-id');
-        
-        if (!confirm('Remove this book from your wishlist?')) {
-            return;
-        }
-        
-        $.ajax({
-            url: '@Url.Action("ToggleWishlist", "UserHome")',
-            type: 'POST',
-            data: { bookId: bookId },
-            success: function(response) {
-                if (response.success) {
-                    alert('Book removed from wishlist!');
-                    window.location.reload();
-                } else {
-                    alert(response.message || 'Failed to remove book from wishlist.');
-                }
-            }
-        });
-    });
-
-    // Pending Reservations - Cancel button
-    $(document).on('click', '.btn-cancel-reservation', function() {
-        var ticketId = $(this).data('ticket-id');
-        
-        if (!confirm('Cancel this reservation? This action cannot be undone.')) {
-            return;
-        }
-        
-        $.ajax({
-            url: '@Url.Action("CancelTicket", "UserHome")',
-            type: 'POST',
-            data: { ticketId: ticketId },
-            success: function(response) {
-                if (response.success) {
-                    alert('Reservation cancelled successfully!');
-                    window.location.reload();
-                } else {
-                    alert(response.message || 'Failed to cancel reservation.');
-                }
-            }
-        });
-    });
-
-    // Filter functionality for all tabs
-    $(document).ready(function() {
-        // Store original data for each tab
-        let originalBorrowedBooks = [];
-        let originalUnreturnedBooks = [];
-        let originalHistoryBooks = [];
-        let originalWishlistItems = [];
-
-        // Pagination variables for each tab
-        const itemsPerPage = {
-            borrowed: 10,
-            unreturned: 10,
-            history: 15,
-            wishlist: 12
-        };
-
-        let currentPages = {
-            borrowed: 1,
-            unreturned: 1,
-            history: 1,
-            wishlist: 1
-        };
-
-        // Initialize original data
-        function initializeOriginalData() {
-            // Borrowed Books
-            $('#borrowedBooksContainer .borrowed-book-card').each(function() {
-                originalBorrowedBooks.push({
-                    element: $(this),
-                    title: $(this).find('h4').text().toLowerCase(),
-                    author: $(this).find('.book-author').text().toLowerCase(),
-                    dueDate: $(this).find('.due-date').text(),
-                    borrowedDate: $(this).find('.borrowed-date').text()
-                });
-            });
-
-            // Unreturned Books
-            $('#unreturnedBooksContainer .overdue-book-card').each(function() {
-                originalUnreturnedBooks.push({
-                    element: $(this),
-                    title: $(this).find('h4').text().toLowerCase(),
-                    author: $(this).find('.book-author').text().toLowerCase(),
-                    dueDate: $(this).find('.due-date').text(),
-                    daysOverdue: parseInt($(this).find('.days-overdue').text().match(/\d+/)?.[0] || '0'),
-                    fineAmount: parseFloat($(this).find('.fine-amount').text().replace(/[^\d.]/g, '') || '0')
-                });
-            });
-
-            // History Books
-            $('#historyBooksContainer .history-book-item').each(function() {
-                originalHistoryBooks.push({
-                    element: $(this),
-                    title: $(this).find('h4').text().toLowerCase(),
-                    author: $(this).find('.book-author').text().toLowerCase(),
-                    borrowedDate: $(this).find('.borrowed-date').text(),
-                    returnedDate: $(this).find('.returned-date').text()
-                });
-            });
-
-            // Wishlist Items
-            $('#wishlistBooksContainer .wishlist-book-card').each(function() {
-                originalWishlistItems.push({
-                    element: $(this),
-                    title: $(this).find('h4').text().toLowerCase(),
-                    author: $(this).find('.book-author').text().toLowerCase(),
-                    isAvailable: $(this).find('.btn-borrow-from-wishlist').length > 0
-                });
-            });
-        }
-
-        // Generic pagination function
-        function paginateItems(items, page, perPage) {
-            const start = (page - 1) * perPage;
-            const end = start + perPage;
-            return items.slice(start, end);
-        }
-
-        // Render pagination controls
-        function renderPagination(totalItems, currentPage, perPage, containerId, filterFunction) {
-            const totalPages = Math.ceil(totalItems / perPage);
-            const paginationInfo = document.getElementById(containerId + 'PaginationInfo');
-            const paginationControls = document.getElementById(containerId + 'PaginationControls');
-            
-            if (totalPages <= 1) {
-                paginationInfo.textContent = `Showing ${totalItems} items`;
-                paginationControls.innerHTML = '';
-                return;
-            }
-
-            // Update pagination info
-            const startItem = (currentPage - 1) * perPage + 1;
-            const endItem = Math.min(currentPage * perPage, totalItems);
-            paginationInfo.textContent = `Showing ${startItem}-${endItem} of ${totalItems} items (Page ${currentPage} of ${totalPages})`;
-
-            // Clear existing controls
-            paginationControls.innerHTML = '';
-
-            // Create page numbers container
-            const pageNumbers = document.createElement('div');
-            pageNumbers.className = 'page-numbers';
-
-            // Previous button
-            if (currentPage > 1) {
-                const prevBtn = document.createElement('a');
-                prevBtn.href = '#';
-                prevBtn.className = 'page-btn page-prev';
-                prevBtn.textContent = 'Previous';
-                prevBtn.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    if (containerId === 'borrowed') currentPages.borrowed = currentPage - 1;
-                    else if (containerId === 'unreturned') currentPages.unreturned = currentPage - 1;
-                    else if (containerId === 'history') currentPages.history = currentPage - 1;
-                    else if (containerId === 'wishlist') currentPages.wishlist = currentPage - 1;
-                    filterFunction();
-                });
-                pageNumbers.appendChild(prevBtn);
-            }
-
-            // Calculate page range
-            const startPage = Math.max(1, currentPage - 2);
-            const endPage = Math.min(totalPages, currentPage + 2);
-            
-            // Adjust if we're near the start or end
-            let adjustedStartPage = startPage;
-            let adjustedEndPage = endPage;
-            if (endPage - startPage < 4) {
-                if (startPage === 1) {
-                    adjustedEndPage = Math.min(totalPages, startPage + 4);
-                } else if (endPage === totalPages) {
-                    adjustedStartPage = Math.max(1, endPage - 4);
-                }
-            }
-
-            // First page and ellipsis
-            if (adjustedStartPage > 1) {
-                const firstBtn = document.createElement('a');
-                firstBtn.href = '#';
-                firstBtn.className = 'page-btn';
-                firstBtn.textContent = '1';
-                firstBtn.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    if (containerId === 'borrowed') currentPages.borrowed = 1;
-                    else if (containerId === 'unreturned') currentPages.unreturned = 1;
-                    else if (containerId === 'history') currentPages.history = 1;
-                    else if (containerId === 'wishlist') currentPages.wishlist = 1;
-                    filterFunction();
-                });
-                pageNumbers.appendChild(firstBtn);
-                
-                if (adjustedStartPage > 2) {
-                    const ellipsis = document.createElement('span');
-                    ellipsis.className = 'page-ellipsis';
-                    ellipsis.textContent = '...';
-                    pageNumbers.appendChild(ellipsis);
-                }
-            }
-
-            // Page numbers
-            for (let i = adjustedStartPage; i <= adjustedEndPage; i++) {
-                const pageBtn = document.createElement('a');
-                pageBtn.href = '#';
-                pageBtn.className = `page-btn ${i === currentPage ? 'active' : ''}`;
-                pageBtn.textContent = i;
-                
-                if (i !== currentPage) {
-                    pageBtn.addEventListener('click', function(e) {
-                        e.preventDefault();
-                        if (containerId === 'borrowed') currentPages.borrowed = i;
-                        else if (containerId === 'unreturned') currentPages.unreturned = i;
-                        else if (containerId === 'history') currentPages.history = i;
-                        else if (containerId === 'wishlist') currentPages.wishlist = i;
-                        filterFunction();
-                    });
-                }
-                
-                pageNumbers.appendChild(pageBtn);
-            }
-
-            // Last page and ellipsis
-            if (adjustedEndPage < totalPages) {
-                if (adjustedEndPage < totalPages - 1) {
-                    const ellipsis = document.createElement('span');
-                    ellipsis.className = 'page-ellipsis';
-                    ellipsis.textContent = '...';
-                    pageNumbers.appendChild(ellipsis);
-                }
-                
-                const lastBtn = document.createElement('a');
-                lastBtn.href = '#';
-                lastBtn.className = 'page-btn';
-                lastBtn.textContent = totalPages;
-                lastBtn.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    if (containerId === 'borrowed') currentPages.borrowed = totalPages;
-                    else if (containerId === 'unreturned') currentPages.unreturned = totalPages;
-                    else if (containerId === 'history') currentPages.history = totalPages;
-                    else if (containerId === 'wishlist') currentPages.wishlist = totalPages;
-                    filterFunction();
-                });
-                pageNumbers.appendChild(lastBtn);
-            }
-
-            // Next button
-            if (currentPage < totalPages) {
-                const nextBtn = document.createElement('a');
-                nextBtn.href = '#';
-                nextBtn.className = 'page-btn page-next';
-                nextBtn.textContent = 'Next';
-                nextBtn.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    if (containerId === 'borrowed') currentPages.borrowed = currentPage + 1;
-                    else if (containerId === 'unreturned') currentPages.unreturned = currentPage + 1;
-                    else if (containerId === 'history') currentPages.history = currentPage + 1;
-                    else if (containerId === 'wishlist') currentPages.wishlist = currentPage + 1;
-                    filterFunction();
-                });
-                pageNumbers.appendChild(nextBtn);
-            }
-
-            paginationControls.appendChild(pageNumbers);
-
-            // Items per page selector (optional - only for some tabs)
-            if (containerId === 'borrowed' || containerId === 'unreturned') {
-                const itemsPerPageDiv = document.createElement('div');
-                itemsPerPageDiv.className = 'items-per-page';
-                itemsPerPageDiv.innerHTML = `
-                    <select class="page-size-select" id="${containerId}ItemsPerPageSelect">
-                        <option value="10" ${perPage === 10 ? 'selected' : ''}>10 / page</option>
-                        <option value="15" ${perPage === 15 ? 'selected' : ''}>15 / page</option>
-                        <option value="20" ${perPage === 20 ? 'selected' : ''}>20 / page</option>
-                        <option value="25" ${perPage === 25 ? 'selected' : ''}>25 / page</option>
-                    </select>
-                `;
-                
-                itemsPerPageDiv.querySelector(`#${containerId}ItemsPerPageSelect`).addEventListener('change', function() {
-                    itemsPerPage[containerId] = parseInt(this.value);
-                    currentPages[containerId] = 1;
-                    filterFunction();
-                });
-                
-                paginationControls.appendChild(itemsPerPageDiv);
-            }
-
-            // Go to page
-            const goToPageDiv = document.createElement('div');
-            goToPageDiv.className = 'go-to-page';
-            goToPageDiv.innerHTML = `
-                <span class="go-to-label">Go to</span>
-                <input type="number" class="page-input" min="1" max="${totalPages}" value="${currentPage}" id="${containerId}GotoPageInput" />
-                <span class="go-to-label">Page</span>
-            `;
-            
-            goToPageDiv.querySelector(`#${containerId}GotoPageInput`).addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    const page = Math.max(1, Math.min(parseInt(this.value) || 1, totalPages));
-                    if (containerId === 'borrowed') currentPages.borrowed = page;
-                    else if (containerId === 'unreturned') currentPages.unreturned = page;
-                    else if (containerId === 'history') currentPages.history = page;
-                    else if (containerId === 'wishlist') currentPages.wishlist = page;
-                    filterFunction();
-                }
-            });
-            
-            paginationControls.appendChild(goToPageDiv);
-        }
-
-        // Filter functions
-        function filterBorrowedBooks() {
-            const searchTerm = $('#borrowedSearchInput').val().toLowerCase();
-            const sortBy = $('#borrowedSortSelect').val();
-            
-            let filtered = originalBorrowedBooks.filter(book => 
-                book.title.includes(searchTerm) || book.author.includes(searchTerm)
-            );
-
-            // Sort
-            filtered.sort((a, b) => {
-                switch(sortBy) {
-                    case 'due-date':
-                        return new Date(a.dueDate) - new Date(b.dueDate);
-                    case 'latest-borrowed':
-                        return new Date(b.borrowedDate) - new Date(a.borrowedDate);
-                    case 'title-az':
-                        return a.title.localeCompare(b.title);
-                    case 'title-za':
-                        return b.title.localeCompare(a.title);
-                    default:
-                        return 0;
-                }
-            });
-
-            // Paginate
-            const paginatedItems = paginateItems(filtered, currentPages.borrowed, itemsPerPage.borrowed);
-
-            // Update display
-            $('#borrowedBooksContainer').empty();
-            paginatedItems.forEach(book => {
-                $('#borrowedBooksContainer').append(book.element);
-            });
-
-            // Update results info
-            $('#borrowedResultsInfo').text(`Showing ${filtered.length} of ${originalBorrowedBooks.length} books`);
-
-            // Render pagination
-            renderPagination(filtered.length, currentPages.borrowed, itemsPerPage.borrowed, 'borrowed', filterBorrowedBooks);
-        }
-
-        function filterUnreturnedBooks() {
-            const searchTerm = $('#unreturnedSearchInput').val().toLowerCase();
-            const sortBy = $('#unreturnedSortSelect').val();
-            
-            let filtered = originalUnreturnedBooks.filter(book => 
-                book.title.includes(searchTerm) || book.author.includes(searchTerm)
-            );
-
-            // Sort
-            filtered.sort((a, b) => {
-                switch(sortBy) {
-                    case 'most-overdue':
-                        return b.daysOverdue - a.daysOverdue;
-                    case 'least-overdue':
-                        return a.daysOverdue - b.daysOverdue;
-                    case 'highest-fine':
-                        return b.fineAmount - a.fineAmount;
-                    case 'lowest-fine':
-                        return a.fineAmount - b.fineAmount;
-                    case 'due-date':
-                        return new Date(a.dueDate) - new Date(b.dueDate);
-                    default:
-                        return 0;
-                }
-            });
-
-            // Paginate
-            const paginatedItems = paginateItems(filtered, currentPages.unreturned, itemsPerPage.unreturned);
-
-            // Update display
-            $('#unreturnedBooksContainer').empty();
-            paginatedItems.forEach(book => {
-                $('#unreturnedBooksContainer').append(book.element);
-            });
-
-            // Update results info
-            $('#unreturnedResultsInfo').text(`Showing ${filtered.length} of ${originalUnreturnedBooks.length} overdue books`);
-
-            // Render pagination
-            renderPagination(filtered.length, currentPages.unreturned, itemsPerPage.unreturned, 'unreturned', filterUnreturnedBooks);
-        }
-
-        function filterHistoryBooks() {
-            const searchTerm = $('#historySearchInput').val().toLowerCase();
-            const startDate = $('#historyStartDate').val();
-            const endDate = $('#historyEndDate').val();
-            const sortBy = $('#historySortSelect').val();
-            
-            let filtered = originalHistoryBooks.filter(book => {
-                const matchesSearch = book.title.includes(searchTerm) || book.author.includes(searchTerm);
-                // Add date filtering logic here if needed
-                return matchesSearch;
-            });
-
-            // Sort
-            filtered.sort((a, b) => {
-                switch(sortBy) {
-                    case 'latest-return':
-                        return new Date(b.returnedDate) - new Date(a.returnedDate);
-                    case 'oldest-return':
-                        return new Date(a.returnedDate) - new Date(b.returnedDate);
-                    case 'latest-borrow':
-                        return new Date(b.borrowedDate) - new Date(a.borrowedDate);
-                    case 'title-az':
-                        return a.title.localeCompare(b.title);
-                    default:
-                        return 0;
-                }
-            });
-
-            // Paginate
-            const paginatedItems = paginateItems(filtered, currentPages.history, itemsPerPage.history);
-
-            // Update display
-            $('#historyBooksContainer').empty();
-            paginatedItems.forEach(book => {
-                $('#historyBooksContainer').append(book.element);
-            });
-
-            // Update results info
-            $('#historyResultsInfo').text(`Showing ${filtered.length} of ${originalHistoryBooks.length} history records`);
-
-            // Render pagination
-            renderPagination(filtered.length, currentPages.history, itemsPerPage.history, 'history', filterHistoryBooks);
-        }
-
-        function filterWishlistItems() {
-            const searchTerm = $('#wishlistSearchInput').val().toLowerCase();
-            const availability = $('#wishlistAvailabilityFilter').val();
-            const sortBy = $('#wishlistSortSelect').val();
-            
-            let filtered = originalWishlistItems.filter(item => {
-                const matchesSearch = item.title.includes(searchTerm) || item.author.includes(searchTerm);
-                const matchesAvailability = availability === 'all' || 
-                    (availability === 'available' && item.isAvailable) ||
-                    (availability === 'unavailable' && !item.isAvailable);
-                return matchesSearch && matchesAvailability;
-            });
-
-            // Sort
-            filtered.sort((a, b) => {
-                switch(sortBy) {
-                    case 'title-az':
-                        return a.title.localeCompare(b.title);
-                    case 'title-za':
-                        return b.title.localeCompare(a.title);
-                    case 'author-az':
-                        return a.author.localeCompare(b.author);
-                    default:
-                        return 0;
-                }
-            });
-
-            // Paginate
-            const paginatedItems = paginateItems(filtered, currentPages.wishlist, itemsPerPage.wishlist);
-
-            // Update display
-            $('#wishlistBooksContainer').empty();
-            paginatedItems.forEach(item => {
-                $('#wishlistBooksContainer').append(item.element);
-            });
-
-            // Update results info
-            $('#wishlistResultsInfo').text(`Showing ${filtered.length} of ${originalWishlistItems.length} wishlist items`);
-
-            // Render pagination
-            renderPagination(filtered.length, currentPages.wishlist, itemsPerPage.wishlist, 'wishlist', filterWishlistItems);
-        }
-
-        // Clear filter functions
-        function clearBorrowedFilters() {
-            $('#borrowedSearchInput').val('');
-            $('#borrowedSortSelect').val('due-date');
-            currentPages.borrowed = 1;
-            filterBorrowedBooks();
-        }
-
-        function clearUnreturnedFilters() {
-            $('#unreturnedSearchInput').val('');
-            $('#unreturnedSortSelect').val('most-overdue');
-            currentPages.unreturned = 1;
-            filterUnreturnedBooks();
-        }
-
-        function clearHistoryFilters() {
-            $('#historySearchInput').val('');
-            $('#historyStartDate').val('');
-            $('#historyEndDate').val('');
-            $('#historySortSelect').val('latest-return');
-            currentPages.history = 1;
-            filterHistoryBooks();
-        }
-
-        function clearWishlistFilters() {
-            $('#wishlistSearchInput').val('');
-            $('#wishlistAvailabilityFilter').val('all');
-            $('#wishlistSortSelect').val('latest-added');
-            currentPages.wishlist = 1;
-            filterWishlistItems();
-        }
-
-        // Event listeners - Search buttons (no automatic filtering)
-        $('#searchBorrowedBtn').on('click', function() {
-            currentPages.borrowed = 1;
-            filterBorrowedBooks();
-        });
-
-        $('#searchUnreturnedBtn').on('click', function() {
-            currentPages.unreturned = 1;
-            filterUnreturnedBooks();
-        });
-
-        $('#searchHistoryBtn').on('click', function() {
-            currentPages.history = 1;
-            filterHistoryBooks();
-        });
-
-        $('#searchWishlistBtn').on('click', function() {
-            currentPages.wishlist = 1;
-            filterWishlistItems();
-        });
-
-        // Clear filter buttons
-        $('#clearBorrowedFilters').on('click', clearBorrowedFilters);
-        $('#clearUnreturnedFilters').on('click', clearUnreturnedFilters);
-        $('#clearHistoryFilters').on('click', clearHistoryFilters);
-        $('#clearWishlistFilters').on('click', clearWishlistFilters);
-
-        // Initialize when page loads
-        initializeOriginalData();
-        
-        // Initial filter to show first page
-        filterBorrowedBooks();
-        filterUnreturnedBooks();
-        filterHistoryBooks();
-        filterWishlistItems();
-    });
-</script>
-
+<partial view="~/Views/Shared/_AppModal.cshtml" />
+<script src="~/js/app-modal.js" asp-append-version="true"></script>
+<script src="~/js/user/user-settings.js" asp-append-version="true"></script>
 </body>
 </html>
+

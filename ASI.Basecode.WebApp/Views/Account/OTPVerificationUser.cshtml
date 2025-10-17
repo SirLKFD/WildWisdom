@@ -91,6 +91,7 @@
 
             <form method="post" action="/Account/VerifyOTPUser" id="otpForm">
                 <input type="hidden" name="email" value="@ViewBag.Email" />
+                <input type="hidden" name="token" value="@ViewBag.Token" />
                 <input type="hidden" name="otpCode" id="otpCodeInput" />
 
                 <div class="otp-input-container">
@@ -104,6 +105,7 @@
 
                 <div style="text-align: center; margin: 20px 0;">
                     <span class="text-danger" id="otpError"></span>
+                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
                 </div>
 
                 <button class="btn-auth" type="submit" id="verifyBtn" disabled>

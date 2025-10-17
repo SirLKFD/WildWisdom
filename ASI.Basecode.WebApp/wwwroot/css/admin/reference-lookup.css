@@ -1,0 +1,26 @@
+/* Status Badge Styles */
+.result-status {
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.status-pending-claim { background: linear-gradient(135deg, #ffc107 0%, #ff8f00 100%); color: #fff; box-shadow: 0 2px 8px rgba(255, 193, 7, 0.3); }
+.status-claimed { background: linear-gradient(135deg, #17a2b8 0%, #138496 100%); color: #fff; box-shadow: 0 2px 8px rgba(23, 162, 184, 0.3); }
+.status-borrowed { background: linear-gradient(135deg, #28a745 0%, #20c997 100%); color: #fff; box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3); }
+.status-returned { background: linear-gradient(135deg, #6c757d 0%, #495057 100%); color: #fff; box-shadow: 0 2px 8px rgba(108, 117, 125, 0.3); }
+.status-cancelled { background: linear-gradient(135deg, #dc3545 0%, #c82333 100%); color: #fff; box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3); }
+.status-expired { background: linear-gradient(135deg, #fd7e14 0%, #e55a00 100%); color: #fff; box-shadow: 0 2px 8px rgba(253, 126, 20, 0.3); }
+.status-lost { background: linear-gradient(135deg, #6f42c1 0%, #5a32a3 100%); color: #fff; box-shadow: 0 2px 8px rgba(111, 66, 193, 0.3); }
+.status-unknown { background: linear-gradient(135deg, #6c757d 0%, #495057 100%); color: #fff; box-shadow: 0 2px 8px rgba(108, 117, 125, 0.3); opacity: .7; }
+
+/* Clickable Cards */
+.pending-claim-card,
+.unreturned-book-card { cursor: pointer; transition: all .3s ease; }
+.pending-claim-card:hover,
+.unreturned-book-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0, 0, 0, .15); }
+.pending-claim-card:active,
+.unreturned-book-card:active { transform: translateY(0); }

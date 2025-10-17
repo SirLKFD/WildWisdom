@@ -1,4 +1,4 @@
-﻿@model List<ASI.Basecode.Services.ServiceModels.OrgBooksViewModel>
+@model List<ASI.Basecode.Services.ServiceModels.OrgBooksViewModel>
 
 @{
     ViewData["Title"] = "Home - WildWisdom";
@@ -18,6 +18,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="Cache-Control" content="public, max-age=3600" />
     <title>@ViewData["Title"]</title>
     <link rel="stylesheet" href="~/css/userhome.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
@@ -25,26 +26,13 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        /* 5 books per row for XL screens */
-        @@media (min-width: 1200px) {
-            .col-xl-custom-5 {
-                flex: 0 0 20%;
-                max-width: 20%;
-            }
-        }
-
-        @@media (max-width: 1199px) {
-            .col-xl-custom-5 {
-                flex: 0 0 25%;
-                max-width: 25%;
-            }
-        }
-    </style>
+    <link rel="dns-prefetch" href="//cdnjs.cloudflare.com">
+    <link rel="preload" as="style" href="~/css/userhome.css">
+    <link rel="stylesheet" href="~/css/user/index.css" asp-append-version="true" />
 </head>
 <body>
 
-@Html.Partial("_UserHomeHeader")
+<partial name="_UserHomeHeader" />
 
 <div class="userhome-content">
     <div class="container-fluid">
@@ -250,10 +238,20 @@
                             {
                                 <div class="col-xl-custom-5 col-lg-3 col-md-4 col-sm-6 col-6 mb-4">
                                     <div class="book-card-simple" onclick="window.location.href='@Url.Action("BookDetails", new { id = book.Id })'">
-                                        <div class="book-cover-wrapper">
+                                        <div class="book-cover-container">
                                             @if (!string.IsNullOrEmpty(book.CoverImage))
                                             {
-                                                <img src="@book.CoverImage" alt="@book.Title" class="book-cover-img" />
+                                                <img src="@book.CoverImage" 
+                                                     alt="@book.Title" 
+                                                     class="book-cover-img image-loading"
+                                                     loading="lazy"
+                                                     decoding="async"
+                                                     onload="this.classList.remove('image-loading'); this.style.opacity='1';"
+                                                     onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+                                                     style="opacity: 0;" />
+                                                <div class="book-cover-placeholder" style="display: none;">
+                                                    <i class="fas fa-book"></i>
+                                                </div>
                                             }
                                             else
                                             {
@@ -354,7 +352,7 @@
                                     <!-- Go to Page -->
                                     <div class="go-to-page">
                                         <span class="go-to-label">Go to</span>
-                                        <input type="number" class="form-control page-input" min="1" max="@totalPages" value="@currentPage" id="gotoPageInput" />
+                                        <input type="number" class="form-control page-input" min="1" max="@totalPages" value="@currentPage" id="gotoPageInput" data-page-size="@pageSize" data-search="@searchTerm" data-category="@selectedCategory" data-genre="@selectedGenre" data-availability="@selectedAvailability" />
                                         <span class="go-to-label">Page</span>
                                     </div>
                                 </div>
@@ -385,15 +383,10 @@
     </div>
 </div>
 
-<script>
-    // Go to page functionality
-    document.getElementById('gotoPageInput')?.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            const page = Math.max(1, Math.min(parseInt(this.value) || 1, @totalPages));
-            window.location.href = '?page=' + page + '&pageSize=@pageSize&search=@searchTerm&category=@selectedCategory&genre=@selectedGenre&availability=@selectedAvailability';
-        }
-    });
-</script>
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+<script src="~/js/user/index.js" asp-append-version="true"></script>
 
 </body>
 </html>
+

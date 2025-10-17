@@ -61,7 +61,7 @@ namespace ASI.Basecode.Services.ServiceModels
         public void CreateMappings(IMapperConfigurationExpression configuration)
         {
             configuration.CreateMap<BorrowTicket, BorrowTicketViewModel>()
-                .ForMember(dest => dest.StatusDisplay, opt => opt.MapFrom(src => src.Status.ToString()))
+                .ForMember(dest => dest.StatusDisplay, opt => opt.MapFrom(src => GetStatusDisplayText(src.Status)))
                 .ForMember(dest => dest.BookTitle, opt => opt.Ignore())
                 .ForMember(dest => dest.BookAuthor, opt => opt.Ignore())
                 .ForMember(dest => dest.UserName, opt => opt.Ignore())
@@ -75,6 +75,21 @@ namespace ASI.Basecode.Services.ServiceModels
                 .ForMember(dest => dest.ClaimedByEmployee, opt => opt.Ignore())
                 .ForMember(dest => dest.CheckedOutByEmployee, opt => opt.Ignore())
                 .ForMember(dest => dest.ReturnedToEmployee, opt => opt.Ignore());
+        }
+
+        private static string GetStatusDisplayText(TicketStatus status)
+        {
+            return status switch
+            {
+                TicketStatus.NotYetClaimed => "Pending Claim",
+                TicketStatus.Claimed => "Claimed",
+                TicketStatus.NotYetReturned => "Borrowed",
+                TicketStatus.Returned => "Returned",
+                TicketStatus.Cancelled => "Cancelled",
+                TicketStatus.Expired => "Expired",
+                TicketStatus.Lost => "Lost",
+                _ => "Unknown"
+            };
         }
     }
 }

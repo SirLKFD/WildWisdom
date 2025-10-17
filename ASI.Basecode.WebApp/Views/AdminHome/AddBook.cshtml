@@ -19,7 +19,7 @@
 </head>
 <body>
 
-@Html.Partial("_AdminHomeTab")
+<partial name="_AdminHomeTab" />
 
 <div class="admin-main-content">
     <div class="container">
@@ -166,42 +166,13 @@
     </div>
 </div>
 
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.3/dist/jquery.validate.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/jquery-validation-unobtrusive@3.2.12/dist/jquery.validate.unobtrusive.min.js"></script>
-<script>
-    document.getElementById('CoverImageFile').addEventListener('change', function(e) {
-        var file = e.target.files[0];
-        if (file) {
-            // Validate file type
-            var validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
-            if (!validTypes.includes(file.type)) {
-                alert('Please upload only JPEG, PNG, or GIF images.');
-                this.value = '';
-                document.getElementById('imagePreview').style.display = 'none';
-                return;
-            }
-
-            // Validate file size (max 5MB)
-            if (file.size > 5 * 1024 * 1024) {
-                alert('File size must be less than 5MB.');
-                this.value = '';
-                document.getElementById('imagePreview').style.display = 'none';
-                return;
-            }
-
-            // Show preview
-            var reader = new FileReader();
-            reader.onload = function(e) {
-                document.getElementById('preview').src = e.target.result;
-                document.getElementById('imagePreview').style.display = 'block';
-            };
-            reader.readAsDataURL(file);
-        }
-    });
-</script>
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+<partial view="~/Views/Shared/_AppModal.cshtml" />
+<script src="~/js/app-modal.js" asp-append-version="true"></script>
+<script src="~/js/admin/add-book.js" asp-append-version="true"></script>
 
 </body>
 </html>
+
 

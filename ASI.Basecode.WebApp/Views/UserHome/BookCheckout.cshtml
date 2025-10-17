@@ -20,7 +20,8 @@
 </head>
 <body>
 
-@Html.Partial("_UserHomeHeader")
+<partial name="_UserHomeHeader" />
+<partial name="_AppModal" />
 
 <div class="book-checkout-page">
     <div class="userhome-content">
@@ -42,7 +43,16 @@
                     </div>
                     <div class="checkout-indicator-card">
                         <span class="indicator-label">Active Tickets</span>
-                        <span class="indicator-value">@Model.ActiveTicketCount</span>
+                        <span class="indicator-value">
+                            @if (Model.MaxActiveTickets > 0)
+                            {
+                                <text>@Model.ActiveTicketCount/@Model.MaxActiveTickets</text>
+                            }
+                            else
+                            {
+                                <text>@Model.ActiveTicketCount</text>
+                            }
+                        </span>
                         <p class="indicator-caption">
                             @if (Model.MaxActiveTickets > 0)
                             {
@@ -199,327 +209,11 @@
 
 <script src="~/lib/jquery/dist/jquery.min.js"></script>
 <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-    (function () {
-        const selectAll = document.getElementById('selectAllTickets');
-        const borrowButton = document.getElementById('borrowSelectedBtn');
-        const selectedCount = document.getElementById('selectedCount');
-        const ticketList = document.getElementById('checkoutTicketList');
-        const emptyState = document.getElementById('emptyCheckoutState');
-        const modal = document.getElementById('checkoutReferenceModal');
-        const modalClose = document.getElementById('checkoutModalClose');
-        const modalActionClose = document.getElementById('checkoutModalActionClose');
-        const modalReferenceList = document.getElementById('checkoutModalReferenceList');
-        const modalOrganization = document.getElementById('checkoutModalOrganization');
-
-        function getTicketCheckboxes() {
-            return document.querySelectorAll('.ticket-checkbox');
-        }
-
-        function getCartItemCheckboxes() {
-            return document.querySelectorAll('.cart-item-checkbox');
-        }
-
-        function getAllCheckboxes() {
-            return document.querySelectorAll('.ticket-checkbox, .cart-item-checkbox');
-        }
-
-        function updateSelectedState() {
-            const checkboxes = getAllCheckboxes();
-            const checkedBoxes = Array.from(checkboxes).filter(cb => cb.checked);
-
-            selectedCount.textContent = checkedBoxes.length;
-            borrowButton.disabled = checkedBoxes.length === 0;
-
-            if (checkboxes.length === 0) {
-                selectAll.checked = false;
-                selectAll.disabled = true;
-            } else {
-                selectAll.disabled = false;
-                selectAll.checked = checkedBoxes.length === checkboxes.length;
-            }
-        }
-
-        function removeTicketCard(button) {
-            const card = button.closest('.checkout-ticket-card');
-            if (card) {
-                card.remove();
-            }
-
-            if (!getTicketCheckboxes().length && emptyState) {
-                emptyState.style.display = 'flex';
-            }
-
-            updateSelectedState();
-        }
-
-        function attachCheckboxListeners() {
-            const checkboxes = getAllCheckboxes();
-            checkboxes.forEach(cb => {
-                cb.addEventListener('change', updateSelectedState);
-            });
-        }
-
-        function attachRemoveListeners() {
-            const removeButtons = document.querySelectorAll('.checkout-remove-btn');
-            removeButtons.forEach(btn => {
-                btn.addEventListener('click', function () {
-                    const ticketId = this.dataset.ticketId;
-                    const bookId = this.dataset.bookId;
-                    
-                    if (ticketId) {
-                        // Handle ticket cancellation
-                        if (!confirm('Cancel this reservation? The book will return to the shelf for other readers.')) {
-                            return;
-                        }
-
-                        fetch('@Url.Action("CancelBorrowTicket", "UserHome")', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
-                            },
-                            body: new URLSearchParams({ ticketId: ticketId }).toString()
-                        })
-                            .then(response => response.json())
-                            .then(result => {
-                                if (result && result.success) {
-                                    removeTicketCard(this);
-                                } else if (result && result.message) {
-                                    alert(result.message);
-                                } else {
-                                    alert('Unable to cancel reservation right now.');
-                                }
-                            })
-                            .catch(() => alert('Unable to cancel reservation right now.'));
-                    } else if (bookId) {
-                        // Handle cart item removal
-                        if (!confirm('Remove this book from your cart?')) {
-                            return;
-                        }
-
-                        // Remove from session and UI
-                        fetch('@Url.Action("RemoveFromCart", "UserHome")', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
-                            },
-                            body: new URLSearchParams({ bookId: bookId }).toString()
-                        })
-                            .then(response => response.json())
-                            .then(result => {
-                                if (result && result.success) {
-                                    removeTicketCard(this);
-                                    // Update cart badge
-                                    if (typeof updateCartBadge === 'function') {
-                                        updateCartBadge();
-                                    }
-                                } else {
-                                    alert('Unable to remove book from cart right now.');
-                                }
-                            })
-                            .catch(() => alert('Unable to remove book from cart right now.'));
-                    }
-                });
-            });
-        }
-
-        function openModal(selections) {
-            modalReferenceList.innerHTML = '';
-            selections.forEach(ticket => {
-                const item = document.createElement('div');
-                item.className = 'reference-list-item';
-                item.innerHTML = `
-                    <div class="reference-list-content">
-                        <span class="reference-list-title">${ticket.title}</span>
-                        <span class="reference-list-code">${ticket.reference}</span>
-                    </div>
-                `;
-                modalReferenceList.appendChild(item);
-            });
-
-            if (selections.length > 0) {
-                modalOrganization.textContent = selections[0].organization;
-            }
-
-            modal.classList.add('show');
-        }
-
-        function closeModal() {
-            modal.classList.remove('show');
-        }
-
-        function createPendingTicketCard(ticket) {
-            const card = document.createElement('div');
-            card.className = 'checkout-ticket-card';
-            card.setAttribute('data-ticket-id', ticket.id);
-            
-            card.innerHTML = `
-                <div class="checkout-ticket-select">
-                    <input type="checkbox"
-                           class="ticket-checkbox"
-                           value="${ticket.id}"
-                           data-reference="${ticket.reference}"
-                           data-title="${ticket.title}"
-                           data-organization="${ticket.organization}" />
-                </div>
-                <div class="checkout-ticket-info">
-                    <div class="checkout-ticket-cover">
-                        <div class="checkout-ticket-placeholder">
-                            <i class="fas fa-book"></i>
-                        </div>
-                    </div>
-                    <div class="checkout-ticket-details">
-                        <h3>${ticket.title}</h3>
-                        <p class="ticket-author">by Author</p>
-                        <div class="ticket-meta">
-                            <span class="ticket-reference">
-                                <i class="fas fa-ticket-alt"></i>
-                                <span>Ref #: <strong>${ticket.reference}</strong></span>
-                            </span>
-                            <span class="ticket-expiry">
-                                <i class="fas fa-hourglass-half"></i>
-                                <span>Claim before ${new Date(Date.now() + 24 * 60 * 60 * 1000).toLocaleString()}</span>
-                            </span>
-                        </div>
-                    </div>
-                </div>
-                <button type="button"
-                        class="checkout-remove-btn"
-                        data-ticket-id="${ticket.id}"
-                        title="Cancel reservation">
-                    <i class="fas fa-trash"></i>
-                </button>
-            `;
-            
-            // Reattach event listeners
-            attachCheckboxListeners();
-            attachRemoveListeners();
-            
-            return card;
-        }
-
-        function updateEmptyState() {
-            const cartItems = document.querySelectorAll('.cart-item-checkbox');
-            const pendingTickets = document.querySelectorAll('.ticket-checkbox');
-            
-            if (cartItems.length === 0 && pendingTickets.length === 0 && emptyState) {
-                emptyState.style.display = 'flex';
-            } else if (emptyState) {
-                emptyState.style.display = 'none';
-            }
-        }
-
-        if (selectAll) {
-            selectAll.addEventListener('change', function () {
-                const checkboxes = getAllCheckboxes();
-                checkboxes.forEach(cb => cb.checked = this.checked);
-                updateSelectedState();
-            });
-        }
-
-        if (borrowButton) {
-            borrowButton.addEventListener('click', function () {
-                const cartCheckboxes = Array.from(getCartItemCheckboxes()).filter(cb => cb.checked);
-                const ticketCheckboxes = Array.from(getTicketCheckboxes()).filter(cb => cb.checked);
-                
-                if (!cartCheckboxes.length && !ticketCheckboxes.length) {
-                    return;
-                }
-
-                // Handle cart items first
-                if (cartCheckboxes.length > 0) {
-                    const cartBookIds = cartCheckboxes.map(cb => parseInt(cb.value));
-                    
-                    fetch('@Url.Action("ConfirmBorrow", "UserHome")', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
-                        },
-                        body: new URLSearchParams({ 
-                            bookIds: cartBookIds.join(',')
-                        }).toString()
-                    })
-                    .then(response => response.json())
-                    .then(result => {
-                        if (result && result.success) {
-                            // Show modal with created tickets
-                            const selections = result.tickets.map(ticket => ({
-                                id: ticket.ticketId,
-                                reference: ticket.referenceCode,
-                                title: ticket.bookTitle,
-                                organization: ticket.organizationName
-                            }));
-                            openModal(selections);
-                            
-                            // Move cart items to pending tickets section
-                            cartCheckboxes.forEach(cb => {
-                                const card = cb.closest('.checkout-ticket-card');
-                                if (card) {
-                                    // Create new pending ticket card
-                                    const newTicketCard = createPendingTicketCard(selections.find(t => t.title === cb.dataset.title));
-                                    
-                                    // Add to pending tickets section
-                                    const pendingSection = document.querySelector('#checkoutTicketList');
-                                    if (pendingSection) {
-                                        pendingSection.appendChild(newTicketCard);
-                                    }
-                                    
-                                    // Remove from cart section
-                                    card.remove();
-                                }
-                            });
-                            
-                            // Update cart badge
-                            if (typeof updateCartBadge === 'function') {
-                                updateCartBadge();
-                            }
-                            
-                            // Update empty state
-                            updateEmptyState();
-                        } else {
-                            let errorMessage = result.message || 'Failed to create borrow requests.';
-                            if (result.errors && result.errors.length > 0) {
-                                errorMessage += '\n\nDetails:\n' + result.errors.join('\n');
-                            }
-                            alert(errorMessage);
-                        }
-                    })
-                    .catch(() => {
-                        alert('Unable to process borrow request right now.');
-                    });
-                } else {
-                    // Handle existing tickets (show modal)
-                    const selections = ticketCheckboxes.map(cb => ({
-                        id: cb.value,
-                        reference: cb.dataset.reference,
-                        title: cb.dataset.title,
-                        organization: cb.dataset.organization
-                    }));
-                    openModal(selections);
-                }
-            });
-        }
-
-        if (modalClose) {
-            modalClose.addEventListener('click', closeModal);
-        }
-
-        if (modalActionClose) {
-            modalActionClose.addEventListener('click', closeModal);
-        }
-
-        modal.addEventListener('click', function (event) {
-            if (event.target === modal) {
-                closeModal();
-            }
-        });
-
-        attachCheckboxListeners();
-        attachRemoveListeners();
-        updateSelectedState();
-    })();
-</script>
+<partial view="~/Views/Shared/_AppModal.cshtml" />
+<script src="~/js/app-modal.js" asp-append-version="true"></script>
+<script src="~/js/user/book-checkout.js" asp-append-version="true"></script>
 
 </body>
 </html>
+
 

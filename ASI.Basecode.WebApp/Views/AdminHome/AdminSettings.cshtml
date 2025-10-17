@@ -1,4 +1,4 @@
-﻿@model ASI.Basecode.Services.ServiceModels.AdminSettingsViewModel
+@model ASI.Basecode.Services.ServiceModels.AdminSettingsViewModel
 @{
     ViewData["Title"] = "Admin Settings";
 }
@@ -18,7 +18,7 @@
 </head>
 <body>
 
-@Html.Partial("_AdminHomeTab")
+<partial name="_AdminHomeTab" />
 
 <div class="admin-main-content admin-settings-container">
     <h1 class="admin-page-heading"><i class="fas fa-cog"></i> Settings</h1>
@@ -60,6 +60,15 @@
                     </div>
                 </div>
                 <div class="col-md-6">
+                    <div class="form-group">
+                        <label asp-for="Email">Email Address</label>
+                        <input asp-for="Email" class="form-control" type="email" />
+                        <span asp-validation-for="Email" class="text-danger"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12">
                     <div class="form-group">
                         <label>Profile Picture</label>
                         <div class="profile-upload-section">
@@ -110,7 +119,13 @@
                 <div class="col-md-6">
                     <div class="form-group">
                         <label asp-for="OrganizationType">Organization Type</label>
-                        <input asp-for="OrganizationType" class="form-control" />
+                        <select asp-for="OrganizationType" class="form-control">
+                            <option value="">-- Select Organization Type --</option>
+                            <option value="University">University</option>
+                            <option value="Private Library">Private Library</option>
+                            <option value="Public Library">Public Library</option>
+                            <option value="Others">Others</option>
+                        </select>
                         <span asp-validation-for="OrganizationType" class="text-danger"></span>
                     </div>
                 </div>
@@ -189,34 +204,12 @@
     </div>
 </div>
 
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-    // Profile picture preview
-    document.getElementById('profilePictureFile').addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const preview = document.getElementById('profilePreview');
-                preview.innerHTML = '<img src="' + e.target.result + '" alt="Profile" class="profile-preview" />';
-            }
-            reader.readAsDataURL(file);
-        }
-    });
-
-    // Delete confirmation
-    document.getElementById('confirmDeleteText').addEventListener('input', function() {
-        const confirmBtn = document.getElementById('confirmDeleteBtn');
-        if (this.value.trim() === 'DELETE') {
-            confirmBtn.disabled = false;
-        } else {
-            confirmBtn.disabled = true;
-        }
-    });
-</script>
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+<script src="~/js/admin/admin-settings.js" asp-append-version="true"></script>
 
 
 </body>
 </html>
+
 
