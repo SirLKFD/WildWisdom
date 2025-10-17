@@ -51,6 +51,17 @@ namespace ASI.Basecode.Data.Migrations
                     b.Property<DateTime>("CreatedTime")
                         .HasColumnType("datetime");
 
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<bool>("IsVerified")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
                     b.Property<int?>("OrganizationId")
                         .HasColumnType("int");
 
@@ -73,6 +84,9 @@ namespace ASI.Basecode.Data.Migrations
                     b.HasIndex("OrganizationId");
 
                     b.HasIndex(new[] { "AdminUsername" }, "UQ__Admins__AdminUsername")
+                        .IsUnique();
+
+                    b.HasIndex(new[] { "Email" }, "UQ__Admins__Email")
                         .IsUnique();
 
                     b.ToTable("Admins");
@@ -656,6 +670,124 @@ namespace ASI.Basecode.Data.Migrations
                     b.ToTable("Organizations");
                 });
 
+            modelBuilder.Entity("ASI.Basecode.Data.Models.PasswordResetToken", b =>
+                {
+                    b.Property<int>("TokenId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("TokenId"));
+
+                    b.Property<DateTime>("CreatedTime")
+                        .HasColumnType("datetime");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<DateTime>("ExpirationTime")
+                        .HasColumnType("datetime");
+
+                    b.Property<bool>("IsUsed")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<int>("Role")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Token")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(100)");
+
+                    b.HasKey("TokenId");
+
+                    b.HasIndex(new[] { "Token" }, "UQ__PasswordResetToken__Token")
+                        .IsUnique();
+
+                    b.ToTable("PasswordResetTokens");
+                });
+
+            modelBuilder.Entity("ASI.Basecode.Data.Models.PendingUserRegistration", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedTime")
+                        .HasColumnType("datetime");
+
+                    b.Property<string>("EmailId")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<string>("EncryptedOTP")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<bool>("IsVerified")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<int?>("OrganizationId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("OrganizationName")
+                        .HasMaxLength(100)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<string>("OrganizationType")
+                        .HasMaxLength(50)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<string>("PasswordHash")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<int>("Role")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("TokenExpiration")
+                        .HasColumnType("datetime");
+
+                    b.Property<DateTime>("UpdatedTime")
+                        .HasColumnType("datetime");
+
+                    b.Property<string>("VerificationToken")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex(new[] { "EmailId" }, "UQ__PendingUserRegistrations__EmailId")
+                        .IsUnique();
+
+                    b.ToTable("PendingUserRegistrations");
+                });
+
             modelBuilder.Entity("ASI.Basecode.Data.Models.Publisher", b =>
                 {
                     b.Property<int>("Id")
@@ -762,6 +894,17 @@ namespace ASI.Basecode.Data.Migrations
                     b.Property<DateTime>("CreatedTime")
                         .HasColumnType("datetime");
 
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<bool>("IsVerified")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -807,6 +950,9 @@ namespace ASI.Basecode.Data.Migrations
                     b.HasIndex("OrganizationId");
 
                     b.HasIndex(new[] { "UserId" }, "UQ__Users__1788CC4D5F4A160F")
+                        .IsUnique();
+
+                    b.HasIndex(new[] { "Email" }, "UQ__Users__Email")
                         .IsUnique();
 
                     b.ToTable("Users");

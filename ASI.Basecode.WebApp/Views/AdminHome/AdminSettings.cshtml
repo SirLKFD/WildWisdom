@@ -61,6 +61,15 @@
                 </div>
                 <div class="col-md-6">
                     <div class="form-group">
+                        <label asp-for="Email">Email Address</label>
+                        <input asp-for="Email" class="form-control" type="email" />
+                        <span asp-validation-for="Email" class="text-danger"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="form-group">
                         <label>Profile Picture</label>
                         <div class="profile-upload-section">
                             @if (!string.IsNullOrEmpty(Model.ProfilePicture))
@@ -110,7 +119,13 @@
                 <div class="col-md-6">
                     <div class="form-group">
                         <label asp-for="OrganizationType">Organization Type</label>
-                        <input asp-for="OrganizationType" class="form-control" />
+                        <select asp-for="OrganizationType" class="form-control">
+                            <option value="">-- Select Organization Type --</option>
+                            <option value="University">University</option>
+                            <option value="Private Library">Private Library</option>
+                            <option value="Public Library">Public Library</option>
+                            <option value="Others">Others</option>
+                        </select>
                         <span asp-validation-for="OrganizationType" class="text-danger"></span>
                     </div>
                 </div>

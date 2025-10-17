@@ -17,9 +17,9 @@ namespace ASI.Basecode.Data.Repositories
             return this.GetDbSet<Admin>();
         }
 
-        public bool AdminExists(string username)
+        public bool AdminExists(string identifier)
         {
-            return this.GetDbSet<Admin>().Any(x => x.AdminUsername == username);
+            return this.GetDbSet<Admin>().Any(x => x.AdminUsername == identifier || x.Email == identifier);
         }
 
         public void AddAdmin(Admin admin)
@@ -28,9 +28,9 @@ namespace ASI.Basecode.Data.Repositories
             UnitOfWork.SaveChanges();
         }
 
-        public Admin GetByUsername(string username)
+        public Admin GetByUsername(string identifier)
         {
-            return this.GetDbSet<Admin>().FirstOrDefault(x => x.AdminUsername == username);
+            return this.GetDbSet<Admin>().FirstOrDefault(x => x.AdminUsername == identifier || x.Email == identifier);
         }
 
         public Admin GetAdminById(int adminId)

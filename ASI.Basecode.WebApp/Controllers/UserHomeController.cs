@@ -516,7 +516,20 @@ namespace ASI.Basecode.WebApp.Controllers
             }
 
             var userIdString = this._session.GetString("UserId");
-            var userId = int.Parse(userIdString);
+            if (string.IsNullOrEmpty(userIdString))
+            {
+                return RedirectToAction("LoginUser", "Account");
+            }
+
+            // Get user model to get the database ID
+            var userModel = _userService.GetUserByUserId(userIdString);
+            if (userModel == null)
+            {
+                TempData["ErrorMessage"] = "User not found.";
+                return RedirectToAction("Index");
+            }
+
+            var userId = userModel.Id; // Use the database ID for recommendations
             var orgId = this._session.GetInt32("OrganizationId") ?? 0;
 
             // Get user preferences
@@ -1105,6 +1118,7 @@ namespace ASI.Basecode.WebApp.Controllers
                 Id = userModel.Id,
                 UserId = userModel.UserId,
                 Name = userModel.Name,
+                Email = userModel.Email,
                 OrganizationId = userModel.OrganizationId,
                 ProfilePicture = userModel.ProfilePicture,
                 CreatedTime = userModel.CreatedTime,
@@ -1165,17 +1179,25 @@ namespace ASI.Basecode.WebApp.Controllers
                     }
 
                     // Verify old password
-                    var user = _userService.GetUserByUserId(userId);
-                    var passwordKey = ASI.Basecode.Services.Manager.PasswordManager.EncryptPassword(model.OldPassword);
-                    var currentUser = _userService.GetUserByUserId(userId);
-                    
-                    // Get the actual user from repository to check password
                     var userEntity = new Data.Models.User();
                     var loginResult = _userService.AuthenticateUser(userId, model.OldPassword, ref userEntity);
                     
                     if (loginResult != ASI.Basecode.Resources.Constants.Enums.LoginResult.Success)
                     {
                         ModelState.AddModelError("OldPassword", "Current password is incorrect.");
+                        ViewBag.Organizations = _organizationService.GetAllOrganizations();
+                        return View(model);
+                    }
+                }
+
+                // Validate email uniqueness if email is being changed
+                var currentUser = _userService.GetUserByUserId(userId);
+                if (currentUser != null && model.Email != currentUser.Email)
+                {
+                    // Check if email already exists for another user
+                    if (_userService.UserExists(model.Email))
+                    {
+                        ModelState.AddModelError("Email", "This email address is already registered by another user.");
                         ViewBag.Organizations = _organizationService.GetAllOrganizations();
                         return View(model);
                     }
@@ -1458,6 +1480,63 @@ namespace ASI.Basecode.WebApp.Controllers
             catch (Exception ex)
             {
                 return Json(new { suggestions = new List<string>() });
+            }
+        }
+
+        /// <summary>
+        /// Get checkout counters for AJAX updates
+        /// </summary>
+        /// <returns>JSON result with current counter values</returns>
+        [HttpGet]
+        public JsonResult GetCheckoutCounters()
+        {
+            try
+            {
+                var userIdString = this._session.GetString("UserId");
+                if (string.IsNullOrEmpty(userIdString))
+                {
+                    return Json(new { success = false, message = "User not logged in." });
+                }
+
+                var userModel = _userService.GetUserByUserId(userIdString);
+                if (userModel == null)
+                {
+                    return Json(new { success = false, message = "User not found." });
+                }
+
+                var orgId = this._session.GetInt32("OrganizationId") ?? 0;
+                var tickets = _borrowTicketService.GetUserTickets(userModel.Id) ?? new List<BorrowTicketViewModel>();
+
+                var pendingTickets = tickets
+                    .Where(t => t.Status == TicketStatus.NotYetClaimed)
+                    .ToList();
+
+                var borrowedTickets = tickets
+                    .Where(t => t.Status == TicketStatus.NotYetReturned)
+                    .ToList();
+
+                var borrowedToday = tickets.Count(t =>
+                    t.CreatedAt.Date == DateTime.Today &&
+                    t.Status != TicketStatus.Cancelled &&
+                    t.Status != TicketStatus.Expired);
+
+                var activeTicketCount = pendingTickets.Count + borrowedTickets.Count;
+
+                var borrowingPolicy = _borrowTicketService.GetBorrowingPolicy(orgId);
+                var maxActiveTickets = borrowingPolicy?.MaxActiveTicketsPerUser ?? 0;
+                var remainingActiveQuota = maxActiveTickets > 0 ? Math.Max(0, maxActiveTickets - activeTicketCount) : 0;
+
+                return Json(new { 
+                    success = true,
+                    borrowedToday = borrowedToday,
+                    activeTicketCount = activeTicketCount,
+                    maxActiveTickets = maxActiveTickets,
+                    remainingActiveQuota = remainingActiveQuota
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = $"Error: {ex.Message}" });
             }
         }
     }
