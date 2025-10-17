@@ -18,6 +18,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="Cache-Control" content="public, max-age=3600" />
     <title>@ViewData["Title"]</title>
     <link rel="stylesheet" href="~/css/userhome.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
@@ -25,6 +26,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="dns-prefetch" href="//cdnjs.cloudflare.com">
+    <link rel="preload" as="style" href="~/css/userhome.css">
     <style>
         /* 5 books per row for XL screens */
         @@media (min-width: 1200px) {
@@ -39,6 +42,52 @@
                 flex: 0 0 25%;
                 max-width: 25%;
             }
+        }
+
+        /* Image Loading Optimizations */
+        .book-cover-container {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 2/3; /* Standard book cover ratio (width:height = 2:3) */
+            border-radius: 8px;
+            overflow: hidden;
+            background: #F5F0E8;
+        }
+
+        .book-cover-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: opacity 0.3s ease;
+            background: #F5F0E8;
+        }
+
+        .book-cover-placeholder {
+            width: 100%;
+            height: 100%;
+            background: #F5F0E8;
+            border: 1px solid #D4C4B0;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .book-cover-placeholder i {
+            color: #7B4A2C;
+            font-size: 2rem;
+        }
+
+        /* Loading skeleton for images */
+        .image-loading {
+            background: linear-gradient(90deg, #F5F0E8 25%, #E8DFD3 50%, #F5F0E8 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+        }
+
+        @@keyframes loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
         }
     </style>
 </head>
@@ -250,10 +299,20 @@
                             {
                                 <div class="col-xl-custom-5 col-lg-3 col-md-4 col-sm-6 col-6 mb-4">
                                     <div class="book-card-simple" onclick="window.location.href='@Url.Action("BookDetails", new { id = book.Id })'">
-                                        <div class="book-cover-wrapper">
+                                        <div class="book-cover-container">
                                             @if (!string.IsNullOrEmpty(book.CoverImage))
                                             {
-                                                <img src="@book.CoverImage" alt="@book.Title" class="book-cover-img" />
+                                                <img src="@book.CoverImage" 
+                                                     alt="@book.Title" 
+                                                     class="book-cover-img image-loading"
+                                                     loading="lazy"
+                                                     decoding="async"
+                                                     onload="this.classList.remove('image-loading'); this.style.opacity='1';"
+                                                     onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+                                                     style="opacity: 0;" />
+                                                <div class="book-cover-placeholder" style="display: none;">
+                                                    <i class="fas fa-book"></i>
+                                                </div>
                                             }
                                             else
                                             {
@@ -386,6 +445,52 @@
 </div>
 
 <script>
+    // Image loading optimization
+    document.addEventListener('DOMContentLoaded', function() {
+        // Image loading optimization with Intersection Observer
+        const imageObserver = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const img = entry.target;
+                    if (img.dataset.src) {
+                        img.src = img.dataset.src;
+                        img.removeAttribute('data-src');
+                        observer.unobserve(img);
+                    }
+                }
+            });
+        }, {
+            rootMargin: '50px 0px',
+            threshold: 0.01
+        });
+
+        // Observe all lazy-loaded images
+        const lazyImages = document.querySelectorAll('img[loading="lazy"]');
+        lazyImages.forEach(img => {
+            imageObserver.observe(img);
+        });
+
+        // Preload images for better performance
+        const preloadImages = () => {
+            const visibleImages = document.querySelectorAll('img[src]:not([data-preloaded])');
+            visibleImages.forEach(img => {
+                if (img.complete) {
+                    img.style.opacity = '1';
+                    img.classList.remove('image-loading');
+                } else {
+                    img.addEventListener('load', function() {
+                        this.style.opacity = '1';
+                        this.classList.remove('image-loading');
+                    });
+                }
+                img.setAttribute('data-preloaded', 'true');
+            });
+        };
+
+        // Run preload after a short delay to prioritize critical content
+        setTimeout(preloadImages, 100);
+    });
+
     // Go to page functionality
     document.getElementById('gotoPageInput')?.addEventListener('keypress', function(e) {
         if (e.key === 'Enter') {

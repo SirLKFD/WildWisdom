@@ -16,20 +16,27 @@ namespace ASI.Basecode.Services.Services
         private readonly IAdminRepository _adminRepository;
         private readonly IOrganizationRepository _organizationRepository;
         private readonly IMapper _mapper;
+        private readonly IPendingUserRegistrationRepository _pendingRepository;
 
-        public AdminService(IAdminRepository adminRepository, IOrganizationRepository organizationRepository, IMapper mapper)
+        public AdminService(IAdminRepository adminRepository, IOrganizationRepository organizationRepository, IMapper mapper, IPendingUserRegistrationRepository pendingRepository)
         {
             _mapper = mapper;
             _adminRepository = adminRepository;
             _organizationRepository = organizationRepository;
+            _pendingRepository = pendingRepository;
         }
 
         public LoginResult AuthenticateAdmin(string username, string password, ref Admin admin)
         {
             admin = new Admin();
             var passwordKey = PasswordManager.EncryptPassword(password);
-            admin = _adminRepository.GetAdmins().Where(x => x.AdminUsername == username &&
+            admin = _adminRepository.GetAdmins().Where(x => (x.AdminUsername == username || x.Email == username) &&
                                                      x.AdminPassword == passwordKey).FirstOrDefault();
+
+            if (admin != null && !admin.IsVerified)
+            {
+                return LoginResult.Failed; // Admin exists but not verified
+            }
 
             return admin != null ? LoginResult.Success : LoginResult.Failed;
         }
@@ -105,6 +112,7 @@ namespace ASI.Basecode.Services.Services
             {
                 AdminId = admin.Id,
                 AdminUsername = admin.AdminUsername,
+                Email = admin.Email,
                 ProfilePicture = admin.ProfilePicture,
                 OrganizationId = organization.Id,
                 OrganizationName = organization.Name,
@@ -130,6 +138,7 @@ namespace ASI.Basecode.Services.Services
 
             // Update admin
             admin.AdminUsername = model.AdminUsername;
+            admin.Email = model.Email;
             if (!string.IsNullOrEmpty(model.NewPassword))
             {
                 admin.AdminPassword = PasswordManager.EncryptPassword(model.NewPassword);
@@ -161,6 +170,97 @@ namespace ASI.Basecode.Services.Services
             return true;
         }
 
+        public void CreatePendingAdmin(AdminViewModel model, string encryptedOTP, string verificationToken)
+        {
+            // Check if email already exists in pending registrations
+            if (_pendingRepository.EmailExists(model.Email))
+            {
+                throw new InvalidDataException("Email already registered. Please check your email for verification.");
+            }
+
+            // Check if admin username already exists
+            if (_adminRepository.AdminExists(model.AdminUsername))
+            {
+                throw new InvalidDataException("Admin username already exists.");
+            }
+
+            // Check if organization name already exists
+            if (_organizationRepository.OrganizationExists(model.OrganizationName))
+            {
+                throw new InvalidDataException("Organization name already exists.");
+            }
+
+            var pendingAdmin = new Data.Models.PendingUserRegistration
+            {
+                EmailId = model.Email,
+                Name = model.AdminUsername, // Store username in Name field
+                PasswordHash = PasswordManager.EncryptPassword(model.AdminPassword), // Store encrypted admin password
+                EncryptedOTP = encryptedOTP, // Store encrypted OTP
+                VerificationToken = verificationToken,
+                TokenExpiration = DateTime.Now.AddMinutes(30),
+                IsVerified = false,
+                Role = 1, // Admin role
+                OrganizationName = model.OrganizationName,
+                OrganizationType = model.OrganizationType,
+                CreatedTime = DateTime.Now,
+                UpdatedTime = DateTime.Now
+            };
+
+            _pendingRepository.AddPending(pendingAdmin);
+        }
+
+        public void VerifyAndCreateAdmin(string email, string verificationToken)
+        {
+            var pending = _pendingRepository.GetByEmail(email);
+            
+            if (pending == null)
+            {
+                throw new InvalidDataException("Pending registration not found.");
+            }
+
+            if (pending.VerificationToken != verificationToken)
+            {
+                throw new InvalidDataException("Invalid verification token.");
+            }
+
+            if (pending.TokenExpiration < DateTime.Now)
+            {
+                _pendingRepository.DeletePending(pending.Id);
+                throw new InvalidDataException("Verification token has expired. Please register again.");
+            }
+
+            // Create organization
+            var organization = new Organization
+            {
+                Name = pending.OrganizationName,
+                Type = pending.OrganizationType,
+                CreatedTime = DateTime.Now,
+                UpdatedTime = DateTime.Now,
+                CreatedBy = System.Environment.UserName,
+                UpdatedBy = System.Environment.UserName
+            };
+            _organizationRepository.AddOrganization(organization);
+
+            // Create admin
+            var admin = new Admin
+            {
+                AdminUsername = pending.Name, // Name field contains username
+                Email = pending.EmailId,
+                AdminPassword = pending.PasswordHash, // Use the encrypted password from registration
+                OrganizationId = organization.Id,
+                IsVerified = true,
+                CreatedTime = DateTime.Now,
+                UpdatedTime = DateTime.Now,
+                CreatedBy = System.Environment.UserName,
+                UpdatedBy = System.Environment.UserName
+            };
+
+            _adminRepository.AddAdmin(admin);
+            
+            // Delete pending registration
+            _pendingRepository.DeletePending(pending.Id);
+        }
+
         public void DeleteAdminAccount(int adminId)
         {
             var admin = _adminRepository.GetAdminById(adminId);
@@ -181,6 +281,11 @@ namespace ASI.Basecode.Services.Services
 
             // Delete organization and cascade to books
             _organizationRepository.DeleteOrganization(organizationId);
+        }
+
+        public bool AdminExists(string identifier)
+        {
+            return _adminRepository.AdminExists(identifier);
         }
     }
 }

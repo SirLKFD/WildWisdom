@@ -35,14 +35,16 @@
             <h1 class="auth-title">Administrator Access</h1>
             <p class="auth-subtitle">Sign in to manage your library system</p>
 
+            <div asp-validation-summary="ModelOnly" class="text-danger" style="text-align: center; margin-bottom: 20px;"></div>
+
             <form method="post" action="/Account/LoginAdmin" id="loginForm">
                 <div class="form-group">
-                    <label class="form-label" for="userId">Admin Username</label>
+                    <label class="form-label" for="userId">Username or Email</label>
                     <input type="text" 
                            id="userId" 
                            class="form-control"
                            asp-for="UserId" 
-                           placeholder="Enter your admin username" />
+                           placeholder="Enter your username or email" />
                     <span asp-validation-for="UserId" class="text-danger"></span>
                 </div>
 
@@ -83,6 +85,12 @@
         var errorMessage = '@TempData["ErrorMessage"]';
         if (errorMessage) {
             toastr.error(errorMessage);
+        }
+
+        // Check for success message and display Toastr notification
+        var successMessage = '@TempData["SuccessMessage"]';
+        if (successMessage) {
+            toastr.success(successMessage);
         }
     </script>
 </body>

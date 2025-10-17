@@ -557,9 +557,9 @@ namespace ASI.Basecode.Services.Services
         {
             return status switch
             {
-                TicketStatus.NotYetClaimed => "Not Yet Claimed",
+                TicketStatus.NotYetClaimed => "Pending Claim",
                 TicketStatus.Claimed => "Claimed",
-                TicketStatus.NotYetReturned => "Not Yet Returned",
+                TicketStatus.NotYetReturned => "Borrowed",
                 TicketStatus.Returned => "Returned",
                 TicketStatus.Cancelled => "Cancelled",
                 TicketStatus.Expired => "Expired",

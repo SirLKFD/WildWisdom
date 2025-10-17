@@ -20,6 +20,11 @@ namespace ASI.Basecode.Services.ServiceModels
         [Display(Name = "Full Name")]
         public string Name { get; set; }
 
+        [Required(ErrorMessage = "Email is required.")]
+        [EmailAddress(ErrorMessage = "Invalid email address.")]
+        [Display(Name = "Email Address")]
+        public string Email { get; set; }
+
         [Display(Name = "Organization")]
         public int? OrganizationId { get; set; }
 

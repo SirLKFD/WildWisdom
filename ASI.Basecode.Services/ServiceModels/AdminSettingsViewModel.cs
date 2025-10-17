@@ -11,6 +11,11 @@ namespace ASI.Basecode.Services.ServiceModels
         [StringLength(50, ErrorMessage = "Username cannot exceed 50 characters")]
         public string AdminUsername { get; set; }
 
+        [Required(ErrorMessage = "Email is required.")]
+        [EmailAddress(ErrorMessage = "Invalid email address.")]
+        [Display(Name = "Email Address")]
+        public string Email { get; set; }
+
         public string ProfilePicture { get; set; }
 
         [StringLength(100, MinimumLength = 6, ErrorMessage = "Password must be between 6 and 100 characters")]

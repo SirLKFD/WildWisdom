@@ -1,3 +1,4 @@
+using ASI.Basecode.Data.Interfaces;
 using ASI.Basecode.Data.Models;
 using ASI.Basecode.Services.Interfaces;
 using ASI.Basecode.Services.Manager;
@@ -28,6 +29,10 @@ namespace ASI.Basecode.WebApp.Controllers
         private readonly IUserService _userService;
         private readonly IAdminService _adminService;
         private readonly IOrganizationService _organizationService;
+        private readonly IEmailService _emailService;
+        private readonly IOTPService _otpService;
+        private readonly IPendingUserRegistrationRepository _pendingRepository;
+        private readonly IPasswordResetService _passwordResetService;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="AccountController"/> class.
@@ -50,6 +55,10 @@ namespace ASI.Basecode.WebApp.Controllers
                             IUserService userService,
                             IAdminService adminService,
                             IOrganizationService organizationService,
+                            IEmailService emailService,
+                            IOTPService otpService,
+                            IPendingUserRegistrationRepository pendingRepository,
+                            IPasswordResetService passwordResetService,
                             TokenValidationParametersFactory tokenValidationParametersFactory,
                             TokenProviderOptionsFactory tokenProviderOptionsFactory) : base(httpContextAccessor, loggerFactory, configuration, mapper)
         {
@@ -61,6 +70,10 @@ namespace ASI.Basecode.WebApp.Controllers
             this._userService = userService;
             this._adminService = adminService;
             this._organizationService = organizationService;
+            this._emailService = emailService;
+            this._otpService = otpService;
+            this._pendingRepository = pendingRepository;
+            this._passwordResetService = passwordResetService;
         }
 
         /// <summary>
@@ -103,6 +116,11 @@ namespace ASI.Basecode.WebApp.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> LoginUser(LoginViewModel model, string returnUrl)
         {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
             this._session.SetString("HasSession", "Exist");
 
             User user = new User();
@@ -127,9 +145,9 @@ namespace ASI.Basecode.WebApp.Controllers
             }
             else
             {
-                // Authentication failed
-                TempData["ErrorMessage"] = "Incorrect UserId or Password";
-                return View();
+                // Authentication failed - use ModelState for security (don't reveal if account exists)
+                ModelState.AddModelError(string.Empty, "Incorrect username/email or password");
+                return View(model);
             }
         }
 
@@ -158,20 +176,49 @@ namespace ASI.Basecode.WebApp.Controllers
 
         [HttpPost]
         [AllowAnonymous]
-        public IActionResult RegisterUser(UserViewModel model)
+        public async Task<IActionResult> RegisterUser(UserViewModel model)
         {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
             try
             {
-                _userService.AddUser(model);
-                return RedirectToAction("LoginUser", "Account");
+                // Generate OTP and verification token
+                string otp = _otpService.GenerateOTP();
+                string encryptedOTP = _otpService.EncryptOTP(otp);
+                string verificationToken = _otpService.GenerateVerificationToken();
+
+                // Create pending user registration
+                _userService.CreatePendingUser(model, encryptedOTP, verificationToken);
+
+                // Generate verification link
+                string verificationLink = Url.Action("OTPVerificationUser", "Account", 
+                    new { email = model.Email, token = verificationToken }, Request.Scheme);
+
+                // Send email with OTP
+                bool emailSent = await _emailService.SendOTPEmail(model.Email, model.Name, otp, verificationLink);
+
+                if (!emailSent)
+                {
+                    ModelState.AddModelError(string.Empty, "Failed to send verification email. Please try again.");
+                    return View(model);
+                }
+
+                // Store email in TempData for modal
+                TempData["RegistrationEmail"] = model.Email;
+                TempData["ShowVerificationModal"] = true;
+                
+                return View(model);
             }
             catch(InvalidDataException ex)
             {
-                TempData["ErrorMessage"] = ex.Message;
+                ModelState.AddModelError(string.Empty, ex.Message);
             }
             catch(Exception ex)
             {
-                TempData["ErrorMessage"] = Resources.Messages.Errors.ServerError;
+                ModelState.AddModelError(string.Empty, Resources.Messages.Errors.ServerError);
             }
             return View(model);
         }
@@ -216,6 +263,11 @@ namespace ASI.Basecode.WebApp.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> LoginAdmin(LoginViewModel model, string returnUrl)
         {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
             this._session.SetString("HasSession", "Exist");
 
             Data.Models.Admin admin = new Data.Models.Admin();
@@ -259,9 +311,9 @@ namespace ASI.Basecode.WebApp.Controllers
             }
             else
             {
-                // Authentication failed
-                TempData["ErrorMessage"] = "Incorrect Admin Username or Password";
-                return View();
+                // Authentication failed - use ModelState for security (don't reveal if account exists)
+                ModelState.AddModelError(string.Empty, "Incorrect username/email or password");
+                return View(model);
             }
         }
 
@@ -290,22 +342,51 @@ namespace ASI.Basecode.WebApp.Controllers
 
         [HttpPost]
         [AllowAnonymous]
-        public IActionResult RegisterAdmin(AdminViewModel model)
+        public async Task<IActionResult> RegisterAdmin(AdminViewModel model)
         {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
             try
             {
-                _adminService.AddAdmin(model);
-                return RedirectToAction("LoginAdmin", "Account");
+                // Generate OTP and verification token
+                string otp = _otpService.GenerateOTP();
+                string encryptedOTP = _otpService.EncryptOTP(otp);
+                string verificationToken = _otpService.GenerateVerificationToken();
+
+                // Create pending admin registration
+                _adminService.CreatePendingAdmin(model, encryptedOTP, verificationToken);
+
+                // Generate verification link
+                string verificationLink = Url.Action("OTPVerificationAdmin", "Account", 
+                    new { email = model.Email, token = verificationToken }, Request.Scheme);
+
+                // Send email with OTP
+                bool emailSent = await _emailService.SendOTPEmail(model.Email, model.AdminUsername, otp, verificationLink);
+
+                if (!emailSent)
+                {
+                    ModelState.AddModelError(string.Empty, "Failed to send verification email. Please try again.");
+                    return View(model);
+                }
+
+                // Store email in TempData for modal
+                TempData["RegistrationEmail"] = model.Email;
+                TempData["ShowVerificationModal"] = true;
+                
+                return View(model);
             }
             catch(InvalidDataException ex)
             {
-                TempData["ErrorMessage"] = ex.Message;
+                ModelState.AddModelError(string.Empty, ex.Message);
             }
             catch(Exception ex)
             {
-                TempData["ErrorMessage"] = Resources.Messages.Errors.ServerError;
+                ModelState.AddModelError(string.Empty, Resources.Messages.Errors.ServerError);
             }
-            return View();
+            return View(model);
         }
 
         /// <summary>
@@ -344,11 +425,65 @@ namespace ASI.Basecode.WebApp.Controllers
 
         [HttpPost]
         [AllowAnonymous]
-        public IActionResult ForgotPasswordUser(string email)
+        public async Task<IActionResult> ForgotPasswordUser(ForgotPasswordViewModel model)
         {
-            // Placeholder: Will send reset email
-            TempData["SuccessMessage"] = "Password reset link has been sent to your email.";
-            return RedirectToAction("LoginUser");
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            // Send password reset email (service handles if email doesn't exist)
+            await _passwordResetService.SendPasswordResetEmail(model.Email, 0); // 0 = User
+
+            // Show modal with success message
+            TempData["ShowEmailSentModal"] = true;
+            TempData["ResetEmail"] = model.Email;
+            return View(model);
+        }
+
+        // User Reset Password (from email link)
+        [HttpGet]
+        [AllowAnonymous]
+        public IActionResult ResetPasswordUser(string token)
+        {
+            if (string.IsNullOrEmpty(token))
+            {
+                TempData["ErrorMessage"] = "Invalid reset link.";
+                return RedirectToAction("ForgotPasswordUser");
+            }
+
+            if (!_passwordResetService.ValidateResetToken(token))
+            {
+                TempData["ErrorMessage"] = "Invalid or expired reset link. Please request a new one.";
+                return RedirectToAction("ForgotPasswordUser");
+            }
+
+            ViewBag.Token = token;
+            return View();
+        }
+
+        [HttpPost]
+        [AllowAnonymous]
+        public IActionResult ResetPasswordUser(ResetPasswordViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                ViewBag.Token = model.Token;
+                return View(model);
+            }
+
+            try
+            {
+                _passwordResetService.ResetPassword(model.Token, model.NewPassword);
+                TempData["SuccessMessage"] = "Password reset successfully! Please login with your new password.";
+                return RedirectToAction("LoginUser");
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = ex.Message;
+                ViewBag.Token = model.Token;
+                return View(model);
+            }
         }
 
         // User Change Password
@@ -363,29 +498,134 @@ namespace ASI.Basecode.WebApp.Controllers
 
         [HttpPost]
         [AllowAnonymous]
-        public IActionResult ChangePasswordUser(string token, string email, string newPassword, string confirmPassword)
+        public IActionResult ChangePasswordUser(ChangePasswordViewModel model)
         {
-            // Placeholder: Will validate token and update password
-            TempData["SuccessMessage"] = "Password changed successfully!";
-            return RedirectToAction("LoginUser");
+            if (!ModelState.IsValid)
+            {
+                ViewBag.Token = model.Token;
+                ViewBag.Email = model.Email;
+                return View(model);
+            }
+
+            try
+            {
+                // Validate token and update password
+                _passwordResetService.ResetPassword(model.Token, model.NewPassword);
+                TempData["SuccessMessage"] = "Password changed successfully!";
+                return RedirectToAction("LoginUser");
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError(string.Empty, ex.Message);
+                ViewBag.Token = model.Token;
+                ViewBag.Email = model.Email;
+                return View(model);
+            }
         }
 
         // User OTP Verification
         [HttpGet]
         [AllowAnonymous]
-        public IActionResult OTPVerificationUser(string email)
+        public IActionResult OTPVerificationUser(string email, string token)
         {
+            if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(token))
+            {
+                TempData["ErrorMessage"] = "Invalid verification link.";
+                return RedirectToAction("RegisterUser");
+            }
+
+            // Check if pending registration exists and token is valid
+            var pending = _pendingRepository.GetByEmail(email);
+            if (pending == null)
+            {
+                TempData["ErrorMessage"] = "Pending registration not found. Please register again.";
+                return RedirectToAction("RegisterUser");
+            }
+
+            if (pending.TokenExpiration < DateTime.Now)
+            {
+                _pendingRepository.DeletePending(pending.Id);
+                TempData["ErrorMessage"] = "Verification link has expired. Please register again.";
+                return RedirectToAction("RegisterUser");
+            }
+
             ViewBag.Email = email;
+            ViewBag.Token = token;
             return View();
         }
 
         [HttpPost]
         [AllowAnonymous]
-        public IActionResult VerifyOTPUser(string email, string otpCode)
+        public IActionResult VerifyOTPUser(string email, string otpCode, string token)
         {
-            // Placeholder: Will verify OTP
-            TempData["SuccessMessage"] = "Account verified successfully!";
-            return RedirectToAction("LoginUser");
+            // Validate required fields
+            if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(otpCode) || string.IsNullOrEmpty(token))
+            {
+                ModelState.AddModelError(string.Empty, "All fields are required.");
+                ViewBag.Email = email;
+                ViewBag.Token = token;
+                return View("OTPVerificationUser");
+            }
+
+            // Validate OTP format (should be 6 digits)
+            if (!System.Text.RegularExpressions.Regex.IsMatch(otpCode, @"^\d{6}$"))
+            {
+                ModelState.AddModelError(string.Empty, "OTP code must be 6 digits.");
+                ViewBag.Email = email;
+                ViewBag.Token = token;
+                return View("OTPVerificationUser");
+            }
+
+            try
+            {
+                var pending = _pendingRepository.GetByEmail(email);
+                if (pending == null)
+                {
+                    ModelState.AddModelError(string.Empty, "Pending registration not found. Please register again.");
+                    ViewBag.Email = email;
+                    ViewBag.Token = token;
+                    return View("OTPVerificationUser");
+                }
+
+                // Validate OTP
+                if (!_otpService.ValidateOTP(otpCode, pending.EncryptedOTP))
+                {
+                    ModelState.AddModelError(string.Empty, "Invalid OTP code. Please try again.");
+                    ViewBag.Email = email;
+                    ViewBag.Token = token;
+                    return View("OTPVerificationUser");
+                }
+
+                // Create user account
+                _userService.VerifyAndCreateUser(email, token);
+                
+                TempData["SuccessMessage"] = "Account verified successfully! You can now login.";
+                return RedirectToAction("LoginUser");
+            }
+            catch (InvalidDataException ex)
+            {
+                // Only redirect to RegisterUser if it's a critical error (like expired token)
+                if (ex.Message.Contains("expired") || ex.Message.Contains("not found"))
+                {
+                    TempData["ErrorMessage"] = ex.Message;
+                    return RedirectToAction("RegisterUser");
+                }
+                else
+                {
+                    // For other validation errors, stay on OTP page
+                    ModelState.AddModelError(string.Empty, ex.Message);
+                    ViewBag.Email = email;
+                    ViewBag.Token = token;
+                    return View("OTPVerificationUser");
+                }
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError(string.Empty, "An error occurred during verification. Please try again.");
+                ViewBag.Email = email;
+                ViewBag.Token = token;
+                return View("OTPVerificationUser");
+            }
         }
 
         #endregion
@@ -402,11 +642,65 @@ namespace ASI.Basecode.WebApp.Controllers
 
         [HttpPost]
         [AllowAnonymous]
-        public IActionResult ForgotPasswordAdmin(string email)
+        public async Task<IActionResult> ForgotPasswordAdmin(ForgotPasswordViewModel model)
         {
-            // Placeholder: Will send reset email
-            TempData["SuccessMessage"] = "Password reset link has been sent to your email.";
-            return RedirectToAction("LoginAdmin");
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            // Send password reset email (service handles if email doesn't exist)
+            await _passwordResetService.SendPasswordResetEmail(model.Email, 1); // 1 = Admin
+
+            // Show modal with success message
+            TempData["ShowEmailSentModal"] = true;
+            TempData["ResetEmail"] = model.Email;
+            return View(model);
+        }
+
+        // Admin Reset Password (from email link)
+        [HttpGet]
+        [AllowAnonymous]
+        public IActionResult ResetPasswordAdmin(string token)
+        {
+            if (string.IsNullOrEmpty(token))
+            {
+                TempData["ErrorMessage"] = "Invalid reset link.";
+                return RedirectToAction("ForgotPasswordAdmin");
+            }
+
+            if (!_passwordResetService.ValidateResetToken(token))
+            {
+                TempData["ErrorMessage"] = "Invalid or expired reset link. Please request a new one.";
+                return RedirectToAction("ForgotPasswordAdmin");
+            }
+
+            ViewBag.Token = token;
+            return View();
+        }
+
+        [HttpPost]
+        [AllowAnonymous]
+        public IActionResult ResetPasswordAdmin(ResetPasswordViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                ViewBag.Token = model.Token;
+                return View(model);
+            }
+
+            try
+            {
+                _passwordResetService.ResetPassword(model.Token, model.NewPassword);
+                TempData["SuccessMessage"] = "Password reset successfully! Please login with your new password.";
+                return RedirectToAction("LoginAdmin");
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = ex.Message;
+                ViewBag.Token = model.Token;
+                return View(model);
+            }
         }
 
         // Admin Change Password
@@ -421,29 +715,134 @@ namespace ASI.Basecode.WebApp.Controllers
 
         [HttpPost]
         [AllowAnonymous]
-        public IActionResult ChangePasswordAdmin(string token, string email, string newPassword, string confirmPassword)
+        public IActionResult ChangePasswordAdmin(ChangePasswordViewModel model)
         {
-            // Placeholder: Will validate token and update password
-            TempData["SuccessMessage"] = "Password changed successfully!";
-            return RedirectToAction("LoginAdmin");
+            if (!ModelState.IsValid)
+            {
+                ViewBag.Token = model.Token;
+                ViewBag.Email = model.Email;
+                return View(model);
+            }
+
+            try
+            {
+                // Validate token and update password
+                _passwordResetService.ResetPassword(model.Token, model.NewPassword);
+                TempData["SuccessMessage"] = "Password changed successfully!";
+                return RedirectToAction("LoginAdmin");
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError(string.Empty, ex.Message);
+                ViewBag.Token = model.Token;
+                ViewBag.Email = model.Email;
+                return View(model);
+            }
         }
 
         // Admin OTP Verification
         [HttpGet]
         [AllowAnonymous]
-        public IActionResult OTPVerificationAdmin(string email)
+        public IActionResult OTPVerificationAdmin(string email, string token)
         {
+            if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(token))
+            {
+                TempData["ErrorMessage"] = "Invalid verification link.";
+                return RedirectToAction("RegisterAdmin");
+            }
+
+            // Check if pending registration exists and token is valid
+            var pending = _pendingRepository.GetByEmail(email);
+            if (pending == null)
+            {
+                TempData["ErrorMessage"] = "Pending registration not found. Please register again.";
+                return RedirectToAction("RegisterAdmin");
+            }
+
+            if (pending.TokenExpiration < DateTime.Now)
+            {
+                _pendingRepository.DeletePending(pending.Id);
+                TempData["ErrorMessage"] = "Verification link has expired. Please register again.";
+                return RedirectToAction("RegisterAdmin");
+            }
+
             ViewBag.Email = email;
+            ViewBag.Token = token;
             return View();
         }
 
         [HttpPost]
         [AllowAnonymous]
-        public IActionResult VerifyOTPAdmin(string email, string otpCode)
+        public IActionResult VerifyOTPAdmin(string email, string otpCode, string token)
         {
-            // Placeholder: Will verify OTP
-            TempData["SuccessMessage"] = "Account verified successfully!";
-            return RedirectToAction("LoginAdmin");
+            // Validate required fields
+            if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(otpCode) || string.IsNullOrEmpty(token))
+            {
+                ModelState.AddModelError(string.Empty, "All fields are required.");
+                ViewBag.Email = email;
+                ViewBag.Token = token;
+                return View("OTPVerificationAdmin");
+            }
+
+            // Validate OTP format (should be 6 digits)
+            if (!System.Text.RegularExpressions.Regex.IsMatch(otpCode, @"^\d{6}$"))
+            {
+                ModelState.AddModelError(string.Empty, "OTP code must be 6 digits.");
+                ViewBag.Email = email;
+                ViewBag.Token = token;
+                return View("OTPVerificationAdmin");
+            }
+
+            try
+            {
+                var pending = _pendingRepository.GetByEmail(email);
+                if (pending == null)
+                {
+                    ModelState.AddModelError(string.Empty, "Pending registration not found. Please register again.");
+                    ViewBag.Email = email;
+                    ViewBag.Token = token;
+                    return View("OTPVerificationAdmin");
+                }
+
+                // Validate OTP
+                if (!_otpService.ValidateOTP(otpCode, pending.EncryptedOTP))
+                {
+                    ModelState.AddModelError(string.Empty, "Invalid OTP code. Please try again.");
+                    ViewBag.Email = email;
+                    ViewBag.Token = token;
+                    return View("OTPVerificationAdmin");
+                }
+
+                // Create admin account
+                _adminService.VerifyAndCreateAdmin(email, token);
+                
+                TempData["SuccessMessage"] = "Account verified successfully! You can now login.";
+                return RedirectToAction("LoginAdmin");
+            }
+            catch (InvalidDataException ex)
+            {
+                // Only redirect to RegisterAdmin if it's a critical error (like expired token)
+                if (ex.Message.Contains("expired") || ex.Message.Contains("not found"))
+                {
+                    TempData["ErrorMessage"] = ex.Message;
+                    return RedirectToAction("RegisterAdmin");
+                }
+                else
+                {
+                    // For other validation errors, stay on OTP page
+                    ModelState.AddModelError(string.Empty, ex.Message);
+                    ViewBag.Email = email;
+                    ViewBag.Token = token;
+                    return View("OTPVerificationAdmin");
+                }
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError(string.Empty, "An error occurred during verification. Please try again.");
+                ViewBag.Email = email;
+                ViewBag.Token = token;
+                return View("OTPVerificationAdmin");
+            }
         }
 
         #endregion
