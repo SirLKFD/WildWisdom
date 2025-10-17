@@ -995,6 +995,45 @@
                     
                     @if (Model.PendingTickets != null && Model.PendingTickets.Any())
                     {
+                        <!-- Filter Section -->
+                        <div class="filter-section">
+                            <div class="filter-row">
+                                <div class="filter-group">
+                                    <label for="pendingSearchInput" class="filter-label">
+                                        <i class="fas fa-search"></i> Search Reservations
+                                    </label>
+                                    <input type="text" 
+                                           id="pendingSearchInput" 
+                                           class="filter-input" 
+                                           placeholder="Search by title, author, or reference..."
+                                           autocomplete="off">
+                                </div>
+                                <div class="filter-group">
+                                    <label for="pendingSortSelect" class="filter-label">
+                                        <i class="fas fa-sort"></i> Sort By
+                                    </label>
+                                    <select id="pendingSortSelect" class="filter-select">
+                                        <option value="expiry-soonest">Claim Deadline (Soonest)</option>
+                                        <option value="expiry-latest">Claim Deadline (Latest)</option>
+                                        <option value="title-az">Title A-Z</option>
+                                        <option value="title-za">Title Z-A</option>
+                                    </select>
+                                </div>
+                                <div class="filter-group">
+                                    <button type="button" id="searchPendingBtn" class="btn-search-filter">
+                                        <i class="fas fa-search"></i> Search
+                                    </button>
+                                </div>
+                                <div class="filter-group">
+                                    <button type="button" id="clearPendingFilters" class="btn-clear-filters">
+                                        <i class="fas fa-times"></i> Clear
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="filter-results-info" id="pendingResultsInfo">
+                                Showing @Model.PendingTickets.Count() reservations
+                            </div>
+                        </div>
                         <div class="pending-reservations-container">
                             @foreach (var ticket in Model.PendingTickets)
                             {
@@ -1036,6 +1075,16 @@
                                     </div>
                                 </div>
                             }
+                        </div>
+                        
+                        <!-- Pagination for Pending Reservations -->
+                        <div class="pagination-wrapper" id="pendingPaginationSection">
+                            <div class="pagination-info" id="pendingPaginationInfo">
+                                <!-- Pagination info will be displayed here -->
+                            </div>
+                            <div class="pagination-controls" id="pendingPaginationControls">
+                                <!-- Pagination controls will be generated here -->
+                            </div>
                         </div>
                     }
                     else
@@ -1107,6 +1156,12 @@
                                 <span asp-validation-for="Name" class="text-danger"></span>
                             </div>
                         </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label asp-for="Email" class="form-label"></label>
+                        <input asp-for="Email" class="form-control" type="email" />
+                        <span asp-validation-for="Email" class="text-danger"></span>
                     </div>
 
                     <div class="form-group">
@@ -1190,7 +1245,7 @@
                     <h4 class="danger-zone-header"><i class="fas fa-exclamation-triangle"></i> Danger Zone</h4>
                     <p class="mb-3">Once you delete your account, there is no going back. Please be certain.</p>
                     
-                    <form asp-action="DeleteAccount" method="post" onsubmit="return confirm('Are you absolutely sure you want to delete your account? This action cannot be undone!');">
+                    <form asp-action="DeleteAccount" method="post" onsubmit="return onDeleteAccount(event);">
                         @Html.AntiForgeryToken()
                         <button type="submit" class="btn btn-danger">
                             <i class="fas fa-trash-alt"></i> Delete My Account
@@ -1209,7 +1264,16 @@
 <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
 <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
 
+@Html.Partial("~/Views/Shared/_AppModal.cshtml")
+<script src="~/js/app-modal.js" asp-append-version="true"></script>
 <script>
+    async function onDeleteAccount(e){
+        e.preventDefault();
+        const ok = await appModal.confirm({ title: 'Delete Account', message: 'Are you absolutely sure you want to delete your account? This action cannot be undone!', okText: 'Delete', cancelText: 'Cancel', variant: 'warning' });
+        if(!ok) return false;
+        e.target.submit();
+        return false;
+    }
     function previewImage(input) {
         if (input.files && input.files[0]) {
             var reader = new FileReader();
@@ -1228,10 +1292,10 @@
         tabItems.forEach(item => {
             item.addEventListener('click', function(e) {
                 e.preventDefault();
-                
                 const targetTab = this.getAttribute('data-tab');
-                
-                // Navigate to the same page with the tab parameter to load data from server
+                if (!targetTab) return;
+
+                // Navigate with tab parameter so the server loads that tab's data
                 const url = new URL(window.location);
                 url.searchParams.set('tab', targetTab);
                 window.location.href = url.toString();
@@ -1249,20 +1313,20 @@
             data: { bookId: bookId },
             success: function(response) {
                 if (response.success) {
-                    alert('Book added to cart!');
+                    appModal.alert({ title: 'Success', message: 'Book added to cart!', variant: 'success' });
                     window.location.href = '@Url.Action("BookCheckout", "UserHome")';
                 } else {
-                    alert(response.message || 'Failed to add book to cart.');
+                    appModal.alert({ title: 'Error', message: response.message || 'Failed to add book to cart.', variant: 'error' });
                 }
             }
         });
     });
 
     // Wishlist - Remove button
-    $(document).on('click', '.btn-remove-wishlist', function() {
+    $(document).on('click', '.btn-remove-wishlist', async function() {
         var bookId = $(this).data('book-id');
         
-        if (!confirm('Remove this book from your wishlist?')) {
+        if (!(await appModal.confirm({ title: 'Remove from Wishlist', message: 'Remove this book from your wishlist?', okText: 'Remove', cancelText: 'Cancel', variant: 'warning' }))) {
             return;
         }
         
@@ -1272,20 +1336,20 @@
             data: { bookId: bookId },
             success: function(response) {
                 if (response.success) {
-                    alert('Book removed from wishlist!');
+                    appModal.alert({ title: 'Success', message: 'Book removed from wishlist!', variant: 'success' });
                     window.location.reload();
                 } else {
-                    alert(response.message || 'Failed to remove book from wishlist.');
+                    appModal.alert({ title: 'Error', message: response.message || 'Failed to remove book from wishlist.', variant: 'error' });
                 }
             }
         });
     });
 
     // Pending Reservations - Cancel button
-    $(document).on('click', '.btn-cancel-reservation', function() {
+    $(document).on('click', '.btn-cancel-reservation', async function() {
         var ticketId = $(this).data('ticket-id');
         
-        if (!confirm('Cancel this reservation? This action cannot be undone.')) {
+        if (!(await appModal.confirm({ title: 'Cancel Reservation', message: 'Cancel this reservation? This action cannot be undone.', okText: 'Cancel Reservation', cancelText: 'Keep', variant: 'warning' }))) {
             return;
         }
         
@@ -1295,10 +1359,10 @@
             data: { ticketId: ticketId },
             success: function(response) {
                 if (response.success) {
-                    alert('Reservation cancelled successfully!');
+                    appModal.alert({ title: 'Success', message: 'Reservation cancelled successfully!', variant: 'success' });
                     window.location.reload();
                 } else {
-                    alert(response.message || 'Failed to cancel reservation.');
+                    appModal.alert({ title: 'Error', message: response.message || 'Failed to cancel reservation.', variant: 'error' });
                 }
             }
         });
@@ -1311,20 +1375,23 @@
         let originalUnreturnedBooks = [];
         let originalHistoryBooks = [];
         let originalWishlistItems = [];
+        let originalPendingReservations = [];
 
         // Pagination variables for each tab
         const itemsPerPage = {
             borrowed: 10,
             unreturned: 10,
             history: 15,
-            wishlist: 12
+            wishlist: 12,
+            pending: 10
         };
 
         let currentPages = {
             borrowed: 1,
             unreturned: 1,
             history: 1,
-            wishlist: 1
+            wishlist: 1,
+            pending: 1
         };
 
         // Initialize original data
@@ -1370,6 +1437,17 @@
                     title: $(this).find('h4').text().toLowerCase(),
                     author: $(this).find('.book-author').text().toLowerCase(),
                     isAvailable: $(this).find('.btn-borrow-from-wishlist').length > 0
+                });
+            });
+
+            // Pending Reservations
+            $('#pending-reservations .pending-reservations-container .pending-reservation-card').each(function() {
+                originalPendingReservations.push({
+                    element: $(this),
+                    title: $(this).find('h4').text().toLowerCase(),
+                    author: $(this).find('.reservation-author').text().toLowerCase(),
+                    reference: $(this).find('.reference-code').text().toLowerCase(),
+                    expiresAt: $(this).find('.expiry-date').text()
                 });
             });
         }
@@ -1526,7 +1604,7 @@
             paginationControls.appendChild(pageNumbers);
 
             // Items per page selector (optional - only for some tabs)
-            if (containerId === 'borrowed' || containerId === 'unreturned') {
+            if (containerId === 'borrowed' || containerId === 'unreturned' || containerId === 'pending') {
                 const itemsPerPageDiv = document.createElement('div');
                 itemsPerPageDiv.className = 'items-per-page';
                 itemsPerPageDiv.innerHTML = `
@@ -1740,6 +1818,48 @@
             renderPagination(filtered.length, currentPages.wishlist, itemsPerPage.wishlist, 'wishlist', filterWishlistItems);
         }
 
+        function filterPendingReservations() {
+            const searchTerm = $('#pendingSearchInput').val().toLowerCase();
+            const sortBy = $('#pendingSortSelect').val();
+            
+            let filtered = originalPendingReservations.filter(item => 
+                item.title.includes(searchTerm) || 
+                item.author.includes(searchTerm) || 
+                item.reference.includes(searchTerm)
+            );
+
+            // Sort
+            filtered.sort((a, b) => {
+                switch(sortBy) {
+                    case 'expiry-soonest':
+                        return new Date(a.expiresAt) - new Date(b.expiresAt);
+                    case 'expiry-latest':
+                        return new Date(b.expiresAt) - new Date(a.expiresAt);
+                    case 'title-az':
+                        return a.title.localeCompare(b.title);
+                    case 'title-za':
+                        return b.title.localeCompare(a.title);
+                    default:
+                        return 0;
+                }
+            });
+
+            // Paginate
+            const paginatedItems = paginateItems(filtered, currentPages.pending, itemsPerPage.pending);
+
+            // Update display
+            $('#pending-reservations .pending-reservations-container').empty();
+            paginatedItems.forEach(item => {
+                $('#pending-reservations .pending-reservations-container').append(item.element);
+            });
+
+            // Update results info
+            $('#pendingResultsInfo').text(`Showing ${filtered.length} of ${originalPendingReservations.length} reservations`);
+
+            // Render pagination
+            renderPagination(filtered.length, currentPages.pending, itemsPerPage.pending, 'pending', filterPendingReservations);
+        }
+
         // Clear filter functions
         function clearBorrowedFilters() {
             $('#borrowedSearchInput').val('');
@@ -1772,6 +1892,13 @@
             filterWishlistItems();
         }
 
+        function clearPendingFilters() {
+            $('#pendingSearchInput').val('');
+            $('#pendingSortSelect').val('expiry-soonest');
+            currentPages.pending = 1;
+            filterPendingReservations();
+        }
+
         // Event listeners - Search buttons (no automatic filtering)
         $('#searchBorrowedBtn').on('click', function() {
             currentPages.borrowed = 1;
@@ -1793,11 +1920,17 @@
             filterWishlistItems();
         });
 
+        $('#searchPendingBtn').on('click', function() {
+            currentPages.pending = 1;
+            filterPendingReservations();
+        });
+
         // Clear filter buttons
         $('#clearBorrowedFilters').on('click', clearBorrowedFilters);
         $('#clearUnreturnedFilters').on('click', clearUnreturnedFilters);
         $('#clearHistoryFilters').on('click', clearHistoryFilters);
         $('#clearWishlistFilters').on('click', clearWishlistFilters);
+        $('#clearPendingFilters').on('click', clearPendingFilters);
 
         // Initialize when page loads
         initializeOriginalData();
@@ -1807,6 +1940,7 @@
         filterUnreturnedBooks();
         filterHistoryBooks();
         filterWishlistItems();
+        filterPendingReservations();
     });
 </script>
 

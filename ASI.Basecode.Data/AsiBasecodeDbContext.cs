@@ -32,6 +32,8 @@ namespace ASI.Basecode.Data
         public virtual DbSet<BookReviewLike> BookReviewLikes { get; set; }
         public virtual DbSet<BookCheckout> BookCheckouts { get; set; }
         public virtual DbSet<Wishlist> Wishlists { get; set; }
+        public virtual DbSet<PendingUserRegistration> PendingUserRegistrations { get; set; }
+        public virtual DbSet<PasswordResetToken> PasswordResetTokens { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -40,12 +42,20 @@ namespace ASI.Basecode.Data
                 entity.HasIndex(e => e.UserId, "UQ__Users__1788CC4D5F4A160F")
                     .IsUnique();
 
+                entity.HasIndex(e => e.Email, "UQ__Users__Email")
+                    .IsUnique();
+
                 entity.Property(e => e.CreatedBy)
                     .IsRequired()
                     .HasMaxLength(50)
                     .IsUnicode(false);
 
                 entity.Property(e => e.CreatedTime).HasColumnType("datetime");
+
+                entity.Property(e => e.Email)
+                    .IsRequired()
+                    .HasMaxLength(100)
+                    .IsUnicode(false);
 
                 entity.Property(e => e.Name)
                     .IsRequired()
@@ -75,6 +85,9 @@ namespace ASI.Basecode.Data
                 entity.Property(e => e.ProfilePicture)
                     .HasMaxLength(500)
                     .IsUnicode(false);
+
+                entity.Property(e => e.IsVerified)
+                    .HasDefaultValue(false);
 
                 entity.HasOne(d => d.Organization)
                     .WithMany(p => p.Users)
@@ -117,9 +130,17 @@ namespace ASI.Basecode.Data
                 entity.HasIndex(e => e.AdminUsername, "UQ__Admins__AdminUsername")
                     .IsUnique();
 
+                entity.HasIndex(e => e.Email, "UQ__Admins__Email")
+                    .IsUnique();
+
                 entity.Property(e => e.AdminUsername)
                     .IsRequired()
                     .HasMaxLength(50)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.Email)
+                    .IsRequired()
+                    .HasMaxLength(100)
                     .IsUnicode(false);
 
                 entity.Property(e => e.AdminPassword)
@@ -144,6 +165,9 @@ namespace ASI.Basecode.Data
                 entity.Property(e => e.ProfilePicture)
                     .HasMaxLength(500)
                     .IsUnicode(false);
+
+                entity.Property(e => e.IsVerified)
+                    .HasDefaultValue(false);
 
                 entity.HasOne(d => d.Organization)
                     .WithMany(p => p.Admins)
@@ -594,6 +618,86 @@ namespace ASI.Basecode.Data
                 // Create unique index to ensure one user can only have one wishlist item per book
                 entity.HasIndex(e => new { e.UserId, e.OrgBookId }, "UQ__Wishlist__UserId_OrgBookId")
                     .IsUnique();
+            });
+
+            modelBuilder.Entity<PendingUserRegistration>(entity =>
+            {
+                entity.HasIndex(e => e.EmailId, "UQ__PendingUserRegistrations__EmailId")
+                    .IsUnique();
+
+                entity.Property(e => e.EmailId)
+                    .IsRequired()
+                    .HasMaxLength(100)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.Name)
+                    .IsRequired()
+                    .HasMaxLength(100)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.PasswordHash)
+                    .IsRequired()
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.EncryptedOTP)
+                    .IsRequired()
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.VerificationToken)
+                    .IsRequired()
+                    .HasMaxLength(100)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.TokenExpiration).HasColumnType("datetime");
+
+                entity.Property(e => e.IsVerified)
+                    .HasDefaultValue(false);
+
+                entity.Property(e => e.Role)
+                    .IsRequired();
+
+                entity.Property(e => e.OrganizationName)
+                    .HasMaxLength(100)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.OrganizationType)
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.CreatedTime).HasColumnType("datetime");
+                entity.Property(e => e.UpdatedTime).HasColumnType("datetime");
+            });
+
+            modelBuilder.Entity<PasswordResetToken>(entity =>
+            {
+                entity.HasKey(e => e.TokenId);
+
+                entity.HasIndex(e => e.Token, "UQ__PasswordResetToken__Token")
+                    .IsUnique();
+
+                entity.Property(e => e.Email)
+                    .IsRequired()
+                    .HasMaxLength(100)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.Token)
+                    .IsRequired()
+                    .HasMaxLength(100)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.Role)
+                    .IsRequired();
+
+                entity.Property(e => e.ExpirationTime)
+                    .HasColumnType("datetime");
+
+                entity.Property(e => e.IsUsed)
+                    .HasDefaultValue(false);
+
+                entity.Property(e => e.CreatedTime)
+                    .HasColumnType("datetime");
             });
 
             OnModelCreatingPartial(modelBuilder);

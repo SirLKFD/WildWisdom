@@ -17,10 +17,89 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Status Badge Styles */
+        .result-status {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-pending-claim {
+            background: linear-gradient(135deg, #ffc107 0%, #ff8f00 100%);
+            color: white;
+            box-shadow: 0 2px 8px rgba(255, 193, 7, 0.3);
+        }
+
+        .status-claimed {
+            background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+            color: white;
+            box-shadow: 0 2px 8px rgba(23, 162, 184, 0.3);
+        }
+
+        .status-borrowed {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
+        }
+
+        .status-returned {
+            background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+            color: white;
+            box-shadow: 0 2px 8px rgba(108, 117, 125, 0.3);
+        }
+
+        .status-cancelled {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            color: white;
+            box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3);
+        }
+
+        .status-expired {
+            background: linear-gradient(135deg, #fd7e14 0%, #e55a00 100%);
+            color: white;
+            box-shadow: 0 2px 8px rgba(253, 126, 20, 0.3);
+        }
+
+        .status-lost {
+            background: linear-gradient(135deg, #6f42c1 0%, #5a32a3 100%);
+            color: white;
+            box-shadow: 0 2px 8px rgba(111, 66, 193, 0.3);
+        }
+
+        .status-unknown {
+            background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+            color: white;
+            box-shadow: 0 2px 8px rgba(108, 117, 125, 0.3);
+            opacity: 0.7;
+        }
+
+        /* Clickable Cards */
+        .pending-claim-card,
+        .unreturned-book-card {
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .pending-claim-card:hover,
+        .unreturned-book-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .pending-claim-card:active,
+        .unreturned-book-card:active {
+            transform: translateY(0);
+        }
+    </style>
 </head>
 <body>
 
 @Html.Partial("_AdminHomeTab")
+@Html.Partial("~/Views/Shared/_AppModal.cshtml")
 
 <div class="admin-main-content reference-lookup-page">
     <h1 class="admin-page-heading">
@@ -153,6 +232,8 @@
 </div>
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+<script src="~/js/app-modal.js" asp-append-version="true"></script>
 <script>
     (function () {
         const form = document.getElementById('referenceLookupForm');
@@ -208,6 +289,7 @@
             statusEl.textContent = statusText || 'Unknown';
             statusEl.className = 'result-status';
             if (!statusText) {
+                statusEl.classList.add('status-unknown');
                 return;
             }
             const normalized = statusText.toLowerCase().replace(/\s+/g, '-');
@@ -390,13 +472,32 @@
                 </button>
             </div>
         `;
+        
+        // Make card clickable to populate search form
+        card.onclick = function(e) {
+            if (!e.target.closest('.btn-confirm-claim')) {
+                // Extract date and number from reference code
+                const parts = claim.referenceCode.split('-');
+                if (parts.length === 3) {
+                    document.getElementById('dateInput').value = parts[1];
+                    document.getElementById('numberInput').value = parts[2];
+                    document.getElementById('referenceLookupForm').dispatchEvent(new Event('submit'));
+                }
+            }
+        };
+        
         return card;
     }
 
-    function confirmClaim(referenceCode) {
-        if (!confirm('Confirm this claim? The book will be marked as borrowed.')) {
-            return;
-        }
+    async function confirmClaim(referenceCode) {
+        const ok = await appModal.confirm({
+            title: 'Confirm Claim',
+            message: 'Confirm this claim? The book will be marked as borrowed.',
+            okText: 'Confirm',
+            cancelText: 'Cancel',
+            variant: 'confirm'
+        });
+        if (!ok) { return; }
 
         fetch('@Url.Action("ConfirmClaim", "AdminHome")', {
             method: 'POST',
@@ -411,14 +512,14 @@
         .then(response => response.json())
         .then(result => {
             if (result && result.success) {
-                alert('Claim confirmed successfully!');
+                appModal.alert({ title: 'Success', message: 'Claim confirmed successfully!', variant: 'success', okText: 'OK' });
                 loadPendingClaims(); // Reload the list
             } else {
-                alert(result.message || 'Failed to confirm claim.');
+                appModal.alert({ title: 'Error', message: result.message || 'Failed to confirm claim.', variant: 'error' });
             }
         })
         .catch(() => {
-            alert('Unable to confirm claim right now.');
+            appModal.alert({ title: 'Error', message: 'Unable to confirm claim right now.', variant: 'error' });
         });
     }
 
@@ -468,13 +569,32 @@
                 </button>
             </div>
         `;
+        
+        // Make card clickable to populate search form
+        card.onclick = function(e) {
+            if (!e.target.closest('.btn-confirm-return')) {
+                // Extract date and number from reference code
+                const parts = book.referenceCode.split('-');
+                if (parts.length === 3) {
+                    document.getElementById('dateInput').value = parts[1];
+                    document.getElementById('numberInput').value = parts[2];
+                    document.getElementById('referenceLookupForm').dispatchEvent(new Event('submit'));
+                }
+            }
+        };
+        
         return card;
     }
 
-    function confirmReturn(referenceCode) {
-        if (!confirm('Confirm this book return?')) {
-            return;
-        }
+    async function confirmReturn(referenceCode) {
+        const ok = await appModal.confirm({
+            title: 'Confirm Return',
+            message: 'Confirm this book return?',
+            okText: 'Confirm',
+            cancelText: 'Cancel',
+            variant: 'confirm'
+        });
+        if (!ok) { return; }
 
         fetch('@Url.Action("ConfirmReturn", "AdminHome")', {
             method: 'POST',
@@ -486,14 +606,14 @@
         .then(response => response.json())
         .then(result => {
             if (result && result.success) {
-                alert('Book return confirmed successfully!');
+                appModal.alert({ title: 'Success', message: 'Book return confirmed successfully!', variant: 'success' });
                 loadUnreturnedBooks(); // Reload the list
             } else {
-                alert(result.message || 'Failed to confirm return.');
+                appModal.alert({ title: 'Error', message: result.message || 'Failed to confirm return.', variant: 'error' });
             }
         })
         .catch(() => {
-            alert('Unable to confirm return right now.');
+            appModal.alert({ title: 'Error', message: 'Unable to confirm return right now.', variant: 'error' });
         });
     }
 </script>
