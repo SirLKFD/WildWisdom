@@ -1,0 +1,56 @@
+/* Netflix-Style Popular Books Page */
+body{background:#141414;color:#ffffff;font-family:'Inter',sans-serif;margin:0;padding:0;overflow-x:hidden}
+.netflix-container{min-height:100vh;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);transition:background .8s ease-in-out}
+.netflix-content{background:transparent}
+.netflix-header{position:fixed;top:0;left:0;right:0;z-index:1000;background:linear-gradient(180deg,rgba(0,0,0,.7) 0%,transparent 100%);padding:20px 60px;display:flex;justify-content:space-between;align-items:center}
+.netflix-logo{font-size:24px;font-weight:700;color:#e50914;text-decoration:none}
+.netflix-nav{display:flex;gap:30px}
+.netflix-nav a{color:#fff;text-decoration:none;font-weight:500;transition:color .3s}
+.netflix-nav a:hover{color:#e50914}
+.netflix-hero{height:100vh;display:flex;align-items:center;justify-content:center;text-align:center;position:relative}
+.hero-content{max-width:800px;padding:0 40px}
+.hero-title{font-size:4rem;font-weight:700;margin-bottom:20px;text-shadow:2px 2px 4px rgba(0,0,0,.5);background:linear-gradient(45deg,#fff,#e50914);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero-subtitle{font-size:1.5rem;margin-bottom:40px;opacity:.9}
+.hero-book{display:flex;align-items:center;justify-content:center;gap:40px;margin-top:40px}
+.hero-book-cover{width:280px;height:420px;border-radius:12px;box-shadow:0 20px 40px rgba(0,0,0,.3);transition:all .5s ease;object-fit:cover}
+.hero-book-cover:hover{transform:scale(1.05)}
+.hero-book-info h3{font-size:2rem;margin-bottom:10px}
+.hero-book-info p{font-size:1.2rem;opacity:.8;margin-bottom:20px}
+.hero-book-info .rating{display:flex;align-items:center;gap:10px;font-size:1.1rem}
+.hero-navigation{position:absolute;top:50%;transform:translateY(-50%);background:rgba(0,0,0,.5);border:none;color:#fff;font-size:2rem;width:60px;height:60px;border-radius:50%;cursor:pointer;transition:.3s;display:flex;align-items:center;justify-content:center}
+.hero-navigation:hover{background:rgba(0,0,0,.8);transform:translateY(-50%) scale(1.1)}
+.hero-nav-left{left:40px}
+.hero-nav-right{right:40px}
+.netflix-content{padding:60px 0;background:transparent}
+.netflix-row{margin-bottom:60px;padding:0 60px}
+.row-title{font-size:1.8rem;font-weight:600;margin-bottom:20px;color:#fff}
+.row-container{position:relative;display:flex;align-items:center}
+.books-slider{display:flex;gap:20px;overflow-x:auto;scroll-behavior:smooth;padding:20px 0;scrollbar-width:none;-ms-overflow-style:none}
+.books-slider::-webkit-scrollbar{display:none}
+.book-card{flex:0 0 200px;background:#2a2a2a;border-radius:12px;overflow:hidden;transition:transform .3s,box-shadow .3s;cursor:pointer;position:relative}
+.book-card:hover{transform:scale(1.05);box-shadow:0 10px 30px rgba(0,0,0,.5)}
+.book-cover{width:100%;height:280px;object-fit:cover}
+.book-info{padding:15px}
+.book-title{font-size:1rem;font-weight:600;margin-bottom:5px;color:#fff;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.book-author{font-size:.9rem;color:#b3b3b3;margin-bottom:10px}
+.book-rating{display:flex;align-items:center;gap:5px;font-size:.9rem;color:#ffd700}
+.star-rating-display{display:flex;gap:2px}
+.star-rating-display .star{color:#666;font-size:.9rem;transition:color .2s}
+.star-rating-display .star.filled{color:#ffd700}
+.book-borrow-count{position:absolute;top:10px;right:10px;background:rgba(229,9,20,.9);color:#fff;padding:4px 8px;border-radius:12px;font-size:.8rem;font-weight:600}
+.scroll-arrow{position:absolute;top:50%;transform:translateY(-50%);background:rgba(0,0,0,.7);border:none;color:#fff;font-size:1.5rem;width:50px;height:50px;border-radius:50%;cursor:pointer;transition:.3s;z-index:10;display:flex;align-items:center;justify-content:center}
+.scroll-arrow:hover{background:rgba(0,0,0,.9);transform:translateY(-50%) scale(1.1)}
+.scroll-arrow.left{left:-25px}
+.scroll-arrow.right{right:-25px}
+.scroll-arrow:disabled,.hero-navigation:disabled{opacity:.3;cursor:not-allowed}
+.hero-book-cover,.hero-book-info{transition:all .5s ease-in-out}
+.fade-out{opacity:0;transform:translateY(20px)}
+.fade-in{opacity:1;transform:translateY(0)}
+.book-description{font-size:1rem;line-height:1.5;color:#e0e0e0;margin-top:10px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;text-overflow:ellipsis}
+.book-cover-placeholder{width:100%;height:280px;background:linear-gradient(135deg,#4a5568 0%,#2d3748 100%);display:flex;align-items:center;justify-content:center;color:#a0aec0;font-size:4rem;border-radius:12px;border:2px solid #4a5568;box-shadow:0 8px 16px rgba(0,0,0,.2);transition:.3s;object-fit:cover}
+.book-cover-placeholder:hover{transform:scale(1.02);box-shadow:0 12px 24px rgba(0,0,0,.3)}
+.hero-book-cover.book-cover-placeholder{width:280px;height:420px;font-size:5rem;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:rgba(255,255,255,.8);border:2px solid rgba(255,255,255,.2)}
+@media (max-width:768px){.netflix-header{padding:15px 20px}.netflix-nav{gap:15px}.hero-title{font-size:2.5rem}.hero-subtitle{font-size:1.2rem}.hero-book{flex-direction:column;gap:20px}.hero-book-cover{width:200px;height:300px}.hero-book-cover.book-cover-placeholder{width:200px;height:300px}.netflix-row{padding:0 20px}.book-card{flex:0 0 150px}.book-cover{height:200px}.scroll-arrow{width:40px;height:40px;font-size:1.2rem}.scroll-arrow.left{left:-20px}.scroll-arrow.right{right:-20px}}
+.loading{display:flex;justify-content:center;align-items:center;height:200px}
+.spinner{width:40px;height:40px;border:4px solid #333;border-top:4px solid #e50914;border-radius:50%;animation:spin 1s linear infinite}
+@keyframes spin{0%{transform:rotate(0)}100%{transform:rotate(360deg)}}
