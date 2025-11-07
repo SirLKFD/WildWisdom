@@ -412,6 +412,30 @@ namespace ASI.Basecode.WebApp.Controllers
                     BorrowCount = borrowCounts.ContainsKey(b.Id) ? borrowCounts[b.Id] : 0
                 })
                 .ToList();
+
+            // Ensure top10Overall always has up to 10 books for the carousel
+            if (top10Overall.Count < 10)
+            {
+                var additionalBooksNeeded = 10 - top10Overall.Count;
+                var fallbackBooks = allBooks
+                    .Where(b => b.IsActive && !top10Overall.Any(t => t.Id == b.Id)) // Exclude books already in top10Overall
+                    .OrderByDescending(b => b.CreatedTime) // Fallback ordering (e.g., newest first)
+                    .Take(additionalBooksNeeded)
+                    .Select(b => new OrgBooksViewModel
+                    {
+                        Id = b.Id,
+                        Title = b.Title,
+                        Author = b.Author,
+                        CoverImage = b.CoverImage,
+                        AverageRating = b.AverageRating,
+                        Category = b.Category,
+                        Genre = b.Genre,
+                        Description = b.Description,
+                        BorrowCount = borrowCounts.ContainsKey(b.Id) ? borrowCounts[b.Id] : 0
+                    })
+                    .ToList();
+                top10Overall.AddRange(fallbackBooks);
+            }
             
             // Top 10 Fiction Books
             var top10Fiction = allBooks
@@ -480,6 +504,7 @@ namespace ASI.Basecode.WebApp.Controllers
                 .ToList();
                 
             ViewBag.Top10Overall = top10Overall;
+            ViewBag.Top10OverallCount = top10Overall.Count; // Diagnostic: Pass count to view
             ViewBag.Top10Fiction = top10Fiction;
             ViewBag.Top10NonFiction = top10NonFiction;
             ViewBag.TopGenres = topGenres;
