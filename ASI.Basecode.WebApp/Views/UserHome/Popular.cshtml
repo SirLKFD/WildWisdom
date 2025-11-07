@@ -38,7 +38,6 @@
             <h1 class="hero-title">TOP 10 OVERALL BOOKS THIS WEEK</h1>
             <p class="hero-subtitle">Most borrowed books from all users</p>
             
-            
             @if (top10Overall.Any())
             {
                 <div class="hero-book" id="heroBook">
@@ -220,9 +219,12 @@
     </div>
 </div>
 
+
 <script>
-    window.__top10BooksJson = '@Html.Raw(Json.Serialize(top10Overall))';
-    window.top10Books = JSON.parse(window.__top10BooksJson || '[]');
+    // Serialize the model to a JSON string and ensure it's correctly
+    // assigned as a JavaScript variable by wrapping with quotes.
+    // Using Html.Raw to prevent characters like ' from being HTML-encoded.
+    window.__top10BooksJson = @Html.Raw(Json.Serialize(top10Overall));
 </script>
 <script src="~/lib/jquery/dist/jquery.min.js"></script>
 <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
