@@ -66,23 +66,31 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // Book management actions (require appModal)
-async function deleteBook(id, title) {
-    const ok = await appModal.confirm({ title: 'Delete Book', message: 'Are you sure you want to delete "' + title + '"?', okText: 'Delete', cancelText: 'Cancel', variant: 'warning' });
-    if (!ok) return;
-    document.getElementById('deleteBookId').value = id;
-    document.getElementById('deleteForm').action = '/AdminHome/DeleteBook';
-    document.getElementById('deleteForm').submit();
+function deleteBook(id, title) {
+    console.log('deleteBook called with', id, title);
+    appModal.confirm({ title: 'Delete Book', message: 'Are you sure you want to delete "' + title + '"?', okText: 'Delete', cancelText: 'Cancel', variant: 'warning' }).then(function(ok) {
+        console.log('deleteBook confirm result:', ok);
+        if (!ok) return;
+        document.getElementById('deleteBookId').value = id;
+        document.getElementById('deleteForm').action = '/AdminHome/DeleteBook';
+        console.log('Submitting delete form');
+        document.getElementById('deleteForm').submit();
+    });
 }
 
-async function toggleStatus(id, title, willActivate) {
+function toggleStatus(id, title, willActivate) {
+    console.log('toggleStatus called with', id, title, willActivate);
     var action = willActivate ? 'activate' : 'deactivate';
     var message = 'Are you sure you want to ' + action + ' "' + title + '"?\n\n';
     if (willActivate) { message += 'This will make the book visible and available for borrowing.'; }
     else { message += 'This will hide the book and prevent it from being borrowed.'; }
 
-    const ok = await appModal.confirm({ title: 'Please Confirm', message: message, okText: willActivate ? 'Activate' : 'Deactivate', cancelText: 'Cancel', variant: 'confirm' });
-    if (!ok) return;
-    document.getElementById('toggleBookId').value = id;
-    document.getElementById('toggleForm').action = '/AdminHome/ToggleBookStatus';
-    document.getElementById('toggleForm').submit();
+    appModal.confirm({ title: 'Please Confirm', message: message, okText: willActivate ? 'Activate' : 'Deactivate', cancelText: 'Cancel', variant: 'confirm' }).then(function(ok) {
+        console.log('toggleStatus confirm result:', ok);
+        if (!ok) return;
+        document.getElementById('toggleBookId').value = id;
+        document.getElementById('toggleForm').action = '/AdminHome/ToggleBookStatus';
+        console.log('Submitting toggle form');
+        document.getElementById('toggleForm').submit();
+    });
 }

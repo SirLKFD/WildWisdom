@@ -4,6 +4,7 @@ using ASI.Basecode.Data.Models;
 using Basecode.Data.Repositories;
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
+using static ASI.Basecode.Resources.Constants.Enums;
 
 namespace ASI.Basecode.Data.Repositories
 {
@@ -82,6 +83,11 @@ namespace ASI.Basecode.Data.Repositories
         public bool BookExists(string isbn, int orgId)
         {
             return this.GetDbSet<OrgBooks>().Any(x => x.ISBN == isbn && x.OrganizationId == orgId);
+        }
+
+        public int GetActiveBorrowsCount(int bookId)
+        {
+            return this.GetDbSet<BorrowTicket>().Count(bt => bt.OrgBookId == bookId && bt.Status == TicketStatus.NotYetReturned);
         }
 
         public void DeleteBook(int id)
