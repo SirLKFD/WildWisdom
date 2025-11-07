@@ -28,10 +28,6 @@
                 <img src="~/img/WildWisdom-main-logo.png" alt="WildWisdom Logo">
             </div>
 
-            <div style="text-align: center; margin-bottom: 10px;">
-                <span style="display: inline-block; background: #8B5A2B; color: white; padding: 6px 16px; border-radius: 20px; font-size: 14px; font-weight: 600;">Admin Login</span>
-            </div>
-
             <h1 class="auth-title">Administrator Access</h1>
             <p class="auth-subtitle">Sign in to manage your library system</p>
 
@@ -92,6 +88,16 @@
         if (successMessage) {
             toastr.success(successMessage);
         }
+
+        // Loading state for form submission
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            const submitButton = this.querySelector('.btn-auth');
+            if (submitButton) {
+                submitButton.disabled = true;
+                submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Signing In...';
+                submitButton.classList.add('loading');
+            }
+        });
     </script>
 </body>
 </html>

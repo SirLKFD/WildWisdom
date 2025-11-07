@@ -9,6 +9,7 @@
     const config = {
         addToCartUrl: page.data('add-to-cart-url'),
         cartCountUrl: page.data('cart-count-url'),
+        isBookInCartUrl: page.data('is-book-in-cart-url'),
         rateBookUrl: page.data('rate-book-url'),
         likeReviewUrl: page.data('like-review-url'),
         wishlistStatusUrl: page.data('wishlist-status-url'),
@@ -46,6 +47,7 @@
                             const originalText = borrowButton.text();
                             borrowButton.text('ADDED!').addClass('added');
                             updateCartBadge();
+                            checkBookInCart();
 
                             setTimeout(function () {
                                 borrowButton.text(originalText).removeClass('added');
@@ -67,6 +69,7 @@
         }
 
         updateCartBadge();
+        checkBookInCart();
         initializeWishlistButton();
 
         reviewInput.on('input', function () {
@@ -108,7 +111,37 @@
             type: 'GET',
             success: function (response) {
                 if (response && typeof response.count !== 'undefined') {
-                    $('#cartBadge').text(response.count);
+                    $('#cartBadgeCount').text(response.count);
+                    if (response.count > 0) {
+                        $('#cartBadgeCount').show();
+                    } else {
+                        $('#cartBadgeCount').hide();
+                    }
+                }
+            }
+        });
+    }
+
+    function checkBookInCart() {
+        const borrowButton = $('#borrowBookButton');
+        if (!borrowButton.length || !config.isBookInCartUrl) {
+            return;
+        }
+
+        const bookId = borrowButton.data('book-id');
+        if (!bookId) {
+            return;
+        }
+
+        $.ajax({
+            url: config.isBookInCartUrl,
+            type: 'GET',
+            data: { bookId: bookId },
+            success: function (response) {
+                if (response && response.isInCart) {
+                    borrowButton.prop('disabled', true).text('IN CART').addClass('in-cart');
+                } else {
+                    borrowButton.prop('disabled', false).text('BORROW NOW').removeClass('in-cart');
                 }
             }
         });

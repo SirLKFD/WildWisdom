@@ -215,6 +215,12 @@ function handleCardRemoval(buttonElement) {
             const cartCheckboxes = Array.from(allCartCheckboxes).filter(cb => cb.checked);
             const ticketCheckboxes = Array.from(allTicketCheckboxes).filter(cb => cb.checked);
             if (!cartCheckboxes.length && !ticketCheckboxes.length) { showAppModal('warning', 'No Selection', 'No books selected to borrow.', false); return; }
+
+            // Add loading state
+            borrowButton.disabled = true;
+            borrowButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+            borrowButton.classList.add('loading');
+
             if (cartCheckboxes.length > 0) {
                 const cartBookIds = cartCheckboxes.map(cb => parseInt(cb.value));
                 const formData = new URLSearchParams();
@@ -226,6 +232,11 @@ function handleCardRemoval(buttonElement) {
                 })
                 .then(response => response.json())
                 .then(result => {
+                    // Remove loading state
+                    borrowButton.disabled = false;
+                    borrowButton.innerHTML = 'BORROW NOW';
+                    borrowButton.classList.remove('loading');
+
                     if (result && result.success) {
                         const selections = result.tickets.map(ticket => ({ id: ticket.ticketId, reference: ticket.referenceCode, title: ticket.bookTitle, organization: ticket.organizationName }));
                         openModal(selections);
@@ -250,8 +261,18 @@ function handleCardRemoval(buttonElement) {
                         showAppModal('error', 'Borrow Failed', errorMessage.replace(/\n/g, '<br>'), false);
                     }
                 })
-                .catch(() => { showAppModal('error', 'Error', 'Unable to process borrow request right now.', false); });
+                .catch(() => { 
+                    // Remove loading state on error
+                    borrowButton.disabled = false;
+                    borrowButton.innerHTML = 'BORROW NOW';
+                    borrowButton.classList.remove('loading');
+                    showAppModal('error', 'Error', 'Unable to process borrow request right now.', false); 
+                });
             } else {
+                // Remove loading state for ticket-only selections
+                borrowButton.disabled = false;
+                borrowButton.innerHTML = 'BORROW NOW';
+                borrowButton.classList.remove('loading');
                 const selections = ticketCheckboxes.map(cb => ({ id: cb.value, reference: cb.dataset.reference, title: cb.dataset.title, organization: cb.dataset.organization }));
                 openModal(selections);
             }

@@ -27,7 +27,7 @@
             <h1 class="auth-title">Create Account</h1>
             <p class="auth-subtitle">Join WildWisdom and start your reading adventure</p>
 
-            <form method="post" action="/Account/Register">
+            <form method="post" action="/Account/Register" id="registerForm">
                 <div class="form-group">
                     <label class="form-label" for="userId">User ID</label>
                     <input type="text" 
@@ -88,6 +88,16 @@
         if (errorMessage) {
             toastr.error(errorMessage);
         }
+
+        // Loading state for form submission
+        document.getElementById('registerForm').addEventListener('submit', function(e) {
+            const submitButton = this.querySelector('.btn-auth');
+            if (submitButton) {
+                submitButton.disabled = true;
+                submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating Account...';
+                submitButton.classList.add('loading');
+            }
+        });
     </script>
 </body>
 </html>
