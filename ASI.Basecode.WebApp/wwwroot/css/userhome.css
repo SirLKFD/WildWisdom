@@ -1765,8 +1765,19 @@ body.userhome-menu-open {
 
 .btn-borrow-now:disabled {
     background-color: #D4C4B0;
+    color: #666;
     cursor: not-allowed;
     opacity: 0.6;
+}
+
+.btn-borrow-now.loading {
+    opacity: 0.7;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.btn-borrow-now.loading i.fa-spinner {
+    animation: fa-spin 1s linear infinite;
 }
 
 .btn-borrow-now.reserved {
@@ -2953,6 +2964,7 @@ body.userhome-menu-open {
 }
 
 .checkout-footer .btn-borrow-now:disabled {
+    color: #666;
     cursor: not-allowed;
     opacity: 0.6;
 }

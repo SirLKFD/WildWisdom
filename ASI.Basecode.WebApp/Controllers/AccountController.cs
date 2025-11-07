@@ -223,6 +223,78 @@ namespace ASI.Basecode.WebApp.Controllers
             return View(model);
         }
 
+        [HttpGet]
+        [AllowAnonymous]
+        public IActionResult Register()
+        {
+            // Redirect if already logged in
+            var hasSession = this._session.GetString("HasSession");
+            var userRole = this._session.GetString("UserRole");
+            
+            if (!string.IsNullOrEmpty(hasSession))
+            {
+                if (userRole == "Admin")
+                {
+                    return RedirectToAction("Index", "AdminHome");
+                }
+                else if (userRole == "User")
+                {
+                    return RedirectToAction("Index", "UserHome");
+                }
+            }
+            
+            return View();
+        }
+
+        [HttpPost]
+        [AllowAnonymous]
+        public async Task<IActionResult> Register(UserViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            try
+            {
+                // Generate OTP and verification token
+                string otp = _otpService.GenerateOTP();
+                string encryptedOTP = _otpService.EncryptOTP(otp);
+                string verificationToken = _otpService.GenerateVerificationToken();
+
+                // Create pending user registration
+                _userService.CreatePendingUser(model, encryptedOTP, verificationToken);
+
+                // Generate verification link
+                string verificationLink = Url.Action("OTPVerificationUser", "Account", 
+                    new { email = model.Email, token = verificationToken }, Request.Scheme);
+
+                // Send email with OTP
+                bool emailSent = await _emailService.SendOTPEmail(model.Email, model.Name, otp, verificationLink);
+
+                if (!emailSent)
+                {
+                    ModelState.AddModelError(string.Empty, "Failed to send verification email. Please try again.");
+                    return View(model);
+                }
+
+                // Store email in TempData for modal
+                TempData["RegistrationEmail"] = model.Email;
+                TempData["ShowVerificationModal"] = true;
+                
+                return View(model);
+            }
+            catch(InvalidDataException ex)
+            {
+                ModelState.AddModelError(string.Empty, ex.Message);
+            }
+            catch(Exception ex)
+            {
+                ModelState.AddModelError(string.Empty, Resources.Messages.Errors.ServerError);
+            }
+            return View(model);
+        }
+
         /// <summary>
         /// Admin Login Method
         /// </summary>
