@@ -20,6 +20,7 @@
     <link rel="dns-prefetch" href="//cdnjs.cloudflare.com">
     <link rel="preload" as="style" href="~/css/adminhome.css">
     <link rel="stylesheet" href="~/css/admin/index.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/components/app-modal.css" asp-append-version="true" />
 </head>
 <body>
 
@@ -217,7 +218,7 @@
                                             @if (book.IsActive)
                                             {
                                                 <button type="button" class="btn btn-sm" 
-                                                        onclick="toggleStatus(@book.Id, '@book.Title', false)" 
+                                                        onclick="toggleStatus(@book.Id, '@book.Title.Replace("'", "\\'")', false)" 
                                                         title="Deactivate Book" style="background: #6c757d; color: white; border: none; border-radius: 6px; padding: 8px 12px; font-weight: 600; transition: all 0.3s ease; box-shadow: 0 2px 5px rgba(108, 117, 125, 0.3);">
                                                     <i class="fas fa-eye-slash"></i>
                                                 </button>
@@ -225,13 +226,13 @@
                                             else
                                             {
                                                 <button type="button" class="btn btn-sm" 
-                                                        onclick="toggleStatus(@book.Id, '@book.Title', true)" 
+                                                        onclick="toggleStatus(@book.Id, '@book.Title.Replace("'", "\\'")', true)" 
                                                         title="Activate Book" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%); color: white; border: none; border-radius: 6px; padding: 8px 12px; font-weight: 600; transition: all 0.3s ease; box-shadow: 0 2px 5px rgba(40, 167, 69, 0.3);">
                                                     <i class="fas fa-eye"></i>
                                                 </button>
                                             }
                                             <button type="button" class="btn btn-sm" 
-                                                    onclick="deleteBook(@book.Id, '@book.Title')" title="Delete Book" style="background: linear-gradient(135deg, #dc3545 0%, #c82333 100%); color: white; border: none; border-radius: 6px; padding: 8px 12px; font-weight: 600; transition: all 0.3s ease; box-shadow: 0 2px 5px rgba(220, 53, 69, 0.3);">
+                                                    onclick="deleteBook(@book.Id, '@book.Title.Replace("'", "\\'")')" title="Delete Book" style="background: linear-gradient(135deg, #dc3545 0%, #c82333 100%); color: white; border: none; border-radius: 6px; padding: 8px 12px; font-weight: 600; transition: all 0.3s ease; box-shadow: 0 2px 5px rgba(220, 53, 69, 0.3);">
                                                 <i class="fas fa-trash"></i>
                                             </button>
                                         </div>
@@ -359,7 +360,7 @@
 
 <script src="~/lib/jquery/dist/jquery.min.js"></script>
 <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-<partial view="~/Views/Shared/_AppModal.cshtml" />
+<partial name="_AppModal" />
 <script src="~/js/app-modal.js" asp-append-version="true"></script>
 <script src="~/js/admin/index.js" asp-append-version="true"></script>
 

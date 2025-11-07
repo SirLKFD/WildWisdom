@@ -153,16 +153,16 @@
         border-radius: 6px;
     }
 
-.book-placeholder {
+.book-cover-placeholder {
     width: 100%;
     height: 180px;
-    background: #f8f9fa;
-    border: 2px dashed #D4C4B0;
+    background: #F5F0E8;
+    border: 1px solid #D4C4B0;
     border-radius: 6px;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #8B7355;
+    color: #7B4A2C;
     font-size: 2rem;
 }
 
@@ -193,6 +193,74 @@
     font-weight: 500;
 }
 
+/* Dashboard Statistics Cards */
+.dashboard-stat-card {
+    background-color: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border: 1px solid #E8DFD3;
+    height: 100%;
+}
+
+.dashboard-stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.stat-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #D4A574 0%, #B8956A 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 15px;
+    flex-shrink: 0;
+}
+
+.stat-icon i {
+    font-size: 20px;
+    color: white;
+}
+
+.stat-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.stat-content h3 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #7B4A2C;
+    margin-bottom: 2px;
+    line-height: 1.2;
+}
+
+.stat-content p {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #8B7355;
+    margin-bottom: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.stat-label {
+    font-size: 0.75rem;
+    color: #6c757d;
+    font-weight: 500;
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
 @media (max-width: 768px) {
     .activity-timeline {
         padding-left: 30px;
@@ -209,7 +277,36 @@
     }
 
     .book-cover img,
-    .book-placeholder {
+    .book-cover-placeholder {
         height: 150px;
+    }
+
+    .dashboard-stat-card {
+        padding: 15px;
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .stat-icon {
+        margin-right: 0;
+        margin-bottom: 10px;
+        width: 40px;
+        height: 40px;
+    }
+
+    .stat-icon i {
+        font-size: 16px;
+    }
+
+    .stat-content h3 {
+        font-size: 1.5rem;
+    }
+
+    .stat-content p {
+        font-size: 0.8rem;
+    }
+
+    .stat-label {
+        font-size: 0.7rem;
     }
 }

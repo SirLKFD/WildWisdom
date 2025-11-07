@@ -191,8 +191,8 @@ body {
 
 .cart-badge {
     position: absolute;
-    top: -8px;
-    right: -8px;
+    top: -12px;
+    right: -12px;
     background-color: #A66D3F;
     color: white;
     border-radius: 50%;
@@ -207,6 +207,8 @@ body {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
     min-width: 20px;
     text-align: center;
+    border: 1px solid white;
+    z-index: 10;
 }
 
         .cart-section-title {
@@ -1733,8 +1735,8 @@ body.userhome-menu-open {
 
 .btn-borrow-now {
     padding: 15px 50px;
-    background-color: #D4A574;
-    color: white;
+    background-color: #D4C4B0;
+    color: #FFFFFF;
     border: none;
     border-radius: 8px;
     font-size: 1rem;
@@ -1744,8 +1746,19 @@ body.userhome-menu-open {
     transition: all 0.3s ease;
 }
 
-.btn-borrow-now:hover:not(:disabled) {
-    background-color: #C4955E;
+.btn-borrow-now:not(:disabled),
+.btn-borrow-now.is-active {
+    background-color: #FFFFFF;
+    color: #7B4A2C;
+    border: 2px solid #7B4A2C;
+    font-weight: 800;
+}
+
+.btn-borrow-now:hover:not(:disabled),
+.btn-borrow-now.is-active:hover {
+    background-color: #7B4A2C;
+    color: #FFFFFF;
+    border-color: #7B4A2C;
     transform: translateY(-2px);
     box-shadow: 0 5px 20px rgba(212, 165, 116, 0.4);
 }
@@ -2695,6 +2708,9 @@ body.userhome-menu-open {
     flex-wrap: wrap;
     gap: 20px;
     margin-bottom: 30px;
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .checkout-header-text h2 {
@@ -2742,6 +2758,8 @@ body.userhome-menu-open {
     border-radius: 20px;
     padding: 25px;
     box-shadow: 0 20px 40px rgba(123, 74, 44, 0.12);
+    max-width: 1200px;
+    margin: 0 auto;
 }
 
 .checkout-list-header {
@@ -2782,7 +2800,8 @@ body.userhome-menu-open {
 }
 
 .checkout-ticket-card {
-    display: flex;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
     align-items: center;
     gap: 20px;
     background: #F9F2E8;
@@ -2797,6 +2816,12 @@ body.userhome-menu-open {
     transform: translateY(-2px);
 }
 
+.checkout-ticket-select {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
 .checkout-ticket-select input {
     width: 20px;
     height: 20px;
@@ -2807,7 +2832,6 @@ body.userhome-menu-open {
     display: flex;
     align-items: center;
     gap: 18px;
-    flex: 1;
 }
 
 .checkout-ticket-cover {
@@ -2864,6 +2888,7 @@ body.userhome-menu-open {
     font-size: 1.1rem;
     cursor: pointer;
     transition: color 0.2s ease, transform 0.2s ease;
+    align-self: center;
 }
 
 .checkout-remove-btn:hover {
@@ -2904,6 +2929,9 @@ body.userhome-menu-open {
     align-items: center;
     gap: 15px;
     flex-wrap: wrap;
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .checkout-footer-note {
@@ -3081,14 +3109,23 @@ body.userhome-menu-open {
     }
 
     .checkout-ticket-card {
-        flex-direction: column;
-        align-items: flex-start;
+        grid-template-columns: 1fr;
+        align-items: stretch;
+        row-gap: 16px;
     }
 
     .checkout-ticket-info {
         flex-direction: column;
         align-items: flex-start;
         width: 100%;
+    }
+
+    .checkout-ticket-select {
+        justify-content: flex-start;
+    }
+
+    .checkout-remove-btn {
+        align-self: flex-start;
     }
 
     .checkout-ticket-cover {

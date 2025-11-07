@@ -68,7 +68,7 @@ function proceedWithCancellation(ticketId, buttonElement) {
         .then(response => response.json())
         .then(result => {
             if (result && result.success) {
-                removeTicketCard(buttonElement);
+                handleCardRemoval(buttonElement);
             } else if (result && result.message) {
                 showAppModal('error', 'Cancellation Failed', result.message, false);
             } else {
@@ -87,13 +87,23 @@ function proceedWithCartRemoval(bookId, buttonElement) {
         .then(response => response.json())
         .then(result => {
             if (result && result.success) {
-                removeTicketCard(buttonElement);
+                handleCardRemoval(buttonElement);
                 if (typeof updateCartBadge === 'function') updateCartBadge();
             } else {
                 showAppModal('error', 'Error', 'Unable to remove book from cart right now.', false);
             }
         })
         .catch(() => showAppModal('error', 'Error', 'Unable to remove book from cart right now.', false));
+}
+
+function handleCardRemoval(buttonElement) {
+    if (!buttonElement) { return; }
+    if (typeof window !== 'undefined' && typeof window.bookCheckoutRemoveTicketCard === 'function') {
+        window.bookCheckoutRemoveTicketCard(buttonElement);
+    } else {
+        const card = buttonElement.closest('.checkout-ticket-card');
+        if (card) { card.remove(); }
+    }
 }
 
 (function () {
@@ -118,8 +128,12 @@ function proceedWithCartRemoval(bookId, buttonElement) {
     function updateSelectedState() {
         const checkboxes = getAllCheckboxes();
         const checkedBoxes = Array.from(checkboxes).filter(cb => cb.checked);
-        selectedCount.textContent = checkedBoxes.length;
-        borrowButton.disabled = checkedBoxes.length === 0;
+        const hasSelection = checkedBoxes.length > 0;
+        if (selectedCount) { selectedCount.textContent = checkedBoxes.length; }
+        if (borrowButton) {
+            borrowButton.disabled = !hasSelection;
+            borrowButton.classList.toggle('is-active', hasSelection);
+        }
         if (checkboxes.length === 0) { if (selectAll) { selectAll.checked = false; selectAll.disabled = true; } }
         else { if (selectAll) { selectAll.disabled = false; if (!selectAll.matches(':focus')) { selectAll.checked = checkedBoxes.length === checkboxes.length; } } }
     }
@@ -127,23 +141,24 @@ function proceedWithCartRemoval(bookId, buttonElement) {
     function removeTicketCard(button) {
         const card = button.closest('.checkout-ticket-card');
         if (card) { card.remove(); }
-        if (!getTicketCheckboxes().length && emptyState) { emptyState.style.display = 'flex'; }
         updateSelectedState();
+        updateEmptyState();
     }
+    window.bookCheckoutRemoveTicketCard = removeTicketCard;
 
     function attachCheckboxListeners() { getAllCheckboxes().forEach(cb => cb.addEventListener('change', updateSelectedState)); }
     function attachRemoveListeners() {
         const removeButtons = document.querySelectorAll('.checkout-remove-btn');
         removeButtons.forEach(btn => {
+            if (btn.dataset.removeListenerAttached === 'true') { return; }
+            btn.dataset.removeListenerAttached = 'true';
             btn.addEventListener('click', function () {
                 const ticketId = this.dataset.ticketId;
                 const bookId = this.dataset.bookId;
                 if (ticketId) {
-                    const buttonElement = this;
-                    showAppModal('warning', 'Cancel Reservation', 'Cancel this reservation? The book will return to the shelf for other readers.', true, function() { proceedWithCancellation(ticketId, buttonElement); });
+                    proceedWithCancellation(ticketId, this);
                 } else if (bookId) {
-                    const buttonElement = this;
-                    showAppModal('warning', 'Remove from Cart', 'Remove this book from your cart?', true, function() { proceedWithCartRemoval(bookId, buttonElement); });
+                    proceedWithCartRemoval(bookId, this);
                 }
             });
         });

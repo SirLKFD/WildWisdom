@@ -80,51 +80,69 @@
     </h1>
 
     <div class="row">
-        <!-- Statistics Cards Placeholder -->
-        <div class="col-md-3 mb-4">
-            <div class="admin-card text-center" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
-                <i class="fas fa-book fa-3x mb-3"></i>
-                <h3>Total Books</h3>
-                <h2 class="mb-0">@Model.TotalBooks</h2>
-                <p class="mb-0">Active books in catalog</p>
+        <!-- Statistics Cards -->
+        <div class="col-lg-2 col-md-4 col-sm-6 mb-4">
+            <div class="dashboard-stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-book"></i>
+                </div>
+                <div class="stat-content">
+                    <h3>@Model.TotalBooks</h3>
+                    <p>Total Books</p>
+                    <span class="stat-label">Active books in catalog</span>
+                </div>
             </div>
         </div>
 
-        <div class="col-md-3 mb-4">
-            <div class="admin-card text-center" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white;">
-                <i class="fas fa-calendar-day fa-3x mb-3"></i>
-                <h3>Borrowed Today</h3>
-                <h2 class="mb-0">@Model.BorrowedToday</h2>
-                <p class="mb-0">Books borrowed today</p>
+        <div class="col-lg-2 col-md-4 col-sm-6 mb-4">
+            <div class="dashboard-stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-calendar-day"></i>
+                </div>
+                <div class="stat-content">
+                    <h3>@Model.BorrowedToday</h3>
+                    <p>Borrowed Today</p>
+                    <span class="stat-label">Books borrowed today</span>
+                </div>
             </div>
         </div>
 
-        <div class="col-md-3 mb-4">
-            <div class="admin-card text-center" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white;">
-                <i class="fas fa-book-reader fa-3x mb-3"></i>
-                <h3>Active Borrows</h3>
-                <h2 class="mb-0">@Model.ActiveBorrows</h2>
-                <p class="mb-0">Currently borrowed</p>
+        <div class="col-lg-2 col-md-4 col-sm-6 mb-4">
+            <div class="dashboard-stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-book-reader"></i>
+                </div>
+                <div class="stat-content">
+                    <h3>@Model.ActiveBorrows</h3>
+                    <p>Active Borrows</p>
+                    <span class="stat-label">Currently borrowed</span>
+                </div>
             </div>
         </div>
 
-        <div class="col-md-3 mb-4">
-            <div class="admin-card text-center" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); color: white;">
-                <i class="fas fa-clock fa-3x mb-3"></i>
-                <h3>Overdue</h3>
-                <h2 class="mb-0">@Model.OverdueCount</h2>
-                <p class="mb-0">Books overdue</p>
+        <div class="col-lg-2 col-md-4 col-sm-6 mb-4">
+            <div class="dashboard-stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="stat-content">
+                    <h3>@Model.OverdueCount</h3>
+                    <p>Overdue</p>
+                    <span class="stat-label">Books overdue</span>
+                </div>
             </div>
         </div>
-    </div>
 
-    <div class="row">
-        <div class="col-md-3 mb-4">
-            <div class="admin-card text-center" style="background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%); color: #333;">
-                <i class="fas fa-hourglass-half fa-3x mb-3"></i>
-                <h3>Pending Claims</h3>
-                <h2 class="mb-0">@Model.PendingClaims</h2>
-                <p class="mb-0">Awaiting confirmation</p>
+        <div class="col-lg-2 col-md-4 col-sm-6 mb-4">
+            <div class="dashboard-stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-hourglass-half"></i>
+                </div>
+                <div class="stat-content">
+                    <h3>@Model.PendingClaims</h3>
+                    <p>Pending Claims</p>
+                    <span class="stat-label">Awaiting confirmation</span>
+                </div>
             </div>
         </div>
     </div>
@@ -208,12 +226,15 @@
                                     <div class="book-cover">
                                         @if (!string.IsNullOrEmpty(book.CoverImage))
                                         {
-                                            <img src="@book.CoverImage" alt="@book.Title" />
+                                            <img src="@book.CoverImage" alt="@book.Title" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+                                            <div class="book-cover-placeholder" style="display: none;">
+                                                <div style="font-size: 2rem; color: #7B4A2C; font-weight: bold; text-align: center;">📚</div>
+                                            </div>
                                         }
                                         else
                                         {
-                                            <div class="book-placeholder">
-                                                <i class="fas fa-book"></i>
+                                            <div class="book-cover-placeholder">
+                                                <div style="font-size: 2rem; color: #7B4A2C; font-weight: bold; text-align: center;">📚</div>
                                             </div>
                                         }
                                     </div>
