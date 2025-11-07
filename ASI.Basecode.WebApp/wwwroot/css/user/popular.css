@@ -45,83 +45,109 @@ body {
 
 /* --- Hero Section --- */
 .netflix-hero {
-    height: 100vh;
+    min-height: 100vh;
     display: flex;
     align-items: center;
-    justify-content: center; /* Center the hero content block */
+    justify-content: center;
     position: relative;
-    padding: 0 60px;
+    padding: 80px 60px 60px;
+    background: linear-gradient(135deg, rgba(166, 109, 63, 0.1) 0%, rgba(123, 74, 44, 0.2) 100%);
+    overflow: hidden;
+}
+
+.netflix-hero::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="rgba(255,255,255,0.03)"/><circle cx="75" cy="75" r="1" fill="rgba(255,255,255,0.03)"/><circle cx="50" cy="10" r="0.5" fill="rgba(255,255,255,0.02)"/><circle cx="10" cy="50" r="0.5" fill="rgba(255,255,255,0.02)"/><circle cx="90" cy="30" r="0.5" fill="rgba(255,255,255,0.02)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+    pointer-events: none;
 }
 
 .hero-content {
     max-width: 1200px;
-    max-width: 900px; /* Adjust max-width for a more focused center */
     padding: 0 40px;
     width: 100%;
-    text-align: center; /* Center align all text within this container */
+    text-align: center;
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 .hero-title {
-    font-size: 2.5rem; /* Adjusted for better balance */
-    font-family: 'Playfair Display', serif; /* Elegant, calligraphic font */
-    font-size: 3.5rem; /* Make the title more impactful */
-    font-weight: 700;
-    margin-bottom: 10px;
-    text-shadow: 1px 1px 8px rgba(0, 0, 0, 0.3);
-    color: #fff;
-    line-height: 1.2;
+    font-size: 4rem;
+    font-family: 'Inter', sans-serif;
+    font-weight: 800;
+    margin-bottom: 15px;
+    background: linear-gradient(135deg, #fff 0%, #f8f4f0 50%, #e8dcc0 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
+    line-height: 1.1;
+    letter-spacing: -1px;
 }
 
 .hero-subtitle {
-    font-size: 1.2rem;
-    font-size: 1.25rem; /* Slightly larger subtitle */
-    margin-bottom: 30px;
-    opacity: 0.85;
-    color: #fff;
-    font-weight: 400;
-    font-weight: 500; /* A bit more emphasis */
+    font-size: 1.4rem;
+    margin-bottom: 50px;
+    color: rgba(255, 255, 255, 0.9);
+    font-weight: 500;
+    text-shadow: 0 1px 10px rgba(0, 0, 0, 0.2);
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+    line-height: 1.4;
 }
 
 .hero-book {
     display: flex;
     align-items: center;
-    justify-content: center; /* Center the book cover and info */
-    gap: 40px;
-    margin-top: 30px;
+    justify-content: center;
+    gap: 60px;
+    margin: 40px auto 0;
     text-align: left;
-    max-width: 800px;
+    max-width: 900px;
+    width: 100%;
 }
 
 .hero-book-cover {
-    width: 220px; /* Adjusted size */
-    height: 330px;
-    border-radius: 12px;
-    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
-    transition: all 0.5s ease;
+    width: 240px;
+    height: 360px;
+    border-radius: 15px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+    transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     object-fit: cover;
-    border: 3px solid rgba(255, 255, 255, 0.2);
+    border: 4px solid rgba(255, 255, 255, 0.3);
+    position: relative;
 }
 
-    .hero-book-cover:hover {
-        transform: translateY(-5px) scale(1.03);
-        box-shadow: 0 25px 45px rgba(0, 0, 0, 0.5);
-    }
+.hero-book-cover:hover {
+    transform: translateY(-10px) scale(1.05) rotate(2deg);
+    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5);
+    border-color: rgba(255, 215, 0, 0.5);
+}
 
 .hero-book-info h3 {
-    font-size: 2rem;
-    font-family: 'Playfair Display', serif; /* Match the main title font */
-    font-size: 2.2rem;
-    margin-bottom: 10px;
+    font-size: 2.5rem;
+    font-family: 'Inter', sans-serif;
+    margin-bottom: 15px;
     font-weight: 700;
     color: #fff;
-    text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.5);
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+    line-height: 1.2;
 }
 
 .hero-book-info p {
     font-size: 1.1rem;
     opacity: 0.9;
-    margin-bottom: 15px;
-    color: #eee;
+    margin-bottom: 20px;
+    color: #f0f0f0;
+    line-height: 1.5;
 }
 
 .hero-book-info .rating {
@@ -174,6 +200,7 @@ body {
 .netflix-row {
     margin-bottom: 60px;
     padding: 0 60px;
+    overflow: visible; /* Allow numbers to extend beyond row */
 }
 
 .row-title {
@@ -188,6 +215,7 @@ body {
     position: relative;
     display: flex;
     align-items: center;
+    overflow: visible; /* Allow numbers to extend beyond container */
 }
 
 .books-slider {
@@ -195,7 +223,7 @@ body {
     gap: 20px;
     overflow-x: auto;
     scroll-behavior: smooth;
-    padding: 20px 0;
+    padding: 20px 0 100px 0; /* Increased bottom padding for numbers */
     scrollbar-width: none;
     -ms-overflow-style: none;
 }
@@ -205,14 +233,15 @@ body {
     }
 
 .book-card {
-    flex: 0 0 180px; /* Slightly smaller cards */
+    flex: 0 0 180px;
     background: rgba(0, 0, 0, 0.2);
     border-radius: 8px;
-    overflow: hidden;
+    overflow: visible; /* Allow numbers to extend beyond card */
     transition: transform 0.3s, box-shadow 0.3s;
     cursor: pointer;
     position: relative;
     border: 1px solid rgba(255, 255, 255, 0.1);
+    margin-bottom: 70px; /* Increased bottom margin for numbers */
 }
  
     .book-card:hover {
@@ -282,6 +311,54 @@ body {
     font-size: 0.8rem;
     font-weight: 600;
     box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+/* --- Top 10 Books Netflix Style --- */
+.top10-card {
+    position: relative;
+    border: 2px solid rgba(255, 215, 0, 0.3);
+    background: rgba(0, 0, 0, 0.3);
+    box-shadow: 0 8px 25px rgba(255, 215, 0, 0.1);
+}
+
+.top10-card:hover {
+    border-color: rgba(255, 215, 0, 0.6);
+    box-shadow: 0 15px 35px rgba(255, 215, 0, 0.2);
+}
+
+.book-rank {
+    position: absolute;
+    bottom: -20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(135deg, #FFD700, #FFA500);
+    color: #000;
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    font-weight: 700;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    z-index: 10;
+}
+
+.top10-card:hover .book-rank {
+    transform: translateX(-50%) translateY(-5px) scale(1.1);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.6);
+}
+
+.book-stats {
+    margin-top: 8px;
+}
+
+.borrow-count {
+    font-size: 0.8rem;
+    color: #ccc;
+    font-weight: 500;
 }
 
 /* --- Row Navigation Arrows --- */

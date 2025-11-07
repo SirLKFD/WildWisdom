@@ -641,6 +641,7 @@ namespace ASI.Basecode.WebApp.Controllers
         /// Delete Book
         /// </summary>
         [HttpPost]
+        [IgnoreAntiforgeryToken]
         public IActionResult DeleteBook(int id)
         {
             var accessCheck = VerifyAdminAccess();
@@ -663,6 +664,7 @@ namespace ASI.Basecode.WebApp.Controllers
         /// Toggle Book Active Status
         /// </summary>
         [HttpPost]
+        [IgnoreAntiforgeryToken]
         public IActionResult ToggleBookStatus(int id)
         {
             var accessCheck = VerifyAdminAccess();

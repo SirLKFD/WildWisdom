@@ -191,6 +191,8 @@
     display: flex;
     align-items: center;
     gap: 8px;
+    min-width: 220px;
+    justify-content: center;
 }
 
 .btn-add-wishlist:hover {
@@ -223,13 +225,13 @@
 }
 
 .btn-borrow-now {
-    background: linear-gradient(135deg, #A66D3F 0%, #8B5A2B 100%);
-    color: white;
-    border: none;
+    background-color: #FFFFFF;
+    color: #7B4A2C;
+    border: 2px solid #7B4A2C;
     padding: 15px 30px;
     border-radius: 25px;
     font-size: 1.1rem;
-    font-weight: 600;
+    font-weight: 800;
     cursor: pointer;
     transition: all 0.3s ease;
     text-transform: uppercase;
@@ -238,12 +240,16 @@
 }
 
 .btn-borrow-now:hover:not(:disabled) {
+    background-color: #7B4A2C;
+    color: #FFFFFF;
+    border-color: #7B4A2C;
     transform: translateY(-2px);
     box-shadow: 0 6px 20px rgba(166, 109, 63, 0.4);
 }
 
 .btn-borrow-now:disabled {
     background: #ccc;
+    color: #666;
     cursor: not-allowed;
     box-shadow: none;
 }
@@ -255,6 +261,14 @@
 
 .btn-borrow-now.added {
     background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+}
+
+.btn-borrow-now.in-cart {
+    background: #6c757d;
+    color: white;
+    border: 2px solid #6c757d;
+    cursor: not-allowed;
+    opacity: 0.6;
 }
 
 /* Admin contact section */
