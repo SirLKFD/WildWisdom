@@ -12,11 +12,44 @@ document.addEventListener('DOMContentLoaded', function(){
             reader.readAsDataURL(file);
         });
     }
+    var deleteModal = document.getElementById('deleteAccountModal');
+    var openDeleteBtn = document.getElementById('openDeleteModal');
     var confirmInput = document.getElementById('confirmDeleteText');
     var confirmBtn = document.getElementById('confirmDeleteBtn');
-    if (confirmInput && confirmBtn){
-        confirmInput.addEventListener('input', function(){
-            confirmBtn.disabled = this.value.trim() !== 'DELETE';
+    var closeTargets = deleteModal ? deleteModal.querySelectorAll('[data-delete-modal-close]') : [];
+
+    function toggleConfirmButton(){
+        if (!confirmInput || !confirmBtn) return;
+        confirmBtn.disabled = confirmInput.value.trim() !== 'DELETE';
+    }
+
+    function openModal(){
+        if (!deleteModal) return;
+        deleteModal.classList.add('is-open');
+        if (confirmInput){ confirmInput.focus(); }
+    }
+
+    function closeModal(){
+        if (!deleteModal) return;
+        deleteModal.classList.remove('is-open');
+        if (confirmInput){
+            confirmInput.value = '';
+            toggleConfirmButton();
+        }
+    }
+
+    if (confirmInput){ confirmInput.addEventListener('input', toggleConfirmButton); }
+    if (openDeleteBtn){ openDeleteBtn.addEventListener('click', openModal); }
+    closeTargets.forEach(function(el){ el.addEventListener('click', closeModal); });
+
+    if (deleteModal){
+        deleteModal.addEventListener('click', function(evt){
+            if (evt.target === deleteModal) closeModal();
+        });
+        document.addEventListener('keydown', function(evt){
+            if (evt.key === 'Escape' && deleteModal.classList.contains('is-open')){
+                closeModal();
+            }
         });
     }
 });

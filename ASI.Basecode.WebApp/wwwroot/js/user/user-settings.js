@@ -1,11 +1,3 @@
-async function onDeleteAccount(e){
-    e.preventDefault();
-    const ok = await appModal.confirm({ title: 'Delete Account', message: 'Are you absolutely sure you want to delete your account? This action cannot be undone!', okText: 'Delete', cancelText: 'Cancel', variant: 'warning' });
-    if(!ok) return false;
-    e.target.submit();
-    return false;
-}
-
 function previewImage(input){
     if(input.files && input.files[0]){
         var reader = new FileReader();
@@ -29,6 +21,62 @@ document.addEventListener('DOMContentLoaded', function(){
             window.location.href = url.toString();
         });
     });
+
+    const deleteModal = document.getElementById('deleteAccountModal');
+    const openDeleteBtn = document.getElementById('openDeleteModal');
+    const confirmInput = document.getElementById('confirmDeleteText');
+    const confirmBtn = document.getElementById('confirmDeleteBtn');
+    const closeTargets = deleteModal ? deleteModal.querySelectorAll('[data-delete-modal-close]') : [];
+
+    function toggleConfirmButton(){
+        if (!confirmBtn || !confirmInput) return;
+        confirmBtn.disabled = confirmInput.value.trim() !== 'DELETE';
+    }
+
+    function openModal(){
+        if (!deleteModal) return;
+        deleteModal.classList.add('is-open');
+        if (confirmInput){
+            confirmInput.value = '';
+            toggleConfirmButton();
+            confirmInput.focus();
+        }
+    }
+
+    function closeModal(){
+        if (!deleteModal) return;
+        deleteModal.classList.remove('is-open');
+        if (confirmInput){
+            confirmInput.value = '';
+            toggleConfirmButton();
+        }
+    }
+
+    if (confirmInput){
+        confirmInput.addEventListener('input', toggleConfirmButton);
+    }
+
+    if (openDeleteBtn){
+        openDeleteBtn.addEventListener('click', openModal);
+    }
+
+    closeTargets.forEach(function(el){
+        el.addEventListener('click', closeModal);
+    });
+
+    if (deleteModal){
+        deleteModal.addEventListener('click', function(evt){
+            if (evt.target === deleteModal){
+                closeModal();
+            }
+        });
+
+        document.addEventListener('keydown', function(evt){
+            if (evt.key === 'Escape' && deleteModal.classList.contains('is-open')){
+                closeModal();
+            }
+        });
+    }
 });
 
 // jQuery-dependent behaviors

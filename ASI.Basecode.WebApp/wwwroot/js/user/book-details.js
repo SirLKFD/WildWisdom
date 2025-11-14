@@ -110,13 +110,30 @@
             url: config.cartCountUrl,
             type: 'GET',
             success: function (response) {
-                if (response && typeof response.count !== 'undefined') {
-                    $('#cartBadgeCount').text(response.count);
-                    if (response.count > 0) {
-                        $('#cartBadgeCount').show();
-                    } else {
-                        $('#cartBadgeCount').hide();
-                    }
+                if (!response) {
+                    return;
+                }
+
+                const count =
+                    typeof response.count !== 'undefined'
+                        ? response.count
+                        : (typeof response.cartCount !== 'undefined' ? response.cartCount : null);
+
+                if (count === null) {
+                    return;
+                }
+
+                if (window.applyCartBadgeCount) {
+                    window.applyCartBadgeCount(count);
+                    return;
+                }
+
+                const badge = $('#cartBadgeCount');
+                badge.text(count);
+                if (count > 0) {
+                    badge.show();
+                } else {
+                    badge.hide();
                 }
             }
         });
