@@ -16,6 +16,7 @@ namespace ASI.Basecode.Data.Interfaces
         void IncrementCopies(int bookId);
         OrgBooks GetById(int id);
         bool BookExists(string isbn, int orgId);
+        int GetActiveBorrowsCount(int bookId);
     }
 }
 

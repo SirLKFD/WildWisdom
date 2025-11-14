@@ -24,10 +24,6 @@
                 <img src="~/img/WildWisdom-main-logo.png" alt="WildWisdom Logo">
             </div>
 
-            <div style="text-align: center; margin-bottom: 10px;">
-                <span style="display: inline-block; background: #A66D3F; color: white; padding: 6px 16px; border-radius: 20px; font-size: 14px; font-weight: 600;">User Registration</span>
-            </div>
-
             <h1 class="auth-title">Create Account</h1>
             <p class="auth-subtitle">Join WildWisdom and start your reading adventure</p>
 
@@ -35,7 +31,7 @@
 
             <form method="post" action="/Account/RegisterUser">
                 <div class="form-group">
-                    <label class="form-label" for="userId">User ID</label>
+                    <label class="form-label" for="userId">Username</label>
                     <input type="text" 
                            id="userId" 
                            class="form-control"
@@ -149,6 +145,21 @@
         function closeModal() {
             document.getElementById('verificationModal').style.display = 'none';
         }
+
+        // Handle button loading state
+        document.addEventListener('DOMContentLoaded', function() {
+            const forms = document.querySelectorAll('form');
+            forms.forEach(form => {
+                form.addEventListener('submit', function(e) {
+                    const submitButton = form.querySelector('.btn-auth');
+                    if (submitButton) {
+                        submitButton.disabled = true;
+                        submitButton.classList.add('loading');
+                        submitButton.innerHTML = '<div class="spinner"></div> Creating account...';
+                    }
+                });
+            });
+        });
     </script>
 </body>
 </html>

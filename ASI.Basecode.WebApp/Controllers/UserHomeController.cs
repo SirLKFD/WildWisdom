@@ -393,12 +393,12 @@ namespace ASI.Basecode.WebApp.Controllers
                 .GroupBy(t => t.OrgBookId)
                 .ToDictionary(g => g.Key, g => g.Count());
             
-            // Top 10 Overall Books (most borrowed from all users)
+            // Top 50 Overall Books (most borrowed from all users)
             var top10Overall = allBooks
                 .Where(b => b.IsActive)
                 .OrderByDescending(b => borrowCounts.ContainsKey(b.Id) ? borrowCounts[b.Id] : 0)
                 .ThenByDescending(b => b.AverageRating ?? 0)
-                .Take(10)
+                .Take(50)
                 .Select(b => new OrgBooksViewModel
                 {
                     Id = b.Id,
@@ -412,6 +412,30 @@ namespace ASI.Basecode.WebApp.Controllers
                     BorrowCount = borrowCounts.ContainsKey(b.Id) ? borrowCounts[b.Id] : 0
                 })
                 .ToList();
+
+            // Ensure top10Overall always has up to 50 books for the carousel
+            if (top10Overall.Count < 50)
+            {
+                var additionalBooksNeeded = 50 - top10Overall.Count;
+                var fallbackBooks = allBooks
+                    .Where(b => b.IsActive && !top10Overall.Any(t => t.Id == b.Id)) // Exclude books already in top10Overall
+                    .OrderByDescending(b => b.CreatedTime) // Fallback ordering (e.g., newest first)
+                    .Take(additionalBooksNeeded)
+                    .Select(b => new OrgBooksViewModel
+                    {
+                        Id = b.Id,
+                        Title = b.Title,
+                        Author = b.Author,
+                        CoverImage = b.CoverImage,
+                        AverageRating = b.AverageRating,
+                        Category = b.Category,
+                        Genre = b.Genre,
+                        Description = b.Description,
+                        BorrowCount = borrowCounts.ContainsKey(b.Id) ? borrowCounts[b.Id] : 0
+                    })
+                    .ToList();
+                top10Overall.AddRange(fallbackBooks);
+            }
             
             // Top 10 Fiction Books
             var top10Fiction = allBooks
@@ -480,6 +504,7 @@ namespace ASI.Basecode.WebApp.Controllers
                 .ToList();
                 
             ViewBag.Top10Overall = top10Overall;
+            ViewBag.Top10OverallCount = top10Overall.Count; // Diagnostic: Pass count to view
             ViewBag.Top10Fiction = top10Fiction;
             ViewBag.Top10NonFiction = top10NonFiction;
             ViewBag.TopGenres = topGenres;
@@ -790,6 +815,37 @@ namespace ASI.Basecode.WebApp.Controllers
             catch (Exception ex)
             {
                 return Json(new { cartCount = 0 });
+            }
+        }
+
+        /// <summary>
+        /// Check if a specific book is in the user's cart.
+        /// </summary>
+        /// <param name="bookId">Book identifier.</param>
+        /// <returns>JSON result indicating if book is in cart.</returns>
+        [HttpGet]
+        public IActionResult IsBookInCart(int bookId)
+        {
+            try
+            {
+                var userIdString = this._session.GetString("UserId");
+                if (string.IsNullOrEmpty(userIdString))
+                {
+                    return Json(new { isInCart = false });
+                }
+
+                var userModel = _userService.GetUserByUserId(userIdString);
+                if (userModel == null)
+                {
+                    return Json(new { isInCart = false });
+                }
+
+                var isInCart = _bookCheckoutService.IsInCart(userModel.Id, bookId);
+                return Json(new { isInCart });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { isInCart = false });
             }
         }
 

@@ -9,6 +9,7 @@
     const config = {
         addToCartUrl: page.data('add-to-cart-url'),
         cartCountUrl: page.data('cart-count-url'),
+        isBookInCartUrl: page.data('is-book-in-cart-url'),
         rateBookUrl: page.data('rate-book-url'),
         likeReviewUrl: page.data('like-review-url'),
         wishlistStatusUrl: page.data('wishlist-status-url'),
@@ -46,6 +47,7 @@
                             const originalText = borrowButton.text();
                             borrowButton.text('ADDED!').addClass('added');
                             updateCartBadge();
+                            checkBookInCart();
 
                             setTimeout(function () {
                                 borrowButton.text(originalText).removeClass('added');
@@ -67,6 +69,7 @@
         }
 
         updateCartBadge();
+        checkBookInCart();
         initializeWishlistButton();
 
         reviewInput.on('input', function () {
@@ -107,8 +110,55 @@
             url: config.cartCountUrl,
             type: 'GET',
             success: function (response) {
-                if (response && typeof response.count !== 'undefined') {
-                    $('#cartBadge').text(response.count);
+                if (!response) {
+                    return;
+                }
+
+                const count =
+                    typeof response.count !== 'undefined'
+                        ? response.count
+                        : (typeof response.cartCount !== 'undefined' ? response.cartCount : null);
+
+                if (count === null) {
+                    return;
+                }
+
+                if (window.applyCartBadgeCount) {
+                    window.applyCartBadgeCount(count);
+                    return;
+                }
+
+                const badge = $('#cartBadgeCount');
+                badge.text(count);
+                if (count > 0) {
+                    badge.show();
+                } else {
+                    badge.hide();
+                }
+            }
+        });
+    }
+
+    function checkBookInCart() {
+        const borrowButton = $('#borrowBookButton');
+        if (!borrowButton.length || !config.isBookInCartUrl) {
+            return;
+        }
+
+        const bookId = borrowButton.data('book-id');
+        if (!bookId) {
+            return;
+        }
+
+        $.ajax({
+            url: config.isBookInCartUrl,
+            type: 'GET',
+            data: { bookId: bookId },
+            success: function (response) {
+                if (response && response.isInCart) {
+                    borrowButton.prop('disabled', true).text('IN CART').addClass('in-cart');
+                } else {
+                    borrowButton.prop('disabled', false).text('BORROW NOW').removeClass('in-cart');
                 }
             }
         });

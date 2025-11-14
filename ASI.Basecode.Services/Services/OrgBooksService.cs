@@ -235,7 +235,8 @@ namespace ASI.Basecode.Services.Services
             }
 
             // Check if book has any active borrows
-            if (book.CopiesTotal != book.CopiesAvailable)
+            var activeBorrows = _repository.GetActiveBorrowsCount(id);
+            if (activeBorrows > 0)
             {
                 throw new InvalidOperationException("Cannot delete book with active borrows. Please wait for all copies to be returned.");
             }

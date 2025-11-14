@@ -29,7 +29,7 @@ body {
     background: rgba(255, 255, 255, 0.95);
     border-radius: 24px;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
-    padding: 50px 60px;
+    padding: 30px 40px;
     max-width: 480px;
     width: 100%;
     backdrop-filter: blur(10px);
@@ -38,7 +38,7 @@ body {
 
 .auth-logo {
     text-align: center;
-    margin-bottom: 40px;
+    margin-bottom: 25px;
 }
 
 .auth-logo img {
@@ -59,11 +59,11 @@ body {
     text-align: center;
     color: #666;
     font-size: 15px;
-    margin-bottom: 35px;
+    margin-bottom: 20px;
 }
 
 .form-group {
-    margin-bottom: 24px;
+    margin-bottom: 16px;
 }
 
 .form-label {
@@ -71,12 +71,12 @@ body {
     font-size: 14px;
     font-weight: 600;
     color: #3B2A1F;
-    margin-bottom: 8px;
+    margin-bottom: 6px;
 }
 
 .form-control {
     width: 100%;
-    padding: 14px 18px;
+    padding: 10px 14px;
     border: 2px solid #E5E5E5;
     border-radius: 12px;
     font-size: 15px;
@@ -126,6 +126,37 @@ body {
 
 .btn-auth:active {
     transform: translateY(0);
+}
+
+.btn-auth:disabled,
+.btn-auth.loading {
+    opacity: 0.6;
+    cursor: not-allowed;
+    pointer-events: none;
+    background: #cccccc;
+    transform: none;
+    box-shadow: none;
+}
+
+.btn-auth.loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.btn-auth .spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top: 2px solid white;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }
 
 .auth-divider {
@@ -222,7 +253,7 @@ body {
 /* Responsive Design */
 @media (max-width: 768px) {
     .auth-card {
-        padding: 40px 30px;
+        padding: 25px 20px;
     }
 
     .auth-logo img {
@@ -240,7 +271,7 @@ body {
     }
 
     .auth-card {
-        padding: 30px 25px;
+        padding: 20px 15px;
     }
 
     .auth-logo img {
