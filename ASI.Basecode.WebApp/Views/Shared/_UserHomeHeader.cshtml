@@ -129,20 +129,22 @@
         });
     });
 
+    function applyCartBadgeCount(count) {
+        const badge = document.getElementById('cartBadgeCount');
+        if (!badge) return;
+        const safeCount = Math.max(0, count || 0);
+        badge.textContent = safeCount;
+        badge.style.display = safeCount > 0 ? 'grid' : 'none';
+        badge.classList.toggle('double-digit', safeCount >= 10);
+    }
+    window.applyCartBadgeCount = applyCartBadgeCount;
+
     // Update cart badge on page load
     function updateCartBadge() {
         fetch('@Url.Action("GetCartCount", "UserHome")')
             .then(response => response.json())
             .then(data => {
-                const badge = document.getElementById('cartBadgeCount');
-                if (badge) {
-                    badge.textContent = data.cartCount || 0;
-                    if (data.cartCount > 0) {
-                        badge.style.display = 'inline';
-                    } else {
-                        badge.style.display = 'none';
-                    }
-                }
+                applyCartBadgeCount(data.cartCount || 0);
             })
             .catch(() => {
                 // Silently fail - cart badge is not critical

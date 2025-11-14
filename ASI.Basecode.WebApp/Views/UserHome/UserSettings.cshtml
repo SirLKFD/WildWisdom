@@ -18,6 +18,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/components/app-modal.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/user/user-settings.css" asp-append-version="true" />
 </head>
 <body>
@@ -285,9 +286,10 @@
                                             <span class="fine-amount">Fine: ₱@fineAmount.ToString("F2")</span>
                                         </div>
                                         <div class="book-actions">
-                                            <button class="btn-return-urgent" data-ticket-id="@book.Id">
-                                                <i class="fas fa-undo"></i> URGENT: Return Now
-                                            </button>
+                                            <span class="urgent-return-note">
+                                                <i class="fas fa-exclamation-triangle"></i>
+                                                URGENT: Return Now
+                                            </span>
                                         </div>
                                     </div>
                                 </div>
@@ -766,12 +768,21 @@
                         {
                             <img src="~/img/profile-logo.png" alt="Default Profile" class="profile-pic-preview" id="profilePreview" />
                         }
-                    </div>
 
-                    <div class="form-group">
-                        <label asp-for="ProfilePictureFile" class="form-label"></label>
-                        <input asp-for="ProfilePictureFile" class="form-control" type="file" accept="image/*" onchange="previewImage(this)" />
-                        <small class="text-muted">Accepted formats: JPG, PNG, GIF (Max 5MB)</small>
+                        @{ var profilePictureInputId = Html.IdFor(m => m.ProfilePictureFile); }
+                        <div class="profile-upload-controls">
+                            <label for="@profilePictureInputId" class="profile-upload-label">
+                                <i class="fas fa-camera"></i>
+                                Upload New Profile Picture
+                            </label>
+                            <input asp-for="ProfilePictureFile"
+                                   id="@profilePictureInputId"
+                                   class="form-control-file"
+                                   type="file"
+                                   accept="image/*"
+                                   onchange="previewImage(this)" />
+                            <small class="profile-upload-helper">Accepted formats: JPG, PNG, GIF (Max 5MB)</small>
+                        </div>
                     </div>
 
                     <div class="row">
@@ -877,15 +888,47 @@
                 <div class="danger-zone">
                     <h4 class="danger-zone-header"><i class="fas fa-exclamation-triangle"></i> Danger Zone</h4>
                     <p class="mb-3">Once you delete your account, there is no going back. Please be certain.</p>
-                    
-                    <form asp-action="DeleteAccount" method="post" onsubmit="return onDeleteAccount(event);">
-                        @Html.AntiForgeryToken()
-                        <button type="submit" class="btn btn-danger">
-                            <i class="fas fa-trash-alt"></i> Delete My Account
-                        </button>
-                    </form>
+
+                    <button type="button" class="btn btn-danger" id="openDeleteModal">
+                        <i class="fas fa-trash-alt"></i> Delete My Account
+                    </button>
+                </div>
+            </div>
+
+            <div class="delete-account-modal" id="deleteAccountModal" aria-hidden="true">
+                <div class="delete-account-overlay" data-delete-modal-close></div>
+                <div class="delete-account-dialog" role="dialog" aria-modal="true" aria-labelledby="deleteAccountModalLabel">
+                    <div class="delete-account-header">
+                        <div>
+                            <h5 id="deleteAccountModalLabel">Confirm Account Deletion</h5>
+                            <p>This action cannot be undone. Please review the consequences before continuing.</p>
                         </div>
+                        <button type="button" class="delete-account-close" aria-label="Close" data-delete-modal-close>
+                            <span aria-hidden="true">&times;</span>
+                        </button>
                     </div>
+                    <div class="delete-account-body">
+                        <p><strong>Deleting your account will permanently remove:</strong></p>
+                        <ul>
+                            <li>Your profile information and history</li>
+                            <li>Your wishlist and borrowed book data</li>
+                            <li>Any pending reservations linked to your account</li>
+                        </ul>
+                        <p class="text-danger"><strong>Type "DELETE" to confirm:</strong></p>
+                        <input type="text" id="confirmDeleteText" class="form-control" placeholder="Type DELETE to confirm" autocomplete="off" />
+                        <small class="delete-account-hint">The delete button activates only after typing DELETE in uppercase.</small>
+                    </div>
+                    <div class="delete-account-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-delete-modal-close>Cancel</button>
+                        <form asp-action="DeleteAccount" method="post" id="deleteAccountForm">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-danger" id="confirmDeleteBtn" disabled>
+                                <i class="fas fa-trash"></i> Delete Account
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
                 </div>
             </div>
         </div>
@@ -897,7 +940,7 @@
 <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
 <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
 
-<partial view="~/Views/Shared/_AppModal.cshtml" />
+<partial name="_AppModal" />
 <script src="~/js/app-modal.js" asp-append-version="true"></script>
 <script src="~/js/user/user-settings.js" asp-append-version="true"></script>
 </body>
