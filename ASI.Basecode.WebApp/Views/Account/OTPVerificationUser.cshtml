@@ -1,0 +1,278 @@
+@{
+    ViewBag.LoginView = true;
+    ViewData["Title"] = "User - OTP Verification - WildWisdom";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+    <link rel="stylesheet" href="~/css/auth.css" asp-append-version="true" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        .otp-input-container {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        
+        .otp-input {
+            width: 50px;
+            height: 50px;
+            text-align: center;
+            font-size: 24px;
+            font-weight: 600;
+            border: 2px solid #D4C4B0;
+            border-radius: 8px;
+            background: #fff;
+            transition: all 0.3s ease;
+        }
+        
+        .otp-input:focus {
+            border-color: #A66D3F;
+            box-shadow: 0 0 0 3px rgba(166, 109, 63, 0.1);
+            outline: none;
+        }
+        
+        .otp-input.filled {
+            border-color: #A66D3F;
+            background-color: #F5F0E8;
+        }
+        
+        .resend-section {
+            text-align: center;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #E5E5E5;
+        }
+        
+        .resend-timer {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+        
+        .resend-link {
+            color: #A66D3F;
+            text-decoration: none;
+            font-weight: 500;
+            cursor: pointer;
+        }
+        
+        .resend-link:hover {
+            text-decoration: underline;
+        }
+        
+        .resend-link.disabled {
+            color: #ccc;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="auth-logo">
+                <img src="~/img/WildWisdom-main-logo.png" alt="WildWisdom Logo">
+            </div>
+
+            <h1 class="auth-title">Verify Your Account</h1>
+            <p class="auth-subtitle">Enter the 6-digit code sent to your email</p>
+
+            <form method="post" action="/Account/VerifyOTPUser" id="otpForm">
+                <input type="hidden" name="email" value="@ViewBag.Email" />
+                <input type="hidden" name="token" value="@ViewBag.Token" />
+                <input type="hidden" name="otpCode" id="otpCodeInput" />
+
+                <div class="otp-input-container">
+                    <input type="text" class="otp-input" maxlength="1" data-index="0" />
+                    <input type="text" class="otp-input" maxlength="1" data-index="1" />
+                    <input type="text" class="otp-input" maxlength="1" data-index="2" />
+                    <input type="text" class="otp-input" maxlength="1" data-index="3" />
+                    <input type="text" class="otp-input" maxlength="1" data-index="4" />
+                    <input type="text" class="otp-input" maxlength="1" data-index="5" />
+                </div>
+
+                <div style="text-align: center; margin: 20px 0;">
+                    <span class="text-danger" id="otpError"></span>
+                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                </div>
+
+                <button class="btn-auth" type="submit" id="verifyBtn" disabled>
+                    Verify Code
+                </button>
+            </form>
+
+            <div class="resend-section">
+                <div class="resend-timer" id="timer">
+                    Resend code in <span id="countdown">60</span> seconds
+                </div>
+                <a href="#" class="resend-link disabled" id="resendLink">Resend Code</a>
+            </div>
+
+            <div class="auth-footer">
+                <p>Wrong email address?</p>
+                <a asp-controller="Account" asp-action="RegisterUser" class="btn-secondary-auth">Back to Registration</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" />
+    <script>
+        // Check for error message and display Toastr notification
+        var errorMessage = '@TempData["ErrorMessage"]';
+        if (errorMessage) {
+            toastr.error(errorMessage);
+        }
+
+        var successMessage = '@TempData["SuccessMessage"]';
+        if (successMessage) {
+            toastr.success(successMessage);
+        }
+
+        // OTP Input handling
+        const otpInputs = document.querySelectorAll('.otp-input');
+        const otpCodeInput = document.getElementById('otpCodeInput');
+        const verifyBtn = document.getElementById('verifyBtn');
+        const otpError = document.getElementById('otpError');
+
+        otpInputs.forEach((input, index) => {
+            input.addEventListener('input', function(e) {
+                const value = e.target.value;
+                
+                // Only allow numbers
+                var numberRegex = new RegExp('^\\d$');
+                if (!numberRegex.test(value) && value !== '') {
+                    e.target.value = '';
+                    return;
+                }
+                
+                // Add filled class for styling
+                if (value) {
+                    e.target.classList.add('filled');
+                } else {
+                    e.target.classList.remove('filled');
+                }
+                
+                // Move to next input
+                if (value && index < otpInputs.length - 1) {
+                    otpInputs[index + 1].focus();
+                }
+                
+                // Update hidden input and verify button
+                updateOTPCode();
+            });
+            
+            input.addEventListener('keydown', function(e) {
+                // Move to previous input on backspace
+                if (e.key === 'Backspace' && !e.target.value && index > 0) {
+                    otpInputs[index - 1].focus();
+                    otpInputs[index - 1].classList.remove('filled');
+                }
+            });
+            
+            input.addEventListener('paste', function(e) {
+                e.preventDefault();
+                const pastedData = e.clipboardData.getData('text').replace(new RegExp('\\D', 'g'), '').slice(0, 6);
+                
+                pastedData.split('').forEach((digit, i) => {
+                    if (i < otpInputs.length) {
+                        otpInputs[i].value = digit;
+                        otpInputs[i].classList.add('filled');
+                    }
+                });
+                
+                updateOTPCode();
+                
+                // Focus last filled input
+                const lastFilledIndex = Math.min(pastedData.length - 1, otpInputs.length - 1);
+                otpInputs[lastFilledIndex].focus();
+            });
+        });
+
+        function updateOTPCode() {
+            const otpCode = Array.from(otpInputs).map(input => input.value).join('');
+            otpCodeInput.value = otpCode;
+            
+            // Enable/disable verify button
+            if (otpCode.length === 6) {
+                verifyBtn.disabled = false;
+                otpError.textContent = '';
+            } else {
+                verifyBtn.disabled = true;
+            }
+        }
+
+        // Resend timer
+        let countdown = 60;
+        const countdownElement = document.getElementById('countdown');
+        const resendLink = document.getElementById('resendLink');
+        const timerElement = document.getElementById('timer');
+
+        const timer = setInterval(() => {
+            countdown--;
+            countdownElement.textContent = countdown;
+            
+            if (countdown <= 0) {
+                clearInterval(timer);
+                timerElement.style.display = 'none';
+                resendLink.classList.remove('disabled');
+                resendLink.onclick = function() {
+                    // Reset timer
+                    countdown = 60;
+                    timerElement.style.display = 'block';
+                    resendLink.classList.add('disabled');
+                    
+                    // Start new timer
+                    const newTimer = setInterval(() => {
+                        countdown--;
+                        countdownElement.textContent = countdown;
+                        
+                        if (countdown <= 0) {
+                            clearInterval(newTimer);
+                            timerElement.style.display = 'none';
+                            resendLink.classList.remove('disabled');
+                        }
+                    }, 1000);
+                    
+                    // Here you would typically make an AJAX call to resend OTP
+                    toastr.info('OTP code has been resent to your email');
+                };
+            }
+        }, 1000);
+
+        // Form submission
+        document.getElementById('otpForm').addEventListener('submit', function(e) {
+            const otpCode = otpCodeInput.value;
+            
+            if (otpCode.length !== 6) {
+                e.preventDefault();
+                otpError.textContent = 'Please enter the complete 6-digit code';
+                return;
+            }
+            
+            var sixDigitRegex = new RegExp('^\\d{6}$');
+            if (!sixDigitRegex.test(otpCode)) {
+                e.preventDefault();
+                otpError.textContent = 'Please enter a valid 6-digit code';
+                return;
+            }
+
+            // Add loading state
+            const submitButton = document.getElementById('verifyBtn');
+            if (submitButton) {
+                submitButton.disabled = true;
+                submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verifying...';
+                submitButton.classList.add('loading');
+            }
+        });
+    </script>
+</body>
+</html>

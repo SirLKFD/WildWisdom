@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify Your WildWisdom Account</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #F5F0E8;
+        }
+        
+        .email-container {
+            max-width: 600px;
+            margin: 40px auto;
+            background-color: #FFFFFF;
+            border-radius: 24px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+        }
+        
+        .email-header {
+            background: linear-gradient(135deg, #A66D3F 0%, #8B5A2B 100%);
+            padding: 40px 30px;
+            text-align: center;
+        }
+        
+        .email-logo {
+            width: 180px;
+            height: auto;
+            margin-bottom: 20px;
+        }
+        
+        .email-header h1 {
+            color: #FFFFFF;
+            font-size: 28px;
+            font-weight: 700;
+            margin: 0;
+        }
+        
+        .email-body {
+            padding: 50px 40px;
+        }
+        
+        .email-greeting {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2C2C2C;
+            margin-bottom: 20px;
+        }
+        
+        .email-text {
+            font-size: 15px;
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+        
+        .otp-section {
+            background-color: #F5F0E8;
+            border: 2px solid #A66D3F;
+            border-radius: 16px;
+            padding: 30px;
+            text-align: center;
+            margin: 30px 0;
+        }
+        
+        .otp-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 15px;
+        }
+        
+        .otp-code {
+            font-size: 42px;
+            font-weight: 700;
+            color: #A66D3F;
+            letter-spacing: 8px;
+            margin: 10px 0;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .otp-hint {
+            font-size: 13px;
+            color: #999;
+            margin-top: 10px;
+        }
+        
+        .divider {
+            text-align: center;
+            margin: 30px 0;
+            position: relative;
+        }
+        
+        .divider::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: #E5E5E5;
+        }
+        
+        .divider span {
+            background: #FFFFFF;
+            padding: 0 15px;
+            color: #999;
+            font-size: 14px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .btn-verify {
+            display: inline-block;
+            padding: 16px 40px;
+            background: linear-gradient(135deg, #A66D3F 0%, #8B5A2B 100%);
+            color: #FFFFFF !important;
+            text-decoration: none;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 16px;
+            box-shadow: 0 5px 20px rgba(166, 109, 63, 0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .btn-verify:hover {
+            box-shadow: 0 8px 30px rgba(166, 109, 63, 0.4);
+        }
+        
+        .warning-box {
+            background-color: #FFF3CD;
+            border-left: 4px solid #FFC107;
+            padding: 15px 20px;
+            margin: 30px 0;
+            border-radius: 8px;
+        }
+        
+        .warning-box p {
+            margin: 0;
+            font-size: 14px;
+            color: #856404;
+        }
+        
+        .email-footer {
+            background-color: #FAFAFA;
+            padding: 30px 40px;
+            text-align: center;
+            border-top: 1px solid #E5E5E5;
+        }
+        
+        .email-footer p {
+            margin: 5px 0;
+            font-size: 13px;
+            color: #999;
+        }
+        
+        .email-footer a {
+            color: #A66D3F;
+            text-decoration: none;
+        }
+        
+        .security-note {
+            font-size: 13px;
+            color: #999;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #E5E5E5;
+        }
+        
+        @media only screen and (max-width: 600px) {
+            .email-container {
+                margin: 20px;
+                border-radius: 16px;
+            }
+            
+            .email-header {
+                padding: 30px 20px;
+            }
+            
+            .email-body {
+                padding: 30px 25px;
+            }
+            
+            .otp-code {
+                font-size: 36px;
+                letter-spacing: 6px;
+            }
+            
+            .email-footer {
+                padding: 25px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <!-- Header -->
+        <div class="email-header">
+            <img src="https://res.cloudinary.com/dpxgscfxx/image/upload/v1761398091/WildWisdom-white-logo_pxpnkr.png" alt="WildWisdom Logo" class="email-logo" />
+            <h1>Verify Your Account</h1>
+        </div>
+        
+        <!-- Body -->
+        <div class="email-body">
+            <p class="email-greeting">Hello {{UserName}},</p>
+            
+            <p class="email-text">
+                Welcome to WildWisdom! We're excited to have you join our community of book lovers. 
+                To complete your registration, please verify your email address using the OTP code below.
+            </p>
+            
+            <!-- OTP Section -->
+            <div class="otp-section">
+                <p class="otp-label">Your Verification Code</p>
+                <div class="otp-code">{{OTP}}</div>
+                <p class="otp-hint">Enter this code to verify your account</p>
+            </div>
+            
+            <div class="divider">
+                <span>OR</span>
+            </div>
+            
+            <!-- Verification Button -->
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="{{VerificationLink}}" class="btn-verify">Verify Email Address</a>
+            </div>
+            
+            <!-- Warning Box -->
+            <div class="warning-box">
+                <p>
+                    <strong>⏱️ Important:</strong> This verification code will expire in <strong>30 minutes</strong>. 
+                    If you don't verify within this time, you'll need to register again.
+                </p>
+            </div>
+            
+            <p class="email-text" style="margin-top: 30px;">
+                If you didn't create an account with WildWisdom, please ignore this email or contact our support team if you have concerns.
+            </p>
+            
+            <!-- Security Note -->
+            <div class="security-note">
+                <p>
+                    <strong>🔒 Security Tip:</strong> Never share your verification code with anyone. 
+                    WildWisdom will never ask you for this code via phone or email.
+                </p>
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <div class="email-footer">
+            <p><strong>WildWisdom</strong></p>
+            <p>Your Gateway to Knowledge</p>
+            <p style="margin-top: 15px;">
+                Need help? <a href="mailto:support@wildwisdom.com">Contact Support</a>
+            </p>
+            <p style="margin-top: 20px; color: #BBB;">
+                © {{CurrentYear}} WildWisdom. All rights reserved.
+            </p>
+        </div>
+    </div>
+</body>
+</html>
+

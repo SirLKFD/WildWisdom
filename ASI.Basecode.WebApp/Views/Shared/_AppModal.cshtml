@@ -1,0 +1,26 @@
+@* Reusable application modal styled like Account pages. *@
+<div class="modal fade" id="appModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content app-modal">
+            <div class="modal-header app-modal-header">
+                <div class="app-modal-icon" id="appModalIcon">
+                    <i class="fas fa-circle-info"></i>
+                </div>
+                <h5 class="modal-title" id="appModalTitle">Notice</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="appModalMessage">Message</div>
+            </div>
+            <div class="modal-footer app-modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-dismiss="modal" id="appModalCancel">Cancel</button>
+                <button type="button" class="btn btn-primary" id="appModalOk">OK</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@* Styles for this component are provided globally via layout (~/css/components/app-modal.css). For standalone pages, include that stylesheet in the page head. *@
+

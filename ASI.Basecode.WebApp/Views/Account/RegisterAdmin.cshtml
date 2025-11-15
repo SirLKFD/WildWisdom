@@ -1,0 +1,175 @@
+@using ASI.Basecode.Services.ServiceModels
+@model AdminViewModel
+@{
+    ViewBag.LoginView = true;
+    ViewData["Title"] = "Admin Registration - WildWisdom";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+    <link rel="stylesheet" href="~/css/auth.css" asp-append-version="true" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="auth-logo">
+                <img src="~/img/WildWisdom-main-logo.png" alt="WildWisdom Logo">
+            </div>
+
+            <h1 class="auth-title">Register Organization</h1>
+            <p class="auth-subtitle">Create an admin account for your library</p>
+
+            <div asp-validation-summary="ModelOnly" class="text-danger" style="text-align: center; margin-bottom: 20px;"></div>
+
+            <form method="post" action="/Account/RegisterAdmin" id="registerForm">
+                <div class="form-group">
+                    <label class="form-label" for="adminUsername">Admin Username</label>
+                    <input type="text" 
+                           id="adminUsername" 
+                           class="form-control"
+                           asp-for="AdminUsername" 
+                           placeholder="Choose a unique admin username" />
+                    <span asp-validation-for="AdminUsername" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="email">Email Address</label>
+                    <input type="email" 
+                           id="email" 
+                           class="form-control"
+                           asp-for="Email" 
+                           placeholder="Enter your email address" />
+                    <span asp-validation-for="Email" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="organizationName">Organization Name</label>
+                    <input type="text" 
+                           id="organizationName" 
+                           class="form-control"
+                           asp-for="OrganizationName" 
+                           placeholder="Enter your organization name" />
+                    <span asp-validation-for="OrganizationName" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="organizationType">Organization Type</label>
+                    <select id="organizationType" 
+                            class="form-control"
+                            asp-for="OrganizationType">
+                        <option value="">-- Select Organization Type --</option>
+                        <option value="University">University</option>
+                        <option value="Private Library">Private Library</option>
+                        <option value="Public Library">Public Library</option>
+                        <option value="Others">Others</option>
+                    </select>
+                    <span asp-validation-for="OrganizationType" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="adminPassword">Admin Password</label>
+                    <input type="password" 
+                           id="adminPassword" 
+                           class="form-control"
+                           asp-for="AdminPassword" 
+                           placeholder="Create a strong password" />
+                    <span asp-validation-for="AdminPassword" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="confirmPassword">Confirm Password</label>
+                    <input type="password" 
+                           id="confirmPassword" 
+                           class="form-control" 
+                           asp-for="ConfirmPassword" 
+                           placeholder="Re-enter your password" />
+                    <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+                </div>
+
+                <button class="btn-auth" type="submit">
+                    Register Organization
+                </button>
+            </form>
+
+            <div class="auth-footer">
+                <p>Already have an admin account?</p>
+                <a asp-controller="Account" asp-action="LoginAdmin" class="btn-secondary-auth">Sign In</a>
+            </div>
+
+            <div style="text-align: center; margin-top: 20px; padding-top: 20px; border-top: 1px solid #E5E5E5;">
+                <p style="color: #666; font-size: 14px;">Register as User? <a asp-controller="Account" asp-action="RegisterUser" class="auth-link">Click here</a></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Verification Modal -->
+    <div id="verificationModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; align-items: center; justify-content: center;">
+        <div style="background: white; border-radius: 24px; padding: 40px; max-width: 500px; width: 90%; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+            <div style="text-align: center;">
+                <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #8B5A2B 0%, #A66D3F 100%); border-radius: 50%; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center;">
+                    <svg width="40" height="40" fill="white" viewBox="0 0 20 20">
+                        <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"/>
+                        <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"/>
+                    </svg>
+                </div>
+                <h2 style="color: #2C2C2C; font-size: 24px; font-weight: 700; margin-bottom: 15px;">Check Your Email!</h2>
+                <p style="color: #666; font-size: 15px; line-height: 1.6; margin-bottom: 20px;">
+                    We've sent a verification code to<br/>
+                    <strong id="modalEmail" style="color: #8B5A2B;"></strong>
+                </p>
+                <p style="color: #666; font-size: 14px; margin-bottom: 30px;">
+                    Please check your inbox and click the verification link or enter the 6-digit code to complete your registration.
+                </p>
+                <p style="color: #999; font-size: 13px; margin-bottom: 25px;">
+                    ⏱️ The verification code will expire in <strong>30 minutes</strong>.
+                </p>
+                <button onclick="closeModal()" style="background: linear-gradient(135deg, #8B5A2B 0%, #A66D3F 100%); color: white; border: none; padding: 14px 40px; border-radius: 12px; font-weight: 600; font-size: 15px; cursor: pointer; box-shadow: 0 5px 20px rgba(139, 90, 43, 0.3);">
+                    Got It!
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" />
+    <script>
+        // Check for error message and display Toastr notification
+        var errorMessage = '@TempData["ErrorMessage"]';
+        if (errorMessage) {
+            toastr.error(errorMessage);
+        }
+
+        // Show verification modal if registration was successful
+        var showModal = '@TempData["ShowVerificationModal"]';
+        var registrationEmail = '@TempData["RegistrationEmail"]';
+        
+        if (showModal === 'True' && registrationEmail) {
+            document.getElementById('modalEmail').textContent = registrationEmail;
+            document.getElementById('verificationModal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('verificationModal').style.display = 'none';
+        }
+
+        // Loading state for form submission
+        document.getElementById('registerForm').addEventListener('submit', function(e) {
+            const submitButton = this.querySelector('.btn-auth');
+            if (submitButton) {
+                submitButton.disabled = true;
+                submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating Account...';
+                submitButton.classList.add('loading');
+            }
+        });
+    </script>
+</body>
+</html>
+
