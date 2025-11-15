@@ -1,0 +1,522 @@
+/* Netflix-Style Popular Books Page */
+body {
+    background-color: #F5F0E8; /* System Theme: Cream Background */
+    color: #7B4A2C; /* System Theme: Dark Brown Text */
+    font-family: 'Inter', sans-serif;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+}
+
+/* --- Main Container & Dynamic Background --- */
+.netflix-container {
+    min-height: 100vh;
+    /* Fallback background, will be replaced by JS */
+    background: linear-gradient(135deg, #D4A574 0%, #A66D3F 100%);
+    transition: background 0.8s ease-in-out;
+}
+
+.netflix-content {
+    background: transparent;
+}
+
+.netflix-logo {
+    font-size: 24px;
+    font-weight: 700;
+    color: #e50914;
+    text-decoration: none;
+}
+
+.netflix-nav {
+    display: flex;
+    gap: 30px;
+}
+
+    .netflix-nav a {
+        color: #fff;
+        text-decoration: none;
+        font-weight: 500;
+        transition: color 0.3s;
+    }
+
+        .netflix-nav a:hover {
+            color: #e50914;
+        }
+
+/* --- Hero Section --- */
+.netflix-hero {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    padding: 80px 60px 60px;
+    background: linear-gradient(135deg, rgba(166, 109, 63, 0.1) 0%, rgba(123, 74, 44, 0.2) 100%);
+    overflow: hidden;
+}
+
+.netflix-hero::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="rgba(255,255,255,0.03)"/><circle cx="75" cy="75" r="1" fill="rgba(255,255,255,0.03)"/><circle cx="50" cy="10" r="0.5" fill="rgba(255,255,255,0.02)"/><circle cx="10" cy="50" r="0.5" fill="rgba(255,255,255,0.02)"/><circle cx="90" cy="30" r="0.5" fill="rgba(255,255,255,0.02)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+    pointer-events: none;
+}
+
+.hero-content {
+    max-width: 1200px;
+    padding: 0 40px;
+    width: 100%;
+    text-align: center;
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.hero-title {
+    font-size: 4rem;
+    font-family: 'Inter', sans-serif;
+    font-weight: 800;
+    margin-bottom: 15px;
+    background: linear-gradient(135deg, #fff 0%, #f8f4f0 50%, #e8dcc0 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
+    line-height: 1.1;
+    letter-spacing: -1px;
+}
+
+.hero-subtitle {
+    font-size: 1.4rem;
+    margin-bottom: 50px;
+    color: rgba(255, 255, 255, 0.9);
+    font-weight: 500;
+    text-shadow: 0 1px 10px rgba(0, 0, 0, 0.2);
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+    line-height: 1.4;
+}
+
+.hero-book {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 60px;
+    margin: 40px auto 0;
+    text-align: left;
+    max-width: 900px;
+    width: 100%;
+}
+
+.hero-book-cover {
+    width: 240px;
+    height: 360px;
+    border-radius: 15px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+    transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    object-fit: cover;
+    border: 4px solid rgba(255, 255, 255, 0.3);
+    position: relative;
+}
+
+.hero-book-cover:hover {
+    transform: translateY(-10px) scale(1.05) rotate(2deg);
+    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5);
+    border-color: rgba(255, 215, 0, 0.5);
+}
+
+.hero-book-info h3 {
+    font-size: 2.5rem;
+    font-family: 'Inter', sans-serif;
+    margin-bottom: 15px;
+    font-weight: 700;
+    color: #fff;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+    line-height: 1.2;
+}
+
+.hero-book-info p {
+    font-size: 1.1rem;
+    opacity: 0.9;
+    margin-bottom: 20px;
+    color: #f0f0f0;
+    line-height: 1.5;
+}
+
+.hero-book-info .rating {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1rem;
+    margin-top: 20px;
+}
+
+/* --- Hero Navigation Arrows --- */
+.hero-navigation {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #fff;
+    font-size: 2rem;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(5px);
+}
+
+    .hero-navigation:hover {
+        background: rgba(255, 255, 255, 0.2);
+        transform: translateY(-50%) scale(1.1);
+    }
+
+.hero-nav-left {
+    left: 50px;
+}
+
+.hero-nav-right {
+    right: 50px;
+}
+
+/* --- Content Rows --- */
+.netflix-content {
+    padding: 60px 0;
+    background: transparent;
+}
+
+.netflix-row {
+    margin-bottom: 60px;
+    padding: 0 60px;
+    overflow: visible; /* Allow numbers to extend beyond row */
+}
+
+.row-title {
+    font-size: 1.8rem;
+    font-weight: 600;
+    font-weight: 700; /* Bolder row titles */
+    margin-bottom: 15px;
+    color: #fff;
+}
+
+.row-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+    overflow: visible; /* Allow numbers to extend beyond container */
+}
+
+.books-slider {
+    display: flex;
+    gap: 20px;
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    padding: 20px 0 100px 0; /* Increased bottom padding for numbers */
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+    .books-slider::-webkit-scrollbar {
+        display: none;
+    }
+
+.book-card {
+    flex: 0 0 180px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    overflow: visible; /* Allow numbers to extend beyond card */
+    transition: transform 0.3s, box-shadow 0.3s;
+    cursor: pointer;
+    position: relative;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    margin-bottom: 70px; /* Increased bottom margin for numbers */
+}
+ 
+    .book-card:hover {
+        transform: scale(1.08);
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.7);
+    }
+
+.book-cover {
+    width: 100%;
+    height: 250px; /* Adjusted height */
+    object-fit: cover;
+}
+
+.book-info {
+    padding: 15px;
+}
+
+.book-title {
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 0 0 5px 0;
+    color: #fff;
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.book-author {
+    font-size: 0.9rem;
+    color: #ccc;
+    margin-bottom: 10px;
+}
+
+.book-rating {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.9rem;
+    color: #FFC107; /* System Theme: Star Color */
+}
+
+.star-rating-display {
+    display: flex;
+    gap: 2px;
+}
+
+    .star-rating-display .star {
+        color: #555;
+        font-size: 0.9rem;
+        transition: color 0.2s;
+    }
+
+        .star-rating-display .star.filled {
+            color: #FFC107; /* System Theme: Star Color */
+        }
+
+.book-borrow-count {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    background: #A66D3F; /* System Theme: Brown Accent */
+    color: #fff;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+/* --- Top 10 Books Netflix Style --- */
+.top10-card {
+    position: relative;
+    border: 2px solid rgba(255, 215, 0, 0.3);
+    background: rgba(0, 0, 0, 0.3);
+    box-shadow: 0 8px 25px rgba(255, 215, 0, 0.1);
+}
+
+.top10-card:hover {
+    border-color: rgba(255, 215, 0, 0.6);
+    box-shadow: 0 15px 35px rgba(255, 215, 0, 0.2);
+}
+
+.book-rank {
+    position: absolute;
+    bottom: -20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(135deg, #FFD700, #FFA500);
+    color: #000;
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    font-weight: 700;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    z-index: 10;
+}
+
+.top10-card:hover .book-rank {
+    transform: translateX(-50%) translateY(-5px) scale(1.1);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.6);
+}
+
+.book-stats {
+    margin-top: 8px;
+}
+
+.borrow-count {
+    font-size: 0.8rem;
+    color: #ccc;
+    font-weight: 500;
+}
+
+/* --- Row Navigation Arrows --- */
+.scroll-arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(0, 0, 0, 0.7);
+    border: none;
+    color: #fff;
+    font-size: 1.5rem;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: 0.3s;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+    .scroll-arrow:hover {
+        background: rgba(0, 0, 0, 0.9);
+        transform: translateY(-50%) scale(1.1);
+    }
+
+.scroll-arrow.left {
+    left: -25px;
+}
+
+.scroll-arrow.right {
+    right: -25px;
+}
+
+.scroll-arrow:disabled, .hero-navigation:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+/* --- Animation & Placeholders --- */
+.hero-book-cover, .hero-book-info {
+    transition: all 0.5s ease-in-out;
+}
+
+.fade-out {
+    opacity: 0;
+    transform: translateY(20px);
+}
+
+.fade-in {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.book-description {
+    font-size: 1rem;
+    line-height: 1.5;
+    color: #e0e0e0;
+    margin-top: 10px;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.book-cover-placeholder {
+    width: 100%;
+    height: 250px;
+    background: #2d3748;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #a0aec0;
+    font-size: 4rem;
+    border-radius: 8px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+    transition: 0.3s;
+    object-fit: cover;
+}
+
+    .book-cover-placeholder:hover {
+        transform: scale(1.03);
+        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.3);
+    }
+
+.hero-book-cover.book-cover-placeholder {
+    width: 280px;
+    height: 420px;
+    width: 220px; /* Match the adjusted hero book cover size */
+    font-size: 5rem;
+    background: linear-gradient(135deg, #4a5568 0%, #2d3748 100%);
+    color: rgba(255, 255, 255, 0.8);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+/* --- Responsive Design --- */
+@media (max-width: 768px) {
+    .netflix-header {
+        padding: 15px 20px;
+    }
+
+    .netflix-nav {
+        gap: 15px;
+    }
+
+    .hero-title {
+        font-size: 2.5rem; /* Adjust for smaller screens */
+    }
+
+    .hero-subtitle {
+        font-size: 1rem;
+    }
+
+    .hero-book {
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .hero-book-cover {
+        width: 200px;
+        height: 300px;
+    }
+
+    .hero-book-cover.book-cover-placeholder {
+        width: 200px;
+        height: 300px;
+    }
+
+    .hero-book-cover.book-cover-placeholder {
+        width: 200px;
+        height: 300px;
+    }
+
+    .netflix-row {
+        padding: 0 15px;
+    }
+
+    .book-card {
+        flex: 0 0 140px;
+    }
+
+    .book-cover {
+        height: 200px;
+    }
+
+    .scroll-arrow {
+        width: 40px;
+        height: 40px;
+        font-size: 1.2rem;
+    }
+
+        .scroll-arrow.left {
+            left: -20px;
+        }
+
+        .scroll-arrow.right {
+            right: -20px;
+        }
+}

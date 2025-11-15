@@ -1,4 +1,7 @@
-﻿using System;
+﻿using ASI.Basecode.Data.Models;
+using ASI.Basecode.Services.Utils.DtoMapper;
+using AutoMapper;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -7,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace ASI.Basecode.Services.ServiceModels
 {
-    public class UserViewModel
+    public class UserViewModel : ICustomMap
     {
         [Required(ErrorMessage = "Username is required.")]
         public string UserId { get; set; }
@@ -15,11 +18,36 @@ namespace ASI.Basecode.Services.ServiceModels
         [Required(ErrorMessage = "Name is required.")]
         public string Name { get; set; }
 
+        [Required(ErrorMessage = "Email is required.")]
+        [EmailAddress(ErrorMessage = "Invalid email address.")]
+        public string Email { get; set; }
+
         [Required(ErrorMessage = "Password is required.")]
+        [RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$", 
+            ErrorMessage = "Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character.")]
         public string Password { get; set; }
 
         [Required(ErrorMessage = "Confirmation Password is required.")]
         [Compare("Password", ErrorMessage = "Password and Confirmation Password must match.")]
         public string ConfirmPassword { get; set; }
+
+        public int? OrganizationId { get; set; }
+
+        [StringLength(500)]
+        public string ProfilePicture { get; set; }
+
+        public void CreateMappings(IMapperConfigurationExpression configuration)
+        {
+            configuration.CreateMap<UserViewModel, User>()
+                .ForMember(dest => dest.Id, opt => opt.Ignore())
+                .ForMember(dest => dest.Role, opt => opt.Ignore())
+                .ForMember(dest => dest.CreatedBy, opt => opt.Ignore())
+                .ForMember(dest => dest.CreatedTime, opt => opt.Ignore())
+                .ForMember(dest => dest.UpdatedBy, opt => opt.Ignore())
+                .ForMember(dest => dest.UpdatedTime, opt => opt.Ignore())
+                .ForMember(dest => dest.Organization, opt => opt.Ignore())
+                .ReverseMap()
+                .ForMember(dest => dest.ConfirmPassword, opt => opt.Ignore());
+        }
     }
 }

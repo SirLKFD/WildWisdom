@@ -1,0 +1,192 @@
+@{
+    ViewData["Title"] = "Return History";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+    <link rel="stylesheet" href="~/css/adminhome.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/admin/history.css" asp-append-version="true" />
+</head>
+<body>
+
+<partial name="_AdminHomeTab" />
+
+<div class="admin-main-content">
+    <h1 class="admin-page-heading">
+        <i class="fas fa-history"></i> Return History
+    </h1>
+
+    <!-- Search and Filter Section -->
+    <div class="card shadow mb-4">
+        <div class="card-body">
+            <!-- Row 1: Search, Date Range, Status Filter, Search Button -->
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label for="searchInput" class="form-label">
+                            <i class="fas fa-search"></i> Search
+                        </label>
+                        <input type="text" 
+                               id="searchInput" 
+                               class="form-control" 
+                               placeholder="Search by book title, user name, or reference code..."
+                               autocomplete="off">
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="form-group">
+                        <label for="startDate" class="form-label">
+                            <i class="fas fa-calendar-alt"></i> Start Date
+                        </label>
+                        <input type="date" 
+                               id="startDate" 
+                               class="form-control">
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="form-group">
+                        <label for="endDate" class="form-label">
+                            <i class="fas fa-calendar-alt"></i> End Date
+                        </label>
+                        <input type="date" 
+                               id="endDate" 
+                               class="form-control">
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="form-group">
+                        <label for="statusFilter" class="form-label">
+                            <i class="fas fa-filter"></i> Status
+                        </label>
+                        <select id="statusFilter" class="form-control">
+                            <option value="all">All Status</option>
+                            <option value="returned">Returned</option>
+                            <option value="cancelled">Cancelled</option>
+                            <option value="expired">Expired</option>
+                            <option value="lost">Lost</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="form-group">
+                        <label class="form-label">&nbsp;</label>
+                        <div>
+                            <button type="button" id="searchBtn" class="btn btn-primary btn-block">
+                                <i class="fas fa-search"></i> Search
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Row 2: Fine Status Filter, Sort By, Clear Filters -->
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="fineStatusFilter" class="form-label">
+                            <i class="fas fa-dollar-sign"></i> Fine Status
+                        </label>
+                        <select id="fineStatusFilter" class="form-control">
+                            <option value="all">All Fine Status</option>
+                            <option value="has-fine">Has Fine</option>
+                            <option value="no-fine">No Fine</option>
+                            <option value="fine-paid">Fine Paid</option>
+                            <option value="fine-unpaid">Fine Unpaid</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="sortBy" class="form-label">
+                            <i class="fas fa-sort"></i> Sort By
+                        </label>
+                        <select id="sortBy" class="form-control">
+                            <option value="latest">Latest Date (Newest First)</option>
+                            <option value="oldest">Oldest Date (Oldest First)</option>
+                            <option value="highest-fine">Highest Fine</option>
+                            <option value="lowest-fine">Lowest Fine</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="form-label">&nbsp;</label>
+                        <div>
+                            <button type="button" id="clearFiltersBtn" class="btn btn-outline-secondary">
+                                <i class="fas fa-times"></i> Clear All Filters
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Results Section -->
+    <div class="card shadow">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">
+                <i class="fas fa-list"></i> Return History
+            </h5>
+            <div id="resultsInfo" class="text-muted">
+            </div>
+        </div>
+        <div class="card-body">
+            <div id="loadingIndicator" class="text-center py-4" style="display: none;">
+                <i class="fas fa-spinner fa-spin fa-2x text-primary"></i>
+                <p class="mt-2">Loading return history...</p>
+            </div>
+            <div id="errorMessage" class="alert alert-danger" style="display: none;">
+                <i class="fas fa-exclamation-triangle"></i>
+                <span id="errorText"></span>
+            </div>
+            <div id="noResultsMessage" class="text-center py-5" style="display: none;">
+                <i class="fas fa-history fa-4x text-muted mb-3"></i>
+                <h4>No return history found</h4>
+                <p class="text-muted">Try adjusting your search criteria or date range.</p>
+            </div>
+            <div id="resultsTable" class="table-responsive" style="display: none;">
+                <table class="table table-hover table-striped">
+                    <thead class="thead-dark">
+                        <tr>
+                            <th>Reference Code</th>
+                            <th>Book Details</th>
+                            <th>Borrower</th>
+                            <th>Borrow Date</th>
+                            <th>Due Date</th>
+                            <th>Return Date</th>
+                            <th>Duration</th>
+                            <th>Fine</th>
+                            <th>Status</th>
+                            <th>Notes</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historyTableBody">
+                    </tbody>
+                </table>
+            </div>
+            <div class="pagination-wrapper" id="paginationContainer" style="display: none;">
+                <div class="pagination-info" id="paginationInfo"></div>
+                <div class="pagination-controls" id="paginationControls"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+<script src="~/js/admin/history.js" asp-append-version="true"></script>
+
+</body>
+</html>
+

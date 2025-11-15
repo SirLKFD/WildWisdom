@@ -1,0 +1,224 @@
+@model ASI.Basecode.Services.ServiceModels.BookRecommendationViewModel
+
+@{
+    ViewData["Title"] = "Book Recommendations - WildWisdom";
+    Layout = null;
+    var searchTerm = ViewBag.SearchTerm as string ?? "";
+    var currentPage = ViewBag.CurrentPage as int? ?? 1;
+    var pageSize = ViewBag.PageSize as int? ?? 20;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+    <link rel="stylesheet" href="~/css/userhome.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/user/book-recommendations.css" asp-append-version="true" />
+</head>
+<body>
+
+<partial name="_UserHomeHeader" />
+
+<div class="metro-container">
+    <!-- Preferences Sidebar -->
+    <div class="preferences-sidebar">
+        <h3>Your Reading DNA</h3>
+        
+        @if (Model.PreferenceStats.HasBorrowingHistory)
+        {
+            <div class="stat-card">
+                <div class="stat-value">@Model.PreferenceStats.TotalBorrowedBooks</div>
+                <div class="stat-label">Books Read</div>
+            </div>
+            
+            <div class="category-badge">@Model.PreferenceStats.PreferredCategory Lover</div>
+            
+            @if (Model.PreferenceStats.TopGenres.Any())
+            {
+                <div class="genre-list">
+                    @foreach (var genre in Model.PreferenceStats.TopGenres.Take(3))
+                    {
+                        <span class="genre-tag">@genre</span>
+                    }
+                </div>
+            }
+        }
+        else
+        {
+            <div class="stat-card">
+                <div class="stat-value">New Reader</div>
+                <div class="stat-label">Welcome to WildWisdom!</div>
+            </div>
+            <p style="margin-top: 20px; color: #B8A899; text-align: center; font-size: 0.9rem;">Start borrowing books to get personalized recommendations</p>
+        }
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        @if (Model.ShowEmptyState)
+        {
+            <div class="empty-state">
+                <i class="fas fa-magic empty-state-icon"></i>
+                <h3>@Model.EmptyStateMessage</h3>
+                <p>Explore our collection to discover amazing books tailored just for you.</p>
+                <a asp-action="Index" class="browse-btn">
+                    <i class="fas fa-book"></i> Browse Catalog
+                </a>
+            </div>
+        }
+        else
+        {
+            <!-- Because You Love [TopGenre] -->
+            @if (Model.FavoriteGenreBooks.Any())
+            {
+                <h2 class="section-header">
+                    <i class="fas fa-heart"></i>
+                    Because You Love @Model.PreferenceStats.TopGenre
+                </h2>
+                <div class="metro-grid">
+                    @for (int i = 0; i < Model.FavoriteGenreBooks.Count; i++)
+                    {
+                        var book = Model.FavoriteGenreBooks[i];
+                        var tileSize = GetTileSize(i);
+                        var tileCategory = GetTileCategory(book.Category);
+                        
+                        <div class="tile tile-@tileSize tile-@tileCategory" onclick="location.href='@Url.Action("BookDetails", new { id = book.Id })'">
+                            @if (!string.IsNullOrEmpty(book.CoverImage))
+                            {
+                                <img src="@book.CoverImage" class="tile-bg" />
+                                <div class="tile-overlay"></div>
+                            }
+                            <div class="tile-content">
+                                <h4 class="tile-title">@book.Title</h4>
+                                <p class="tile-author">by @book.Author</p>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+
+            <!-- From Authors You Enjoy -->
+            @if (Model.FavoriteAuthorBooks.Any())
+            {
+                <h2 class="section-header">
+                    <i class="fas fa-user"></i>
+                    From Authors You Enjoy
+                </h2>
+                <div class="metro-grid">
+                    @for (int i = 0; i < Model.FavoriteAuthorBooks.Count; i++)
+                    {
+                        var book = Model.FavoriteAuthorBooks[i];
+                        var tileSize = GetTileSize(i + 10);
+                        var tileCategory = GetTileCategory(book.Category);
+                        
+                        <div class="tile tile-@tileSize tile-@tileCategory" onclick="location.href='@Url.Action("BookDetails", new { id = book.Id })'">
+                            @if (!string.IsNullOrEmpty(book.CoverImage))
+                            {
+                                <img src="@book.CoverImage" class="tile-bg" />
+                                <div class="tile-overlay"></div>
+                            }
+                            <div class="tile-content">
+                                <h4 class="tile-title">@book.Title</h4>
+                                <p class="tile-author">by @book.Author</p>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+
+            <!-- Trending in Your Categories -->
+            @if (Model.TrendingBooks.Any())
+            {
+                <h2 class="section-header">
+                    <i class="fas fa-fire"></i>
+                    Trending in @Model.PreferenceStats.PreferredCategory
+                </h2>
+                <div class="metro-grid">
+                    @for (int i = 0; i < Model.TrendingBooks.Count; i++)
+                    {
+                        var book = Model.TrendingBooks[i];
+                        var tileSize = GetTileSize(i + 20);
+                        var tileCategory = GetTileCategory(book.Category);
+                        
+                        <div class="tile tile-@tileSize tile-@tileCategory" onclick="location.href='@Url.Action("BookDetails", new { id = book.Id })'">
+                            @if (!string.IsNullOrEmpty(book.CoverImage))
+                            {
+                                <img src="@book.CoverImage" class="tile-bg" />
+                                <div class="tile-overlay"></div>
+                            }
+                            <div class="tile-content">
+                                <h4 class="tile-title">@book.Title</h4>
+                                <p class="tile-author">by @book.Author</p>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+
+            <!-- More Recommendations -->
+            @if (Model.RecommendedBooks.Any())
+            {
+                <h2 class="section-header">
+                    <i class="fas fa-star"></i>
+                    More Recommendations For You
+                </h2>
+                <div class="metro-grid">
+                    @for (int i = 0; i < Model.RecommendedBooks.Take(15).Count(); i++)
+                    {
+                        var book = Model.RecommendedBooks.Skip(i).First();
+                        var tileSize = GetTileSize(i + 30);
+                        var tileCategory = GetTileCategory(book.Category);
+                        
+                        <div class="tile tile-@tileSize tile-@tileCategory" onclick="location.href='@Url.Action("BookDetails", new { id = book.Id })'">
+                            @if (!string.IsNullOrEmpty(book.CoverImage))
+                            {
+                                <img src="@book.CoverImage" class="tile-bg" />
+                                <div class="tile-overlay"></div>
+                            }
+                            <div class="tile-content">
+                                <h4 class="tile-title">@book.Title</h4>
+                                <p class="tile-author">by @book.Author</p>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        }
+    </div>
+</div>
+
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>
+
+@functions {
+    string GetTileSize(int index)
+    {
+        var pattern = index % 20;
+        if (pattern < 12) return "small";
+        if (pattern < 17) return "wide";
+        if (pattern < 19) return "large";
+        return "tall";
+    }
+    
+    string GetTileCategory(string category)
+    {
+        if (string.IsNullOrEmpty(category)) return "mixed";
+        switch (category.ToLower())
+        {
+            case "fiction": return "fiction";
+            case "non-fiction":
+            case "nonfiction": return "nonfiction";
+            default: return "mixed";
+        }
+    }
+}

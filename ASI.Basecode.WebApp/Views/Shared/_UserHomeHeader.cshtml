@@ -1,0 +1,157 @@
+@using Microsoft.AspNetCore.Http
+@inject IHttpContextAccessor HttpContextAccessor
+@{
+    var userName = HttpContextAccessor.HttpContext.Session.GetString("UserName");
+    var profilePicture = HttpContextAccessor.HttpContext.Session.GetString("ProfilePicture");
+}
+
+<!-- UserHome Header -->
+<header class="userhome-header">
+    <div class="userhome-header-container">
+        <!-- Logo Section -->
+        <div class="userhome-logo-section">
+            <a asp-controller="UserHome" asp-action="Index">
+                <img src="~/img/WildWisdom-main-logo.png" alt="WildWisdom" class="userhome-header-logo" />
+            </a>
+        </div>
+
+        <!-- Search Bar -->
+        <div class="userhome-search-container">
+            <form method="get" asp-controller="UserHome" asp-action="Index" class="userhome-search-wrapper">
+                <input type="text" 
+                       id="bookSearchInput"
+                       name="search" 
+                       class="userhome-search-input" 
+                       placeholder="Search books by title or author..." />
+                <button type="submit" class="userhome-search-icon-btn">
+                    <i class="fas fa-search userhome-search-icon"></i>
+                </button>
+            </form>
+        </div>
+
+        <!-- Book Checkout Icon -->
+        <a asp-controller="UserHome" asp-action="BookCheckout" class="userhome-checkout-link">
+            <i class="fa-solid fa-book-bookmark"></i>
+            <span class="cart-badge" id="cartBadgeCount" style="display: none;">0</span>
+        </a>
+
+        <!-- Navigation Menu -->
+        <nav class="userhome-nav-menu">
+            <ul>
+                <li><a asp-controller="UserHome" asp-action="Browse" class="userhome-nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Browse" ? "active" : "")">Browse</a></li>
+                <li><a asp-controller="UserHome" asp-action="Popular" class="userhome-nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Popular" ? "active" : "")">Popular</a></li>
+                <li><a asp-controller="UserHome" asp-action="BookRecommendations" class="userhome-nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "BookRecommendations" ? "active" : "")">Book Recommendations</a></li>
+            </ul>
+        </nav>
+
+        <!-- Profile Section -->
+        <div class="userhome-profile-section">
+            <span class="userhome-username">@userName</span>
+            <div class="userhome-profile-dropdown">
+                @if (!string.IsNullOrEmpty(profilePicture))
+                {
+                    <img src="@profilePicture" alt="Profile" class="userhome-profile-pic" />
+                }
+                else
+                {
+                    <img src="~/img/profile-logo.png" alt="Profile" class="userhome-profile-pic" />
+                }
+                <div class="userhome-dropdown-menu">
+                    <ul>
+                        <li>
+                            <a asp-controller="UserHome" asp-action="UserSettings">
+                                <i class="fa-solid fa-gear"></i>
+                                Settings
+                            </a>
+                        </li>
+                        <li>
+                            <a asp-action="SignOutUser" asp-controller="Account">
+                                <i class="fa-solid fa-right-from-bracket"></i>
+                                Logout
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Menu Toggle -->
+        <button class="userhome-mobile-toggle" id="userhomeMobileToggle">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+    </div>
+</header>
+
+<!-- Mobile Navigation -->
+<div class="userhome-mobile-nav" id="userhomeMobileNav">
+    <div class="userhome-mobile-search">
+        <form method="get" asp-controller="UserHome" asp-action="Index" class="userhome-mobile-search-form">
+            <input type="text" 
+                   id="mobileBookSearchInput"
+                   name="search" 
+                   class="userhome-search-input" 
+                   placeholder="Search books..." />
+            <button type="submit" class="userhome-search-icon-btn">
+                <i class="fas fa-search userhome-search-icon"></i>
+            </button>
+        </form>
+    </div>
+    <ul>
+        <li><a asp-controller="UserHome" asp-action="Browse" class="userhome-mobile-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Browse" ? "active" : "")">Browse</a></li>
+        <li><a asp-controller="UserHome" asp-action="Popular" class="userhome-mobile-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Popular" ? "active" : "")">Popular</a></li>
+        <li><a asp-controller="UserHome" asp-action="BookRecommendations" class="userhome-mobile-link @(ViewContext.RouteData.Values["action"]?.ToString() == "BookRecommendations" ? "active" : "")">Book Recommendations</a></li>
+        <li class="userhome-mobile-profile-info">
+            <i class="fas fa-user-circle"></i>
+            <span>@userName</span>
+        </li>
+        <li><a asp-controller="UserHome" asp-action="BookCheckout" class="userhome-mobile-link"><i class="fa-solid fa-book-bookmark"></i> My Books</a></li>
+        <li><a asp-controller="UserHome" asp-action="UserSettings" class="userhome-mobile-link"><i class="fa-solid fa-gear"></i> Settings</a></li>
+        <li><a asp-action="SignOutUser" asp-controller="Account" class="userhome-mobile-link"><i class="fa-solid fa-right-from-bracket"></i> Logout</a></li>
+    </ul>
+</div>
+
+<script>
+    // Mobile menu toggle
+    document.getElementById('userhomeMobileToggle').addEventListener('click', function() {
+        this.classList.toggle('active');
+        document.getElementById('userhomeMobileNav').classList.toggle('active');
+        document.body.classList.toggle('userhome-menu-open');
+    });
+
+    // Close mobile menu when clicking on a link
+    document.querySelectorAll('.userhome-mobile-link').forEach(link => {
+        link.addEventListener('click', function() {
+            document.getElementById('userhomeMobileToggle').classList.remove('active');
+            document.getElementById('userhomeMobileNav').classList.remove('active');
+            document.body.classList.remove('userhome-menu-open');
+        });
+    });
+
+    function applyCartBadgeCount(count) {
+        const badge = document.getElementById('cartBadgeCount');
+        if (!badge) return;
+        const safeCount = Math.max(0, count || 0);
+        badge.textContent = safeCount;
+        badge.style.display = safeCount > 0 ? 'grid' : 'none';
+        badge.classList.toggle('double-digit', safeCount >= 10);
+    }
+    window.applyCartBadgeCount = applyCartBadgeCount;
+
+    // Update cart badge on page load
+    function updateCartBadge() {
+        fetch('@Url.Action("GetCartCount", "UserHome")')
+            .then(response => response.json())
+            .then(data => {
+                applyCartBadgeCount(data.cartCount || 0);
+            })
+            .catch(() => {
+                // Silently fail - cart badge is not critical
+            });
+    }
+
+    // Initialize cart badge when page loads
+    updateCartBadge();
+</script>
+

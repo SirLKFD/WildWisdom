@@ -1,0 +1,150 @@
+@model ASI.Basecode.Services.ServiceModels.OrgBooksViewModel
+@{
+    ViewData["Title"] = "Add New Book";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+    <link rel="stylesheet" href="~/css/adminhome.css" asp-append-version="true" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<partial name="_AdminHomeTab" />
+
+<div class="admin-main-content">
+    <div class="form-section">
+        <div class="form-header">
+            <h3><i class="fas fa-plus-circle"></i> Add New Book</h3>
+        </div>
+        <div class="form-body">
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    @TempData["ErrorMessage"]
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            }
+
+            <form asp-action="AddBook" asp-controller="AdminHome" method="post" enctype="multipart/form-data">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label asp-for="Title" class="font-weight-bold">Title <span class="text-danger">*</span></label>
+                        <input asp-for="Title" class="form-control" placeholder="Enter book title" />
+                        <span asp-validation-for="Title" class="text-danger"></span>
+                    </div>
+                    <div class="form-group">
+                        <label asp-for="Author" class="font-weight-bold">Author <span class="text-danger">*</span></label>
+                        <input asp-for="Author" class="form-control" placeholder="Enter author name" />
+                        <span asp-validation-for="Author" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label asp-for="ISBN" class="font-weight-bold">ISBN</label>
+                        <input asp-for="ISBN" class="form-control" placeholder="e.g., 978-3-16-148410-0" />
+                        <span asp-validation-for="ISBN" class="text-danger"></span>
+                    </div>
+                    <div class="form-group">
+                        <label asp-for="Publisher" class="font-weight-bold">Publisher</label>
+                        <input asp-for="Publisher" class="form-control" placeholder="e.g., Penguin Random House" />
+                        <span asp-validation-for="Publisher" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label asp-for="YearPublished" class="font-weight-bold">Year Published</label>
+                        <input asp-for="YearPublished" class="form-control" type="number" placeholder="e.g., 2024" />
+                        <span asp-validation-for="YearPublished" class="text-danger"></span>
+                    </div>
+                    <div class="form-group">
+                        <label asp-for="Edition" class="font-weight-bold">Edition</label>
+                        <input asp-for="Edition" class="form-control" placeholder="e.g., 1st Edition" />
+                        <span asp-validation-for="Edition" class="text-danger"></span>
+                    </div>
+                    <div class="form-group">
+                        <label asp-for="Category" class="font-weight-bold">Category</label>
+                        <select asp-for="Category" class="form-control">
+                            <option value="">-- Select Category --</option>
+                            <option value="Fiction">Fiction</option>
+                            <option value="Non-Fiction">Non-Fiction</option>
+                            <option value="Reference">Reference</option>
+                            <option value="Academic">Academic</option>
+                        </select>
+                        <span asp-validation-for="Category" class="text-danger"></span>
+                    </div>
+                    <div class="form-group">
+                        <label asp-for="Genre" class="font-weight-bold">Genre</label>
+                        <select asp-for="Genre" class="form-control">
+                            <option value="">-- Select Genre --</option>
+                            <option value="Novel">Novel</option>
+                            <option value="Sci-Fi">Sci-Fi</option>
+                            <option value="Mystery">Mystery</option>
+                            <option value="Romance">Romance</option>
+                            <option value="Thriller">Thriller</option>
+                            <option value="Fantasy">Fantasy</option>
+                            <option value="Horror">Horror</option>
+                            <option value="Biography">Biography</option>
+                            <option value="History">History</option>
+                            <option value="Science">Science</option>
+                        </select>
+                        <span asp-validation-for="Genre" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="Description" class="font-weight-bold">Description</label>
+                    <textarea asp-for="Description" class="form-control" rows="3" placeholder="Enter book description"></textarea>
+                    <span asp-validation-for="Description" class="text-danger"></span>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label asp-for="CopiesTotal" class="font-weight-bold">Total Copies <span class="text-danger">*</span></label>
+                        <input asp-for="CopiesTotal" class="form-control" type="number" min="1" placeholder="Enter total copies" />
+                        <span asp-validation-for="CopiesTotal" class="text-danger"></span>
+                    </div>
+                    <div class="form-group">
+                        <label class="font-weight-bold">Cover Image</label>
+                        <input type="file" name="CoverImageFile" id="CoverImageFile" class="form-control" accept=".jpg,.jpeg,.png,.gif" />
+                        <small class="form-text text-muted">Upload book cover (JPEG, PNG, or GIF only)</small>
+                        <div id="imagePreview" class="mt-2" style="display: none;">
+                            <img id="preview" src="" alt="Preview" style="max-width: 150px; max-height: 200px;" />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group mt-4">
+                    <button type="submit" class="btn btn-primary btn-lg">
+                        <i class="fas fa-save"></i> Add Book
+                    </button>
+                    <a href="@Url.Action("Index", "AdminHome")" class="btn btn-secondary btn-lg">
+                        <i class="fas fa-times"></i> Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<partial view="~/Views/Shared/_AppModal.cshtml" />
+<script src="~/js/app-modal.js" asp-append-version="true"></script>
+<script src="~/js/admin/add-book.js" asp-append-version="true"></script>
+
+</body>
+</html>
+
+

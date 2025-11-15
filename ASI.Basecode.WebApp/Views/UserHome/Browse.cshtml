@@ -1,0 +1,253 @@
+@model List<ASI.Basecode.Services.ServiceModels.OrgBooksViewModel>
+
+@{
+    ViewData["Title"] = "Browse Books - WildWisdom";
+    Layout = null;
+    var searchTerm = ViewBag.SearchTerm as string ?? "";
+    var selectedCategory = ViewBag.SelectedCategory as string ?? "";
+    var featuredBooks = ViewBag.FeaturedBooks as List<ASI.Basecode.Services.ServiceModels.OrgBooksViewModel> ?? new List<ASI.Basecode.Services.ServiceModels.OrgBooksViewModel>();
+    var booksByCategory = ViewBag.BooksByCategory as List<ASI.Basecode.Services.ServiceModels.CategoryGroupViewModel> ?? new List<ASI.Basecode.Services.ServiceModels.CategoryGroupViewModel>();
+    var recentlyViewed = ViewBag.RecentlyViewed as List<ASI.Basecode.Services.ServiceModels.OrgBooksViewModel> ?? new List<ASI.Basecode.Services.ServiceModels.OrgBooksViewModel>();
+    var recommendedBooks = ViewBag.RecommendedBooks as List<ASI.Basecode.Services.ServiceModels.OrgBooksViewModel> ?? new List<ASI.Basecode.Services.ServiceModels.OrgBooksViewModel>();
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+    <link rel="stylesheet" href="~/css/userhome.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/user/browse.css" asp-append-version="true" />
+</head>
+<body>
+
+<partial name="_UserHomeHeader" />
+
+<div class="start-menu-container" data-browse-url="@Url.Action("Browse")" data-current-category="@selectedCategory">
+    <div class="container-fluid px-4">
+
+
+        <div class="start-menu-content">
+            <!-- Left Panel - Pinned/Featured -->
+            <div class="pinned-section">
+                @if (selectedCategory == "new-arrivals")
+                {
+                    <h3><i class="fas fa-clock"></i> New Arrivals</h3>
+                }
+                else if (!string.IsNullOrEmpty(selectedCategory))
+                {
+                    <h3><i class="fas fa-thumbtack"></i> @selectedCategory Books</h3>
+                }
+                else
+                {
+                    <h3><i class="fas fa-thumbtack"></i> Featured Books</h3>
+                }
+                <div class="tiles-grid" id="featuredTiles">
+                    @foreach (var book in featuredBooks)
+                    {
+                        <div class="tile-wrapper" onclick="window.location.href='@Url.Action("BookDetails", new { id = book.Id })'">
+                            <div class="tile">
+                                @if (!string.IsNullOrEmpty(book.CoverImage))
+                                {
+                                    <img src="@book.CoverImage" alt="@book.Title" class="tile-cover" loading="lazy" />
+                                }
+                                else
+                                {
+                                    <div class="tile-placeholder">
+                                        <i class="fas fa-book"></i>
+                                    </div>
+                                }
+                            </div>
+                            <div class="tile-info">
+                                <h6 class="tile-title">@book.Title</h6>
+                                <p class="tile-author"><em>by @book.Author</em></p>
+                                @if (book.AverageRating.HasValue)
+                                {
+                                    <div class="tile-rating">
+                                        <div class="stars">@GetStarRating((double)book.AverageRating.Value)</div>
+                                        <span class="rating-value">@book.AverageRating.Value.ToString("F1")</span>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="tile-rating">
+                                        <div class="stars">☆☆☆☆☆</div>
+                                        <span class="rating-value">No rating</span>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+                
+                @if (booksByCategory.Any())
+                {
+                    @if (selectedCategory == "new-arrivals")
+                    {
+                        <h3><i class="fas fa-layer-group"></i> New Arrivals by Category</h3>
+                    }
+                    else if (!string.IsNullOrEmpty(selectedCategory))
+                    {
+                        <h3><i class="fas fa-layer-group"></i> @selectedCategory Books</h3>
+                    }
+                    else
+                    {
+                        <h3><i class="fas fa-layer-group"></i> Categories</h3>
+                    }
+                    
+                    @foreach (var category in booksByCategory)
+                    {
+                        <div class="category-group">
+                            <div class="category-header" onclick="toggleCategory('@category.CategoryName')">
+                                <i class="@category.CategoryIcon"></i>
+                                <span class="category-name">@category.CategoryName</span>
+                                <span class="category-count">(@category.TotalCount)</span>
+                                <a href="@Url.Action("Index", new { category = category.CategoryName })" class="see-all">See all ></a>
+                            </div>
+                            <div class="category-tiles" id="category-@category.CategoryName">
+                                @foreach (var book in category.Books)
+                                {
+                                    <div class="category-tile-wrapper" onclick="window.location.href='@Url.Action("BookDetails", new { id = book.Id })'">
+                                        <div class="category-tile">
+                                            @if (!string.IsNullOrEmpty(book.CoverImage))
+                                            {
+                                                <img src="@book.CoverImage" alt="@book.Title" loading="lazy" />
+                                            }
+                                            else
+                                            {
+                                                <div class="category-tile-placeholder">
+                                                    <i class="fas fa-book"></i>
+                                                </div>
+                                            }
+                                        </div>
+                                        <div class="category-tile-info">
+                                            <h6 class="category-tile-title">@book.Title</h6>
+                                            <p class="category-tile-author"><em>by @book.Author</em></p>
+                                            @if (book.AverageRating.HasValue)
+                                            {
+                                                <div class="category-tile-rating">
+                                                    <div class="stars">@GetStarRating((double)book.AverageRating.Value)</div>
+                                                    <span class="rating-value">@book.AverageRating.Value.ToString("F1")</span>
+                                                </div>
+                                            }
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="no-results">
+                        <i class="fas fa-search"></i>
+                        <h4>No books found</h4>
+                        <p>Try adjusting your filters or search terms.</p>
+                        <button class="filter-btn" onclick="clearAllFilters()">Clear Filters</button>
+                    </div>
+                }
+            </div>
+
+            <!-- Right Panel - Quick Access -->
+            <div class="quick-access-section">
+                <div class="quick-access-card">
+                    <h4><i class="fas fa-clock"></i> Recently Viewed</h4>
+                    @if (recentlyViewed.Any())
+                    {
+                        @foreach (var book in recentlyViewed)
+                        {
+                            <div class="recent-item" onclick="window.location.href='@Url.Action("BookDetails", new { id = book.Id })'">
+                                @if (!string.IsNullOrEmpty(book.CoverImage))
+                                {
+                                    <img src="@book.CoverImage" alt="@book.Title" class="recent-cover" loading="lazy" />
+                                }
+                                else
+                                {
+                                    <div class="recent-placeholder">
+                                        <i class="fas fa-book"></i>
+                                    </div>
+                                }
+                                <div class="recent-info">
+                                    <div class="recent-title">@book.Title</div>
+                                    <div class="recent-author">@book.Author</div>
+                                </div>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <p class="text-muted">No recently viewed books</p>
+                    }
+                </div>
+                
+                <div class="quick-access-card">
+                    <h4><i class="fas fa-star"></i> Recommended</h4>
+                    @if (recommendedBooks.Any())
+                    {
+                        @foreach (var book in recommendedBooks)
+                        {
+                            <div class="recommended-item" onclick="window.location.href='@Url.Action("BookDetails", new { id = book.Id })'">
+                                @if (!string.IsNullOrEmpty(book.CoverImage))
+                                {
+                                    <img src="@book.CoverImage" alt="@book.Title" class="recommended-cover" loading="lazy" />
+                                }
+                                else
+                                {
+                                    <div class="recommended-placeholder">
+                                        <i class="fas fa-book"></i>
+                                    </div>
+                                }
+                                <div class="recommended-info">
+                                    <div class="recommended-title">@book.Title</div>
+                                    <div class="recommended-author">@book.Author</div>
+                                </div>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <p class="text-muted">No recommendations available</p>
+                    }
+                </div>
+                
+                <div class="quick-access-card">
+                    <h4><i class="fas fa-filter"></i> Quick Filters</h4>
+                    <div class="filter-buttons">
+                        <button class="filter-btn" onclick="filterByCategory('Fiction')" id="filter-fiction">Fiction</button>
+                        <button class="filter-btn" onclick="filterByCategory('Non-Fiction')" id="filter-nonfiction">Non-Fiction</button>
+                        <button class="filter-btn" onclick="filterByNew()" id="filter-new">New Arrivals</button>
+                        <button class="filter-btn" onclick="clearAllFilters()" id="filter-clear">Clear All</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+<script src="~/js/user/browse.js" asp-append-version="true"></script>
+
+@functions {
+    string GetStarRating(double rating)
+    {
+        int fullStars = (int)Math.Floor(rating);
+        bool hasHalfStar = rating - fullStars >= 0.5;
+        int emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+        
+        string stars = "";
+        for (int i = 0; i < fullStars; i++) { stars += "★"; }
+        if (hasHalfStar) { stars += "☆"; }
+        for (int i = 0; i < emptyStars; i++) { stars += "☆"; }
+        return stars;
+    }
+}
+
+</body>
+</html>

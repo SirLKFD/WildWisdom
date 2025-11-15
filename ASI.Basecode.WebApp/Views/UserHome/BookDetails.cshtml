@@ -1,0 +1,352 @@
+@model ASI.Basecode.Services.ServiceModels.OrgBooksViewModel
+
+@{
+    ViewData["Title"] = Model.Title + " - WildWisdom";
+    Layout = null;
+    var booksByAuthor = ViewBag.BooksByAuthor as List<ASI.Basecode.Services.ServiceModels.OrgBooksViewModel> ?? new List<ASI.Basecode.Services.ServiceModels.OrgBooksViewModel>();
+    var reviews = ViewBag.Reviews as List<ASI.Basecode.Services.ServiceModels.BookReviewDisplayViewModel> ?? new List<ASI.Basecode.Services.ServiceModels.BookReviewDisplayViewModel>();
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+    <link rel="stylesheet" href="~/css/userhome.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/user/book-details.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/color-thief/2.3.0/color-thief.umd.js"></script>
+</head>
+<body>
+
+<partial name="_UserHomeHeader" />
+
+<div class="book-details-page"
+     data-add-to-cart-url="@Url.Action("AddToCart", "UserHome")"
+     data-cart-count-url="@Url.Action("GetCartCount", "UserHome")"
+     data-is-book-in-cart-url="@Url.Action("IsBookInCart", "UserHome")"
+     data-rate-book-url="@Url.Action("RateBook", "UserHome")"
+     data-like-review-url="@Url.Action("LikeReview", "UserHome")"
+     data-wishlist-status-url="@Url.Action("GetWishlistStatus", "UserHome")"
+     data-toggle-wishlist-url="@Url.Action("ToggleWishlist", "UserHome")">
+    <div class="userhome-content">
+    <div class="container-fluid">
+        <div class="book-details-container">
+            <div class="row">
+                <!-- Left Section - Book Cover -->
+                <div class="col-lg-4 col-md-5">
+                    <div class="book-cover-section">
+                        @if (!string.IsNullOrEmpty(Model.CoverImage))
+                        {
+                            <img src="@Model.CoverImage" alt="@Model.Title" class="book-detail-cover" crossorigin="anonymous" />
+                        }
+                        else
+                        {
+                            <div class="book-detail-cover-placeholder">
+                                <i class="fas fa-book"></i>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <!-- Right Section - Book Information -->
+                <div class="col-lg-8 col-md-7">
+                    <div class="book-info-section">
+                        <h1 class="book-detail-title">@Model.Title</h1>
+                        <p class="book-detail-author">by @Model.Author</p>
+
+                        <!-- Average Rating Display Only -->
+                        <div class="average-rating-display-section">
+                            <div class="star-rating-display" data-rating="@(Model.AverageRating ?? 0)">
+                                @for (int i = 1; i <= 5; i++)
+                                {
+                                    <i class="star fas fa-star" data-value="@i"></i>
+                                }
+                            </div>
+                            <span class="average-rating-text">
+                                @if (Model.AverageRating.HasValue)
+                                {
+                                    @Math.Round(Model.AverageRating.Value, 1)
+                                }
+                                else
+                                {
+                                    <text>No ratings yet</text>
+                                }
+                            </span>
+                        </div>
+
+                        <!-- Book Metadata -->
+                        <div class="book-metadata">
+                            <div class="metadata-item">
+                                <span class="metadata-label">Genre</span>
+                                <span class="metadata-value">@Model.Genre</span>
+                            </div>
+                            <div class="metadata-item">
+                                <span class="metadata-label">Publisher</span>
+                                <span class="metadata-value">@Model.Publisher</span>
+                            </div>
+                            @if (!string.IsNullOrEmpty(Model.ISBN))
+                            {
+                                <div class="metadata-item">
+                                    <span class="metadata-label">ISBN</span>
+                                    <span class="metadata-value">@Model.ISBN</span>
+                                </div>
+                            }
+                            @if (Model.YearPublished.HasValue)
+                            {
+                                <div class="metadata-item">
+                                    <span class="metadata-label">Release</span>
+                                    <span class="metadata-value">@Model.YearPublished</span>
+                                </div>
+                            }
+                            @if (!string.IsNullOrEmpty(Model.Edition))
+                            {
+                                <div class="metadata-item">
+                                    <span class="metadata-label">Edition</span>
+                                    <span class="metadata-value">@Model.Edition</span>
+                                </div>
+                            }
+                        </div>
+
+                        <!-- Description -->
+                        <div class="book-description">
+                            <p>@(Model.Description ?? "No description available for this book.")</p>
+                        </div>
+
+                        <!-- Availability & Action -->
+                        <div class="book-action-section">
+                            <div class="availability-info">
+                                <span class="currently-reading">@(Model.CopiesTotal - Model.CopiesAvailable) Currently reading</span>
+                                <span class="copies-available">@Model.CopiesAvailable books left</span>
+                            </div>
+                            <div class="action-buttons">
+                                @if (Model.CopiesAvailable > 0)
+                                {
+                                    <button class="btn-borrow-now" id="borrowBookButton"
+                                            data-book-id="@Model.Id"
+                                            data-organization="@Model.OrganizationName">
+                                        BORROW NOW
+                                    </button>
+                                }
+                                else
+                                {
+                                    <button class="btn-borrow-now" disabled>OUT OF STOCK</button>
+                                }
+                                <button class="btn-add-wishlist" id="wishlistButton" data-book-id="@Model.Id">
+                                    <i class="far fa-heart"></i> <span>Add to Wishlist</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Admin/Organization Contact Information -->
+                        <div class="admin-contact-section">
+                            <h4 class="contact-heading">Book Available At</h4>
+                            <div class="admin-contact-card">
+                                <div class="admin-info-wrapper">
+                                    @if (!string.IsNullOrEmpty(Model.AdminProfilePicture))
+                                    {
+                                        <img src="@Model.AdminProfilePicture" alt="@Model.AdminName" class="admin-avatar" />
+                                    }
+                                    else
+                                    {
+                                        <div class="admin-avatar-placeholder">
+                                            <i class="fas fa-user-shield"></i>
+                                        </div>
+                                    }
+                                    <div class="admin-details">
+                                        <h5 class="admin-name">@(Model.AdminName ?? "Library Admin")</h5>
+                                        <p class="org-name">@(Model.OrganizationName ?? "Organization")</p>
+                                        @if (!string.IsNullOrEmpty(Model.ContactNumber))
+                                        {
+                                            <p class="contact-item">
+                                                <i class="fas fa-phone"></i>
+                                                <span>@Model.ContactNumber</span>
+                                            </p>
+                                        }
+                                        @if (!string.IsNullOrEmpty(Model.Address))
+                                        {
+                                            <p class="contact-item">
+                                                <i class="fas fa-map-marker-alt"></i>
+                                                <span>@Model.Address</span>
+                                            </p>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Your Review Section (Moved to top) -->
+            <div class="your-review-section">
+                <h3 class="section-heading">YOUR REVIEW</h3>
+                <div class="review-content">
+                    <div class="review-rating">
+                        <p class="review-label">Rating:</p>
+                        <div class="star-rating-interactive" data-book-id="@Model.Id" data-user-rating="@(Model.UserRating ?? 0)">
+                            @for (int i = 1; i <= 5; i++)
+                            {
+                                <i class="star fas fa-star" data-value="@i"></i>
+                            }
+                        </div>
+                    </div>
+                    <div class="review-text-section">
+                        <p class="review-label">Review:</p>
+                        <textarea id="reviewTextInput" class="review-textarea" maxlength="250" placeholder="Share your thoughts about this book... (emojis welcome!)">@Model.UserReviewText</textarea>
+                        <div class="review-meta">
+                            <span class="char-counter"><span id="charCount">@(Model.UserReviewText?.Length ?? 0)</span>/250</span>
+                            <button type="button" class="btn-save-review" onclick="saveReview()">Save Review</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reader Reviews Section -->
+            <div class="reader-reviews-section">
+                <h3 class="section-heading">READER REVIEWS</h3>
+                @if (reviews.Any())
+                {
+                    <div class="reviews-container">
+                        @foreach (var review in reviews)
+                        {
+                            <div class="review-card">
+                                <div class="review-header">
+                                    <div class="review-user-info">
+                                        @if (!string.IsNullOrEmpty(review.UserProfilePicture))
+                                        {
+                                            <img src="@review.UserProfilePicture" alt="@review.UserName" class="review-user-avatar" />
+                                        }
+                                        else
+                                        {
+                                            <div class="review-user-avatar-placeholder">
+                                                <i class="fas fa-user"></i>
+                                            </div>
+                                        }
+                                        <div class="review-user-details">
+                                            <span class="review-username">@review.UserName</span>
+                                            <span class="review-date">@GetRelativeTime(review.CreatedTime)</span>
+                                        </div>
+                                    </div>
+                                    @if (review.Rating.HasValue)
+                                    {
+                                        <div class="review-rating-display">
+                                            @for (int i = 1; i <= 5; i++)
+                                            {
+                                                <i class="fas fa-star @(i <= review.Rating.Value ? "filled" : "")"></i>
+                                            }
+                                        </div>
+                                    }
+                                </div>
+                                @if (!string.IsNullOrEmpty(review.ReviewText))
+                                {
+                                    <div class="review-text">
+                                        <p>@review.ReviewText</p>
+                                    </div>
+                                }
+                                <div class="review-footer">
+                                    @{
+                                        var currentUserId = ViewBag.CurrentUserId as int? ?? 0;
+                                        var isOwnReview = review.UserId == currentUserId;
+                                    }
+                                    @if (isOwnReview)
+                                    {
+                                        <button class="btn-like-review disabled" disabled>
+                                            <i class="fas fa-thumbs-up"></i>
+                                            <span class="like-count">@review.LikeCount</span>
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <button class="btn-like-review @(review.HasCurrentUserLiked ? "liked" : "")" 
+                                                data-review-id="@review.ReviewId"
+                                                onclick="toggleLikeReview(@review.ReviewId)">
+                                            <i class="fas fa-thumbs-up"></i>
+                                            <span class="like-count">@review.LikeCount</span>
+                                        </button>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="no-reviews">
+                        <i class="fas fa-book-open"></i>
+                        <p>No reviews yet</p>
+                        <p class="no-reviews-subtext">Be the first to share your thoughts!</p>
+                    </div>
+                }
+            </div>
+
+            <!-- More by Author Section -->
+            @if (booksByAuthor.Any())
+            {
+                <div class="more-by-author-section">
+                    <h3 class="section-heading">MORE BY AUTHOR</h3>
+                    <div class="author-books-carousel">
+                        <button class="carousel-control prev" onclick="scrollCarousel('left')">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <div class="author-books-container" id="authorBooksContainer">
+                            @foreach (var book in booksByAuthor)
+                            {
+                                <div class="author-book-card" onclick="window.location.href='@Url.Action("BookDetails", new { id = book.Id })'">
+                                    <div class="author-book-cover">
+                                        @if (!string.IsNullOrEmpty(book.CoverImage))
+                                        {
+                                            <img src="@book.CoverImage" alt="@book.Title" />
+                                        }
+                                        else
+                                        {
+                                            <div class="book-cover-placeholder">
+                                                <i class="fas fa-book"></i>
+                                            </div>
+                                        }
+                                    </div>
+                                    <p class="author-book-title">@book.Title</p>
+                                </div>
+                            }
+                        </div>
+                        <button class="carousel-control next" onclick="scrollCarousel('right')">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+    </div>
+</div>
+
+@functions {
+    public string GetRelativeTime(DateTime dateTime)
+    {
+        var timeSpan = DateTime.Now - dateTime;
+        
+        if (timeSpan.TotalMinutes < 1) return "Just now";
+        if (timeSpan.TotalMinutes < 60) return $"{(int)timeSpan.TotalMinutes} minutes ago";
+        if (timeSpan.TotalHours < 24) return $"{(int)timeSpan.TotalHours} hours ago";
+        if (timeSpan.TotalDays < 7) return $"{(int)timeSpan.TotalDays} days ago";
+        if (timeSpan.TotalDays < 30) return $"{(int)(timeSpan.TotalDays / 7)} weeks ago";
+        if (timeSpan.TotalDays < 365) return $"{(int)(timeSpan.TotalDays / 30)} months ago";
+        
+        return $"{(int)(timeSpan.TotalDays / 365)} years ago";
+    }
+}
+
+
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+<script src="~/js/user/book-details.js" asp-append-version="true"></script>
+
+</body>
+</html>
+
+
