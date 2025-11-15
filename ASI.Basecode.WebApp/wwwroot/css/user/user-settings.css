@@ -63,6 +63,160 @@
 .profile-pic-container {
     text-align: center;
     margin-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.profile-upload-controls {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.profile-upload-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+    font-size: .9rem;
+    color: #fff;
+    background: linear-gradient(135deg, #A66D3F 0%, #8B5A2B 100%);
+    box-shadow: 0 2px 8px rgba(166, 109, 63, .3);
+    transition: .3s;
+}
+
+.profile-upload-label:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(166, 109, 63, .4);
+}
+
+.profile-upload-helper {
+    display: block;
+    margin-top: 8px;
+    color: #7B4A2C;
+    font-size: .85rem;
+}
+
+.form-control-file {
+    display: none;
+}
+
+/* Delete account modal */
+.delete-account-modal {
+    position: fixed;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    z-index: 2000;
+}
+
+.delete-account-modal.is-open {
+    display: flex;
+}
+
+.delete-account-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, .55);
+}
+
+.delete-account-dialog {
+    position: relative;
+    width: 100%;
+    max-width: 520px;
+    background: #fff;
+    border-radius: 18px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, .25);
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    animation: deleteModalFade .25s ease;
+}
+
+.delete-account-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 24px;
+    border-bottom: 1px solid #f2e4d4;
+    gap: 16px;
+}
+
+.delete-account-header h5 {
+    margin-bottom: 6px;
+    color: #c52736;
+    font-size: 1.2rem;
+}
+
+.delete-account-header p {
+    margin: 0;
+    color: #6c4b3f;
+    font-size: .95rem;
+}
+
+.delete-account-close {
+    border: none;
+    background: transparent;
+    font-size: 1.5rem;
+    color: #a16b63;
+    cursor: pointer;
+}
+
+.delete-account-body {
+    padding: 20px 24px 0;
+    color: #4a2e26;
+}
+
+.delete-account-body ul {
+    margin: 0 0 16px 20px;
+    color: #7b4a2c;
+}
+
+.delete-account-body .form-control {
+    margin-top: 10px;
+    border-radius: 10px;
+    border: 1px solid #d4c4b0;
+    padding: 12px 14px;
+}
+
+.delete-account-hint {
+    display: block;
+    margin-top: 6px;
+    color: #a16b63;
+    font-size: .85rem;
+}
+
+.delete-account-footer {
+    padding: 20px 24px 24px;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 12px;
+    border-top: 1px solid #f2e4d4;
+}
+
+.delete-account-footer form {
+    margin: 0;
+}
+
+@keyframes deleteModalFade {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .readonly-field {

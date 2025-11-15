@@ -160,7 +160,7 @@
                     <p>Once you delete your account, there is no going back. This will permanently delete your admin account, organization, and all associated books.</p>
                     <p class="text-warning"><strong>Note:</strong> Account cannot be deleted if there are pending book borrowings or late returns.</p>
                 </div>
-                <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#deleteAccountModal">
+                <button type="button" class="btn btn-danger" id="openDeleteModal">
                     <i class="fas fa-trash"></i> Delete Account
                 </button>
             </div>
@@ -169,34 +169,36 @@
 </div>
 
 <!-- Delete Account Confirmation Modal -->
-<div class="modal fade" id="deleteAccountModal" tabindex="-1" role="dialog" aria-labelledby="deleteAccountModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered" role="document">
-        <div class="modal-content">
-            <div class="modal-header bg-danger text-white">
-                <h5 class="modal-title" id="deleteAccountModalLabel">Confirm Account Deletion</h5>
-                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
+<div class="delete-account-modal" id="deleteAccountModal" aria-hidden="true">
+    <div class="delete-account-overlay" data-delete-modal-close></div>
+    <div class="delete-account-dialog" role="dialog" aria-modal="true" aria-labelledby="deleteAccountModalLabel">
+        <div class="delete-account-header">
+            <div>
+                <h5 id="deleteAccountModalLabel">Confirm Account Deletion</h5>
+                <p>This action cannot be undone. Please review the consequences before continuing.</p>
+            </div>
+            <button type="button" class="delete-account-close" aria-label="Close" data-delete-modal-close>
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        <div class="delete-account-body">
+            <p><strong>Deleting your account will permanently remove:</strong></p>
+            <ul>
+                <li>Your admin credentials</li>
+                <li>Your organization profile</li>
+                <li>All books tied to your organization</li>
+            </ul>
+            <p class="text-danger"><strong>Type "DELETE" to confirm:</strong></p>
+            <input type="text" id="confirmDeleteText" class="form-control" placeholder="Type DELETE to confirm" autocomplete="off" />
+            <small class="delete-account-hint">The delete button activates only after typing DELETE in uppercase.</small>
+        </div>
+        <div class="delete-account-footer">
+            <button type="button" class="btn btn-outline-secondary" data-delete-modal-close>Cancel</button>
+            <form asp-action="DeleteAdminAccount" method="post" id="deleteAccountForm">
+                <button type="submit" class="btn btn-danger" id="confirmDeleteBtn" disabled>
+                    <i class="fas fa-trash"></i> Delete Account
                 </button>
-            </div>
-            <div class="modal-body">
-                <p><strong>Are you absolutely sure?</strong></p>
-                <p>This action <strong>cannot be undone</strong>. This will permanently delete:</p>
-                <ul>
-                    <li>Your admin account</li>
-                    <li>Your organization</li>
-                    <li>All books associated with your organization</li>
-                </ul>
-                <p class="text-danger"><strong>Please type "DELETE" to confirm:</strong></p>
-                <input type="text" id="confirmDeleteText" class="form-control" placeholder="Type DELETE to confirm" />
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                <form asp-action="DeleteAdminAccount" method="post" id="deleteAccountForm">
-                    <button type="submit" class="btn btn-danger" id="confirmDeleteBtn" disabled>
-                        <i class="fas fa-trash"></i> Delete Account
-                    </button>
-                </form>
-            </div>
+            </form>
         </div>
     </div>
 </div>
