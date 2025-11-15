@@ -1,0 +1,370 @@
+@model IEnumerable<ASI.Basecode.Services.ServiceModels.OrgBooksViewModel>
+@{
+    ViewData["Title"] = "Books Management";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="Cache-Control" content="public, max-age=3600" />
+    <title>@ViewData["Title"]</title>
+    <link rel="stylesheet" href="~/css/adminhome.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="dns-prefetch" href="//cdnjs.cloudflare.com">
+    <link rel="preload" as="style" href="~/css/adminhome.css">
+    <link rel="stylesheet" href="~/css/admin/index.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/components/app-modal.css" asp-append-version="true" />
+</head>
+<body>
+
+<partial name="_AdminHomeTab" />
+
+<div class="admin-main-content">
+    <h1 class="admin-page-heading">
+        <i class="fas fa-book"></i> Books Management
+    </h1>
+
+    <div class="mb-4 text-right">
+        <a href="@Url.Action("AddBook", "AdminHome")" class="btn btn-lg" style="background: linear-gradient(135deg, #A66D3F 0%, #8B5A2B 100%); color: white; border: none; border-radius: 8px; padding: 12px 25px; font-weight: 600; box-shadow: 0 3px 10px rgba(166, 109, 63, 0.3); transition: all 0.3s ease;">
+            <i class="fas fa-plus"></i> Add New Book
+        </a>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["SuccessMessage"]
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["ErrorMessage"]
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    }
+
+        <!-- Filter Section -->
+    <div class="books-filter-section">
+        <h5 class="mb-3"><i class="fas fa-filter"></i> Search & Filter Books</h5>
+        
+        <form method="get" asp-action="Index">
+            <div class="filter-row">
+                <div class="filter-group">
+                    <label class="filter-label">Search</label>
+                    <input type="text" name="search" value="@ViewBag.SearchTerm" class="filter-input" placeholder="Search by title, author, ISBN, or publisher..." />
+                </div>
+                <div class="filter-group">
+                    <label class="filter-label">Category</label>
+                    <select name="category" class="filter-select">
+                        <option value="">All Categories</option>
+                        @foreach (var cat in ViewBag.Categories as List<string>)
+                        {
+                            <option value="@cat" selected="@(ViewBag.SelectedCategory == cat)">@cat</option>
+                        }
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label class="filter-label">Genre</label>
+                    <select name="genre" class="filter-select">
+                        <option value="">All Genres</option>
+                        @foreach (var gen in ViewBag.Genres as List<string>)
+                        {
+                            <option value="@gen" selected="@(ViewBag.SelectedGenre == gen)">@gen</option>
+                        }
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label class="filter-label">Status</label>
+                    <select name="status" class="filter-select">
+                        <option value="">All Status</option>
+                        <option value="active" selected="@(ViewBag.SelectedStatus == "active")">Active</option>
+                        <option value="inactive" selected="@(ViewBag.SelectedStatus == "inactive")">Inactive</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label class="filter-label">Availability</label>
+                    <select name="availability" class="filter-select">
+                        <option value="">All</option>
+                        <option value="available" selected="@(ViewBag.SelectedAvailability == "available")">Available</option>
+                        <option value="out-of-stock" selected="@(ViewBag.SelectedAvailability == "out-of-stock")">Out of Stock</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label class="filter-label">Sort By</label>
+                    <select name="sortBy" class="filter-select">
+                        <option value="title" selected="@(ViewBag.SortBy == "title")">Title A-Z</option>
+                        <option value="author" selected="@(ViewBag.SortBy == "author")">Author A-Z</option>
+                        <option value="date-added" selected="@(ViewBag.SortBy == "date-added")">Date Added (Newest)</option>
+                        <option value="copies-available" selected="@(ViewBag.SortBy == "copies-available")">Most Available</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="filter-row">
+                <div class="filter-group">
+                    <button type="submit" class="btn-search-filter">
+                        <i class="fas fa-search"></i> Search
+                    </button>
+                </div>
+                <div class="filter-group">
+                    <a href="@Url.Action("Index")" class="btn-clear-filters">
+                        <i class="fas fa-times"></i> Clear Filters
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Hidden fields for pagination -->
+            <input type="hidden" name="page" value="1" />
+            <input type="hidden" name="pageSize" value="@ViewBag.PageSize" />
+        </form>
+    </div>
+
+    <!-- Results Info -->
+    <div class="results-info">
+        Showing @(ViewBag.CurrentPage > 1 ? ((ViewBag.CurrentPage - 1) * ViewBag.PageSize + 1) : 1)-@(Math.Min(ViewBag.CurrentPage * ViewBag.PageSize, ViewBag.TotalBooks)) of @ViewBag.TotalBooks books (Page @ViewBag.CurrentPage of @ViewBag.TotalPages)
+    </div>
+
+    <!-- Books Table -->
+    <div class="card shadow" style="border: 2px solid #D4C4B0; border-radius: 12px; background: #F5F0E8;">
+        <div class="card-body" style="padding: 25px;">
+            @if (Model != null && Model.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table-hover table-striped table" style="background: white; border-radius: 8px; overflow: hidden;">
+                        <thead style="background: linear-gradient(135deg, #A66D3F 0%, #8B5A2B 100%); color: white;">
+                            <tr>
+                                <th style="color: white; font-weight: 600; padding: 15px; border: none;">Cover</th>
+                                <th style="color: white; font-weight: 600; padding: 15px; border: none;">Title</th>
+                                <th style="color: white; font-weight: 600; padding: 15px; border: none;">Author</th>
+                                <th style="color: white; font-weight: 600; padding: 15px; border: none;">ISBN</th>
+                                <th style="color: white; font-weight: 600; padding: 15px; border: none;">Publisher</th>
+                                <th style="color: white; font-weight: 600; padding: 15px; border: none;">Category</th>
+                                <th style="color: white; font-weight: 600; padding: 15px; border: none;">Genre</th>
+                                <th style="color: white; font-weight: 600; padding: 15px; border: none;">Copies (Total/Avail)</th>
+                                <th style="color: white; font-weight: 600; padding: 15px; border: none;">Status</th>
+                                <th style="color: white; font-weight: 600; padding: 15px; border: none;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody style="background: white;">
+                            @foreach (var book in Model)
+                            {
+                                <tr style="border-bottom: 1px solid #D4C4B0; transition: all 0.3s ease;" onmouseover="this.style.backgroundColor='#F5F0E8'" onmouseout="this.style.backgroundColor='white'">
+                                    <td>
+                                        <div class="book-cover-container">
+                                            @if (!string.IsNullOrEmpty(book.CoverImage))
+                                            {
+                                                <img src="@book.CoverImage" 
+                                                     alt="@book.Title" 
+                                                     class="book-cover-img image-loading"
+                                                     loading="lazy"
+                                                     decoding="async"
+                                                     onload="this.classList.remove('image-loading'); this.style.opacity='1';"
+                                                     onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+                                                     style="opacity: 0;" />
+                                                <div class="book-cover-placeholder" style="display: none;">
+                                                    <i class="fas fa-book"></i>
+                                                </div>
+                                            }
+                                            else
+                                            {
+                                                <div class="book-cover-placeholder">
+                                                    <i class="fas fa-book"></i>
+                                                </div>
+                                            }
+                                        </div>
+                                    </td>
+                                    <td style="padding: 15px; color: #2C2C2C; font-weight: 500;">@book.Title</td>
+                                    <td style="padding: 15px; color: #2C2C2C; font-weight: 500;">@book.Author</td>
+                                    <td style="padding: 15px; color: #2C2C2C; font-weight: 500;">@book.ISBN</td>
+                                    <td style="padding: 15px; color: #2C2C2C; font-weight: 500;">@(book.Publisher ?? "-")</td>
+                                    <td style="padding: 15px; color: #2C2C2C; font-weight: 500;">@(book.Category ?? "-")</td>
+                                    <td style="padding: 15px; color: #2C2C2C; font-weight: 500;">@(book.Genre ?? "-")</td>
+                                    <td style="padding: 15px; color: #2C2C2C; font-weight: 500;">
+                                        <strong style="color: #7B4A2C;">@book.CopiesTotal</strong> / 
+                                        <span style="color: @(book.CopiesAvailable > 0 ? "#28a745" : "#dc3545"); font-weight: 600;">
+                                            @book.CopiesAvailable
+                                        </span>
+                                    </td>
+                                    <td style="padding: 15px;">
+                                        @if (book.IsActive)
+                                        {
+                                            <span style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%); color: white; padding: 6px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600;">Active</span>
+                                        }
+                                        else
+                                        {
+                                            <span style="background: #6c757d; color: white; padding: 6px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600;">Inactive</span>
+                                        }
+                                    </td>
+                                    <td style="padding: 15px;">
+                                        <div class="btn-group" role="group" style="display: flex; gap: 5px;">
+                                            <a href="@Url.Action("EditBook", "AdminHome", new { id = book.Id })" 
+                                               class="btn btn-sm" title="Edit Book" style="background: linear-gradient(135deg, #A66D3F 0%, #8B5A2B 100%); color: white; border: none; border-radius: 6px; padding: 8px 12px; font-weight: 600; transition: all 0.3s ease; box-shadow: 0 2px 5px rgba(166, 109, 63, 0.3);">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            @if (book.IsActive)
+                                            {
+                                                <button type="button" class="btn btn-sm" 
+                                                        onclick="toggleStatus(@book.Id, '@book.Title.Replace("'", "\\'")', false)" 
+                                                        title="Deactivate Book" style="background: #6c757d; color: white; border: none; border-radius: 6px; padding: 8px 12px; font-weight: 600; transition: all 0.3s ease; box-shadow: 0 2px 5px rgba(108, 117, 125, 0.3);">
+                                                    <i class="fas fa-eye-slash"></i>
+                                                </button>
+                                            }
+                                            else
+                                            {
+                                                <button type="button" class="btn btn-sm" 
+                                                        onclick="toggleStatus(@book.Id, '@book.Title.Replace("'", "\\'")', true)" 
+                                                        title="Activate Book" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%); color: white; border: none; border-radius: 6px; padding: 8px 12px; font-weight: 600; transition: all 0.3s ease; box-shadow: 0 2px 5px rgba(40, 167, 69, 0.3);">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                            }
+                                            <button type="button" class="btn btn-sm" 
+                                                    onclick="deleteBook(@book.Id, '@book.Title.Replace("'", "\\'")')" title="Delete Book" style="background: linear-gradient(135deg, #dc3545 0%, #c82333 100%); color: white; border: none; border-radius: 6px; padding: 8px 12px; font-weight: 600; transition: all 0.3s ease; box-shadow: 0 2px 5px rgba(220, 53, 69, 0.3);">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="py-5 text-center">
+                    <i class="fas fa-book fa-4x mb-3" style="color: #7B4A2C;"></i>
+                    <h4 style="color: #2C2C2C; font-weight: 600;">No books found</h4>
+                    <p style="color: #666; margin-bottom: 25px;">No books match your search criteria. Try adjusting your filters.</p>
+                    <a href="@Url.Action("AddBook", "AdminHome")" class="btn mt-3" style="background: linear-gradient(135deg, #A66D3F 0%, #8B5A2B 100%); color: white; border: none; border-radius: 8px; padding: 12px 25px; font-weight: 600; box-shadow: 0 3px 10px rgba(166, 109, 63, 0.3); transition: all 0.3s ease;">
+                        <i class="fas fa-plus"></i> Add New Book
+                    </a>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Pagination Section -->
+    @if (ViewBag.TotalPages > 1)
+    {
+        <div class="pagination-wrapper">
+            <div class="pagination-info"></div>
+            <div class="pagination-controls">
+                <div class="page-numbers">
+                    @{
+                        var currentPage = (int)ViewBag.CurrentPage;
+                        var totalPages = (int)ViewBag.TotalPages;
+                        var searchTerm = ViewBag.SearchTerm as string ?? "";
+                        var selectedCategory = ViewBag.SelectedCategory as string ?? "";
+                        var selectedGenre = ViewBag.SelectedGenre as string ?? "";
+                        var selectedStatus = ViewBag.SelectedStatus as string ?? "";
+                        var selectedAvailability = ViewBag.SelectedAvailability as string ?? "";
+                        var sortBy = ViewBag.SortBy as string ?? "title";
+                        var pageSize = (int)ViewBag.PageSize;
+                    }
+                    
+                    @if (currentPage > 1)
+                    {
+                        <a href="@Url.Action("Index", new { search = searchTerm, category = selectedCategory, genre = selectedGenre, status = selectedStatus, availability = selectedAvailability, sortBy = sortBy, page = currentPage - 1, pageSize = pageSize })" class="page-btn page-prev">Previous</a>
+                    }
+                    
+                    @{
+                        var startPage = Math.Max(1, currentPage - 2);
+                        var endPage = Math.Min(totalPages, currentPage + 2);
+                        
+                        // Adjust if we're near the start or end
+                        if (endPage - startPage < 4)
+                        {
+                            if (startPage == 1)
+                            {
+                                endPage = Math.Min(totalPages, startPage + 4);
+                            }
+                            else if (endPage == totalPages)
+                            {
+                                startPage = Math.Max(1, endPage - 4);
+                            }
+                        }
+                    }
+                    
+                    @if (startPage > 1)
+                    {
+                        <a href="@Url.Action("Index", new { search = searchTerm, category = selectedCategory, genre = selectedGenre, status = selectedStatus, availability = selectedAvailability, sortBy = sortBy, page = 1, pageSize = pageSize })" class="page-btn">1</a>
+                        @if (startPage > 2)
+                        {
+                            <span class="page-ellipsis">...</span>
+                        }
+                    }
+                    
+                    @for (int i = startPage; i <= endPage; i++)
+                    {
+                        <a href="@Url.Action("Index", new { search = searchTerm, category = selectedCategory, genre = selectedGenre, status = selectedStatus, availability = selectedAvailability, sortBy = sortBy, page = i, pageSize = pageSize })" class="page-btn @(i == currentPage ? "active" : "")">@i</a>
+                    }
+                    
+                    @if (endPage < totalPages)
+                    {
+                        @if (endPage < totalPages - 1)
+                        {
+                            <span class="page-ellipsis">...</span>
+                        }
+                        <a href="@Url.Action("Index", new { search = searchTerm, category = selectedCategory, genre = selectedGenre, status = selectedStatus, availability = selectedAvailability, sortBy = sortBy, page = totalPages, pageSize = pageSize })" class="page-btn">@totalPages</a>
+                    }
+                    
+                    @if (currentPage < totalPages)
+                    {
+                        <a href="@Url.Action("Index", new { search = searchTerm, category = selectedCategory, genre = selectedGenre, status = selectedStatus, availability = selectedAvailability, sortBy = sortBy, page = currentPage + 1, pageSize = pageSize })" class="page-btn page-next">Next</a>
+                    }
+                </div>
+                
+                <!-- Items per page selector -->
+                <div class="items-per-page">
+                    <select class="page-size-select" onchange="changePageSize(this.value)">
+                        <option value="25" selected="@(pageSize == 25)">25 / page</option>
+                        <option value="50" selected="@(pageSize == 50)">50 / page</option>
+                        <option value="100" selected="@(pageSize == 100)">100 / page</option>
+                    </select>
+                </div>
+                
+                <!-- Go to page -->
+                <div class="go-to-page">
+                    <span class="go-to-label">Go to</span>
+                    <input type="number" class="page-input" min="1" max="@totalPages" value="@currentPage" onkeypress="goToPage(event)" />
+                    <span class="go-to-label">Page</span>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<!-- Delete Confirmation Form -->
+<form id="deleteForm" method="post" style="display: none;">
+    <input type="hidden" name="id" id="deleteBookId" />
+</form>
+
+<!-- Toggle Status Form -->
+<form id="toggleForm" method="post" style="display: none;">
+    <input type="hidden" name="id" id="toggleBookId" />
+</form>
+
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+<partial name="_AppModal" />
+<script src="~/js/app-modal.js" asp-append-version="true"></script>
+<script src="~/js/admin/index.js" asp-append-version="true"></script>
+
+</body>
+</html>
+
+

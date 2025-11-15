@@ -30,9 +30,10 @@ var app = appBuilder.Build();
 
 configurer.ConfigureApp(app, app.Environment);
 
+app.UseStaticFiles(); // Used to display local pictures, videos, files, etc.
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Account}/{action=Login}");
+    pattern: "{controller=LandingPage}/{action=Index}/{id?}");
 app.MapControllers();
 app.MapRazorPages();
 

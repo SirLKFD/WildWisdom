@@ -1,0 +1,284 @@
+@model List<ASI.Basecode.Services.ServiceModels.OrgBooksViewModel>
+
+@{    ViewData["Title"] = "Popular Books - WildWisdom";
+    Layout = null;
+    var top10Overall = ViewBag.Top10Overall as List<ASI.Basecode.Services.ServiceModels.OrgBooksViewModel> ?? new List<ASI.Basecode.Services.ServiceModels.OrgBooksViewModel>();
+    var top10Fiction = ViewBag.Top10Fiction as List<ASI.Basecode.Services.ServiceModels.OrgBooksViewModel> ?? new List<ASI.Basecode.Services.ServiceModels.OrgBooksViewModel>();
+    var top10NonFiction = ViewBag.Top10NonFiction as List<ASI.Basecode.Services.ServiceModels.OrgBooksViewModel> ?? new List<ASI.Basecode.Services.ServiceModels.OrgBooksViewModel>();
+    var topGenres = ViewBag.TopGenres as List<dynamic> ?? new List<dynamic>();
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+    <link rel="stylesheet" href="~/css/userhome.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/color-thief/2.3.0/color-thief.umd.js"></script>
+    <link rel="stylesheet" href="~/css/user/popular.css" asp-append-version="true" />
+</head>
+<body>
+
+<partial name="_UserHomeHeader" />
+
+<div class="netflix-container">
+        <!-- Hero Section: Top 10 Overall -->
+    <div class="netflix-hero" id="heroSection">
+        <button class="hero-navigation hero-nav-left" onclick="changeHeroBook(-1)" id="heroNavLeft" disabled>
+            <i class="fas fa-chevron-left"></i>
+        </button>
+        
+        <div class="hero-content">
+            <h1 class="hero-title">TOP 10 OVERALL BOOKS THIS WEEK</h1>
+            <p class="hero-subtitle">Most borrowed books from all users</p>
+            
+            @if (top10Overall.Any())
+            {
+                <div class="hero-book" id="heroBook">
+                    @if (!string.IsNullOrEmpty(top10Overall[0].CoverImage))
+                    {
+                        <img src="@top10Overall[0].CoverImage" alt="@top10Overall[0].Title" class="hero-book-cover" id="heroBookCover">
+                    }
+                    else
+                    {
+                        <div class="hero-book-cover book-cover-placeholder" id="heroBookCover">
+                            <i class="fas fa-book"></i>
+                        </div>
+                    }
+                    <div class="hero-book-info">
+                        <h3 id="heroBookTitle">@top10Overall[0].Title</h3>
+                        <p id="heroBookAuthor">by @top10Overall[0].Author</p>
+                        @if (!string.IsNullOrEmpty(top10Overall[0].Description))
+                        {
+                            <p class="book-description" id="heroBookDescription">@top10Overall[0].Description</p>
+                        }
+                        <div class="rating">
+                            <div class="star-rating-display" data-rating="@(top10Overall[0].AverageRating ?? 0)" id="heroBookRating">
+                                @for (int i = 1; i <= 5; i++)
+                                {
+                                    <i class="star fas fa-star" data-value="@i"></i>
+                                }
+                            </div>
+                            <span id="heroBookBorrows">@top10Overall[0].BorrowCount borrows</span>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+        
+        <button class="hero-navigation hero-nav-right" onclick="changeHeroBook(1)" id="heroNavRight" disabled>
+            <i class="fas fa-chevron-right"></i>
+        </button>
+    </div>
+
+    <!-- Content Sections -->
+    <div class="netflix-content">
+        <!-- Top 50 Books - Netflix Style -->
+        @if (top10Overall.Any())
+        {
+            <div class="netflix-row">
+                <h2 class="row-title">Top 50 Books</h2>
+                <div class="row-container">
+                    <button class="scroll-arrow left" onclick="scrollRow(this, -1)">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <div class="books-slider" id="overallSlider">
+                        @for (int i = 0; i < Math.Min(50, top10Overall.Count); i++)
+                        {
+                            var book = top10Overall[i];
+                            <div class="book-card top10-card" onclick="window.location.href='@Url.Action("BookDetails", new { id = book.Id })'">
+                                <div class="book-rank">@(i + 1)</div>
+                                @if (!string.IsNullOrEmpty(book.CoverImage))
+                                {
+                                    <img src="@book.CoverImage" alt="@book.Title" class="book-cover" loading="lazy">
+                                }
+                                else
+                                {
+                                    <div class="book-cover book-cover-placeholder">
+                                        <i class="fas fa-book"></i>
+                                    </div>
+                                }
+                                <div class="book-info">
+                                    <h4 class="book-title">@book.Title</h4>
+                                    <p class="book-author">by @book.Author</p>
+                                    <div class="book-rating">
+                                        <div class="star-rating-display" data-rating="@(book.AverageRating ?? 0)">
+                                            @for (int j = 1; j <= 5; j++)
+                                            {
+                                                <i class="star fas fa-star" data-value="@j"></i>
+                                            }
+                                        </div>
+                                    </div>
+                                    <div class="book-stats">
+                                        <span class="borrow-count">@book.BorrowCount borrows</span>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                    <button class="scroll-arrow right" onclick="scrollRow(this, 1)">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+        }
+
+        <!-- Top 10 Fiction -->
+        @if (top10Fiction.Any())
+        {
+            <div class="netflix-row">
+                <h2 class="row-title">Top 10 Fiction</h2>
+                <div class="row-container">
+                    <button class="scroll-arrow left" onclick="scrollRow(this, -1)">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <div class="books-slider" id="fictionSlider">
+                        @foreach (var book in top10Fiction)
+                        {
+                            <div class="book-card" onclick="window.location.href='@Url.Action("BookDetails", new { id = book.Id })"'>
+                                <div class="book-borrow-count">@book.BorrowCount</div>
+                                @if (!string.IsNullOrEmpty(book.CoverImage))
+                                {
+                                    <img src="@book.CoverImage" alt="@book.Title" class="book-cover" loading="lazy">
+                                }
+                                else
+                                {
+                                    <div class="book-cover book-cover-placeholder">
+                                        <i class="fas fa-book"></i>
+                                    </div>
+                                }
+                                <div class="book-info">
+                                    <h4 class="book-title">@book.Title</h4>
+                                    <p class="book-author">by @book.Author</p>
+                                    <div class="book-rating">
+                                        <div class="star-rating-display" data-rating="@(book.AverageRating ?? 0)">
+                                            @for (int i = 1; i <= 5; i++)
+                                            {
+                                                <i class="star fas fa-star" data-value="@i"></i>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                    <button class="scroll-arrow right" onclick="scrollRow(this, 1)">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+        }
+
+        <!-- Top 10 Non-Fiction -->
+        @if (top10NonFiction.Any())
+        {
+            <div class="netflix-row">
+                <h2 class="row-title">Top 10 Non-Fiction</h2>
+                <div class="row-container">
+                    <button class="scroll-arrow left" onclick="scrollRow(this, -1)">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <div class="books-slider" id="nonFictionSlider">
+                        @foreach (var book in top10NonFiction)
+                        {
+                            <div class="book-card" onclick="window.location.href='@Url.Action("BookDetails", new { id = book.Id })"'>
+                                <div class="book-borrow-count">@book.BorrowCount</div>
+                                @if (!string.IsNullOrEmpty(book.CoverImage))
+                                {
+                                    <img src="@book.CoverImage" alt="@book.Title" class="book-cover" loading="lazy">
+                                }
+                                else
+                                {
+                                    <div class="book-cover book-cover-placeholder">
+                                        <i class="fas fa-book"></i>
+                                    </div>
+                                }
+                                <div class="book-info">
+                                    <h4 class="book-title">@book.Title</h4>
+                                    <p class="book-author">by @book.Author</p>
+                                    <div class="book-rating">
+                                        <div class="star-rating-display" data-rating="@(book.AverageRating ?? 0)">
+                                            @for (int i = 1; i <= 5; i++)
+                                            {
+                                                <i class="star fas fa-star" data-value="@i"></i>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                    <button class="scroll-arrow right" onclick="scrollRow(this, 1)">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+        }
+
+        <!-- Top 10 Books per Genre -->
+        @foreach (var genre in topGenres)
+        {
+            <div class="netflix-row">
+                <h2 class="row-title">Top 10 @genre.Genre</h2>
+                <div class="row-container">
+                    <button class="scroll-arrow left" onclick="scrollRow(this, -1)">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <div class="books-slider" id="@(genre.Genre.Replace(" ", "").ToLower())Slider">
+                        @foreach (var book in genre.Books)
+                        {
+                            <div class="book-card" onclick="window.location.href='@Url.Action("BookDetails", new { id = book.Id })"'>
+                                <div class="book-borrow-count">@book.BorrowCount</div>
+                                @if (!string.IsNullOrEmpty(book.CoverImage))
+                                {
+                                    <img src="@book.CoverImage" alt="@book.Title" class="book-cover" loading="lazy">
+                                }
+                                else
+                                {
+                                    <div class="book-cover book-cover-placeholder">
+                                        <i class="fas fa-book"></i>
+                                    </div>
+                                }
+                                <div class="book-info">
+                                    <h4 class="book-title">@book.Title</h4>
+                                    <p class="book-author">by @book.Author</p>
+                                    <div class="book-rating">
+                                        <div class="star-rating-display" data-rating="@(book.AverageRating ?? 0)">
+                                            @for (int i = 1; i <= 5; i++)
+                                            {
+                                                <i class="star fas fa-star" data-value="@i"></i>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                    <button class="scroll-arrow right" onclick="scrollRow(this, 1)">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+
+<script>
+    // Serialize the model to a JSON string and ensure it's correctly
+    // assigned as a JavaScript variable by wrapping with quotes.
+    // Using Html.Raw to prevent characters like ' from being HTML-encoded.
+    window.__top10BooksJson = @Html.Raw(Json.Serialize(top10Overall));
+</script>
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+<script src="~/js/user/popular.js" asp-append-version="true"></script>
+
+</body>
+</html>

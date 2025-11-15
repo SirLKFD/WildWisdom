@@ -1,0 +1,274 @@
+@model ASI.Basecode.Services.ServiceModels.DashboardViewModel
+@using static ASI.Basecode.Resources.Constants.Enums
+@{
+    ViewData["Title"] = "Dashboard";
+    Layout = null;
+}
+
+@functions {
+    string GetActivityClass(TicketStatus status)
+    {
+        return status switch
+        {
+            TicketStatus.Returned => "returned",
+            TicketStatus.NotYetReturned => "checked-out",
+            TicketStatus.Claimed => "claimed",
+            TicketStatus.Cancelled => "cancelled",
+            TicketStatus.NotYetClaimed => "created",
+            _ => "created"
+        };
+    }
+
+    string GetActivityIcon(TicketStatus status)
+    {
+        return status switch
+        {
+            TicketStatus.Returned => "fa-check-circle",
+            TicketStatus.NotYetReturned => "fa-book-reader",
+            TicketStatus.Claimed => "fa-hand-holding",
+            TicketStatus.Cancelled => "fa-times-circle",
+            TicketStatus.NotYetClaimed => "fa-clock",
+            _ => "fa-clock"
+        };
+    }
+
+    string GetActivityText(TicketStatus status)
+    {
+        return status switch
+        {
+            TicketStatus.Returned => "Book Returned",
+            TicketStatus.NotYetReturned => "Book Checked Out",
+            TicketStatus.Claimed => "Ticket Claimed",
+            TicketStatus.Cancelled => "Ticket Cancelled",
+            TicketStatus.NotYetClaimed => "Ticket Created",
+            _ => "Activity"
+        };
+    }
+
+    string GetTimeAgo(DateTime dateTime)
+    {
+        var timeSpan = DateTime.Now - dateTime;
+        if (timeSpan.TotalMinutes < 1) return "Just now";
+        else if (timeSpan.TotalMinutes < 60) return $"{(int)timeSpan.TotalMinutes} minutes ago";
+        else if (timeSpan.TotalHours < 24) return $"{(int)timeSpan.TotalHours} hours ago";
+        else if (timeSpan.TotalDays < 7) return $"{(int)timeSpan.TotalDays} days ago";
+        else return dateTime.ToString("MMM dd, yyyy");
+    }
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+    <link rel="stylesheet" href="~/css/adminhome.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/admin/dashboard.css" asp-append-version="true" />
+</head>
+<body>
+
+<partial name="_AdminHomeTab" />
+
+<div class="admin-main-content">
+    <h1 class="admin-page-heading">
+        <i class="fas fa-th-large"></i> Dashboard
+    </h1>
+
+    <div class="row">
+        <!-- Statistics Cards -->
+        <div class="col-lg-2 col-md-4 col-sm-6 mb-4">
+            <div class="dashboard-stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-book"></i>
+                </div>
+                <div class="stat-content">
+                    <h3>@Model.TotalBooks</h3>
+                    <p>Total Books</p>
+                    <span class="stat-label">Active books in catalog</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-2 col-md-4 col-sm-6 mb-4">
+            <div class="dashboard-stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-calendar-day"></i>
+                </div>
+                <div class="stat-content">
+                    <h3>@Model.BorrowedToday</h3>
+                    <p>Borrowed Today</p>
+                    <span class="stat-label">Books borrowed today</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-2 col-md-4 col-sm-6 mb-4">
+            <div class="dashboard-stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-book-reader"></i>
+                </div>
+                <div class="stat-content">
+                    <h3>@Model.ActiveBorrows</h3>
+                    <p>Active Borrows</p>
+                    <span class="stat-label">Currently borrowed</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-2 col-md-4 col-sm-6 mb-4">
+            <div class="dashboard-stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="stat-content">
+                    <h3>@Model.OverdueCount</h3>
+                    <p>Overdue</p>
+                    <span class="stat-label">Books overdue</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-2 col-md-4 col-sm-6 mb-4">
+            <div class="dashboard-stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-hourglass-half"></i>
+                </div>
+                <div class="stat-content">
+                    <h3>@Model.PendingClaims</h3>
+                    <p>Pending Claims</p>
+                    <span class="stat-label">Awaiting confirmation</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Recent Activity -->
+        <div class="col-md-8 mb-4">
+            <div class="admin-card">
+                <h3 class="section-title"><i class="fas fa-chart-line"></i> Recent Activity</h3>
+                @if (Model.RecentActivities != null && Model.RecentActivities.Any())
+                {
+                    <div class="activity-timeline">
+                        @foreach (var activity in Model.RecentActivities)
+                        {
+                            var activityTime = activity.ReturnedAt ?? activity.CheckedOutAt ?? activity.ClaimedAt ?? activity.CreatedAt;
+                            var timeAgo = GetTimeAgo(activityTime);
+                            
+                            <div class="activity-item">
+                                <div class="activity-icon @GetActivityClass(activity.Status)">
+                                    <i class="fas @GetActivityIcon(activity.Status)"></i>
+                                </div>
+                                <div class="activity-content">
+                                    <div class="activity-header">
+                                        <strong>@GetActivityText(activity.Status)</strong> - @activity.BookTitle
+                                    </div>
+                                    <div class="activity-details">
+                                        User: @activity.UserName | Reference: @activity.ReferenceCode
+                                    </div>
+                                    <div class="activity-time">
+                                        @timeAgo
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="py-5 text-center">
+                        <i class="fas fa-inbox fa-4x text-muted mb-3"></i>
+                        <p class="text-muted">No recent activities</p>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Quick Actions Placeholder -->
+        <div class="col-md-4 mb-4">
+            <div class="admin-card">
+                <h3 class="section-title"><i class="fas fa-bolt"></i> Quick Actions</h3>
+                <div class="list-group list-group-flush">
+                    <a href="@Url.Action("AddBook", "AdminHome")" class="list-group-item list-group-item-action">
+                        <i class="fas fa-plus-circle text-success"></i> Add New Book
+                    </a>
+                    <a href="@Url.Action("Index", "AdminHome")" class="list-group-item list-group-item-action">
+                        <i class="fas fa-book text-primary"></i> Manage Books
+                    </a>
+                    <a href="@Url.Action("ReferenceLookup", "AdminHome")" class="list-group-item list-group-item-action">
+                        <i class="fas fa-ticket-alt text-warning"></i> Reference Lookup
+                    </a>
+                    <a href="@Url.Action("AdminSettings", "AdminHome")" class="list-group-item list-group-item-action">
+                        <i class="fas fa-cog text-secondary"></i> Settings
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Recent Books -->
+        <div class="col-md-12">
+            <div class="admin-card">
+                <h3 class="section-title"><i class="fas fa-book-open"></i> Recent Books</h3>
+                @if (Model.RecentBooks != null && Model.RecentBooks.Any())
+                {
+                    <div class="row">
+                        @foreach (var book in Model.RecentBooks)
+                        {
+                            <div class="col-md-2 col-sm-4 col-6 mb-3">
+                                <div class="recent-book-card" onclick="window.location.href='@Url.Action("EditBook", "AdminHome", new { id = book.Id })'">
+                                    <div class="book-cover">
+                                        @if (!string.IsNullOrEmpty(book.CoverImage))
+                                        {
+                                            <img src="@book.CoverImage" alt="@book.Title" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+                                            <div class="book-cover-placeholder" style="display: none;">
+                                                <div style="font-size: 2rem; color: #7B4A2C; font-weight: bold; text-align: center;">📚</div>
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <div class="book-cover-placeholder">
+                                                <div style="font-size: 2rem; color: #7B4A2C; font-weight: bold; text-align: center;">📚</div>
+                                            </div>
+                                        }
+                                    </div>
+                                    <div class="book-info">
+                                        <h6>@book.Title</h6>
+                                        <p>@book.Author</p>
+                                        <small>Added: @book.CreatedTime.ToString("MMM dd")</small>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                    <div class="mt-3 text-center">
+                        <a asp-action="Index" class="btn btn-outline-primary">
+                            View All Books <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                }
+                else
+                {
+                    <div class="py-5 text-center">
+                        <i class="fas fa-book fa-4x text-muted mb-3"></i>
+                        <p class="text-muted">No books added yet</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>
+
+

@@ -1,0 +1,219 @@
+@model ASI.Basecode.Services.ServiceModels.BookCheckoutViewModel
+@{
+    ViewData["Title"] = "My Book Cart - WildWisdom";
+    Layout = null;
+    var organizationName = ViewBag.OrganizationName as string ?? "Your Library";
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+    <link rel="stylesheet" href="~/css/userhome.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<partial name="_UserHomeHeader" />
+<partial name="_AppModal" />
+
+<div class="book-checkout-page">
+    <div class="userhome-content">
+        <div class="container-fluid px-4 py-4">
+            <div class="checkout-header">
+                <div class="checkout-header-text">
+                    <h2 class="userhome-section-title">
+                        <i class="fa-solid fa-book-open-reader"></i> Book Cart
+                    </h2>
+                    <p class="userhome-section-subtitle">
+                        Claim your reserved books at <strong>@organizationName</strong>
+                    </p>
+                </div>
+                <div class="checkout-header-indicators">
+                    <div class="checkout-indicator-card">
+                        <span class="indicator-label">Daily Limit</span>
+                        <span class="indicator-value">@Model.DailyBorrowLimit</span>
+                        <p class="indicator-caption">@Model.BorrowedToday borrowed today</p>
+                    </div>
+                    <div class="checkout-indicator-card">
+                        <span class="indicator-label">Active Tickets</span>
+                        <span class="indicator-value">
+                            @if (Model.MaxActiveTickets > 0)
+                            {
+                                <text>@Model.ActiveTicketCount/@Model.MaxActiveTickets</text>
+                            }
+                            else
+                            {
+                                <text>@Model.ActiveTicketCount</text>
+                            }
+                        </span>
+                        <p class="indicator-caption">
+                            @if (Model.MaxActiveTickets > 0)
+                            {
+                                <text>@Model.RemainingActiveQuota remaining from @Model.MaxActiveTickets max</text>
+                            }
+                            else
+                            {
+                                <text>Keep track of your reserved books</text>
+                            }
+                        </p>
+                    </div>
+                    <div class="checkout-indicator-card">
+                        <span class="indicator-label">Claim Window</span>
+                        <span class="indicator-value">
+                            @if (Model.BorrowDaysDefault > 0)
+                            {
+                                <text>@Model.BorrowDaysDefault days</text>
+                            }
+                            else
+                            {
+                                <text>Check policy</text>
+                            }
+                        </span>
+                        <p class="indicator-caption">Return on schedule to avoid fines</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="checkout-cart-section">
+                <div class="checkout-list-header">
+                    <div class="custom-checkbox">
+                        <input type="checkbox" id="selectAllTickets" />
+                        <label for="selectAllTickets">Select All</label>
+                    </div>
+                    <div class="checkout-header-note">
+                        Only @Model.DailyBorrowLimit books can be borrowed per day.
+                    </div>
+                </div>
+
+                <!-- Cart Items Section -->
+                @if (Model.CartItems != null && Model.CartItems.Any())
+                {
+                    <div class="cart-items-section">
+                        <h4 class="cart-section-title">Cart Items</h4>
+                        <div class="checkout-ticket-list" id="cartItemsList">
+                            @foreach (var cartItem in Model.CartItems)
+                            {
+                                <div class="checkout-ticket-card" data-book-id="@cartItem.BookId">
+                                    <div class="checkout-ticket-select">
+                                        <input type="checkbox"
+                                               class="cart-item-checkbox"
+                                               value="@cartItem.BookId"
+                                               data-title="@cartItem.BookTitle"
+                                               data-organization="@cartItem.OrganizationName" />
+                                    </div>
+                                    <div class="checkout-ticket-info">
+                                        <div class="checkout-ticket-cover">
+                                            @if (!string.IsNullOrEmpty(cartItem.BookCoverImage))
+                                            {
+                                                <img src="@cartItem.BookCoverImage" alt="@cartItem.BookTitle" />
+                                            }
+                                            else
+                                            {
+                                                <div class="checkout-ticket-placeholder">
+                                                    <i class="fas fa-book"></i>
+                                                </div>
+                                            }
+                                        </div>
+                                        <div class="checkout-ticket-details">
+                                            <h3>@cartItem.BookTitle</h3>
+                                            <p class="ticket-author">by @cartItem.BookAuthor</p>
+                                            <div class="ticket-meta">
+                                                <span class="ticket-reference">
+                                                    <i class="fas fa-shopping-cart"></i>
+                                                    <span>In Cart</span>
+                                                </span>
+                                                <span class="ticket-expiry">
+                                                    <i class="fas fa-clock"></i>
+                                                    <span>Ready to borrow</span>
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <button type="button"
+                                            class="checkout-remove-btn"
+                                            data-book-id="@cartItem.BookId"
+                                            title="Remove from cart">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+
+
+                <!-- Empty State -->
+                @if (Model.CartItems == null || !Model.CartItems.Any())
+                {
+                    <div class="checkout-empty-state" id="emptyCheckoutState">
+                        <div class="empty-icon">
+                            <i class="fas fa-book-open"></i>
+                        </div>
+                        <h3>No books in cart</h3>
+                        <p>Browse the catalog and add books to your cart.</p>
+                        <a href="@Url.Action("Browse", "UserHome")" class="btn btn-primary">
+                            <i class="fas fa-compass"></i> Explore Books
+                        </a>
+                    </div>
+                }
+            </div>
+
+            <div class="checkout-footer">
+                <div class="checkout-footer-note">
+                    <span class="selected-count"><strong id="selectedCount">0</strong> selected</span>
+                    @if (Model.BorrowDaysDefault > 0)
+                    {
+                        <span class="return-reminder">
+                            Return borrowed copies within <strong>@Model.BorrowDaysDefault</strong> days to avoid fines.
+                        </span>
+                    }
+                </div>
+                <button type="button" class="btn btn-borrow-now" id="borrowSelectedBtn" disabled>
+                    BORROW NOW
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="reference-modal" id="checkoutReferenceModal">
+    <div class="reference-modal-card">
+        <button type="button" class="reference-modal-close" id="checkoutModalClose">
+            <i class="fas fa-times"></i>
+        </button>
+        <div class="reference-modal-illustration">
+            <i class="fas fa-book-reader"></i>
+        </div>
+        <div class="reference-modal-body">
+            <h3>Happy Reading!</h3>
+            <p class="reference-modal-text">
+                Claim your books at <strong id="checkoutModalOrganization">@organizationName</strong>
+            </p>
+            <div class="reference-list" id="checkoutModalReferenceList"></div>
+            <p class="reference-modal-note">
+                Show your school ID together with your reference number.
+            </p>
+            <button type="button" class="reference-modal-btn" id="checkoutModalActionClose">
+                Close
+            </button>
+        </div>
+    </div>
+</div>
+
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+<partial view="~/Views/Shared/_AppModal.cshtml" />
+<script src="~/js/app-modal.js" asp-append-version="true"></script>
+<script src="~/js/user/book-checkout.js" asp-append-version="true"></script>
+
+</body>
+</html>
+
+
