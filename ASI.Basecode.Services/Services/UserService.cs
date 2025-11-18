@@ -52,6 +52,7 @@ namespace ASI.Basecode.Services.Services
                 user.UpdatedTime = DateTime.Now;
                 user.CreatedBy = System.Environment.UserName;
                 user.UpdatedBy = System.Environment.UserName;
+                user.ReceiveOverdueEmails = true;
 
                 _repository.AddUser(user);
             }
@@ -97,6 +98,7 @@ namespace ASI.Basecode.Services.Services
             user.ProfilePicture = model.ProfilePicture;
             user.UpdatedBy = currentUserId;
             user.UpdatedTime = DateTime.Now;
+            user.ReceiveOverdueEmails = model.ReceiveOverdueEmails;
 
             // Update password if provided
             if (!string.IsNullOrEmpty(model.NewPassword))
@@ -167,6 +169,7 @@ namespace ASI.Basecode.Services.Services
                 Role = 0,
                 OrganizationId = pending.OrganizationId,
                 IsVerified = true,
+                ReceiveOverdueEmails = true,
                 CreatedTime = DateTime.Now,
                 UpdatedTime = DateTime.Now,
                 CreatedBy = System.Environment.UserName,

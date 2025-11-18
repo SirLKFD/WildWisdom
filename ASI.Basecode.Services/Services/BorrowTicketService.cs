@@ -23,6 +23,7 @@ namespace ASI.Basecode.Services.Services
         private readonly IUserRepository _userRepository;
         private readonly IAdminRepository _adminRepository;
         private readonly IMapper _mapper;
+        private readonly IOverdueReminderLogRepository _overdueReminderLogRepository;
 
         public BorrowTicketService(
             IBorrowTicketRepository ticketRepository,
@@ -33,6 +34,7 @@ namespace ASI.Basecode.Services.Services
             IClaimPolicyRepository claimPolicyRepository,
             IUserRepository userRepository,
             IAdminRepository adminRepository,
+            IOverdueReminderLogRepository overdueReminderLogRepository,
             IMapper mapper)
         {
             _ticketRepository = ticketRepository;
@@ -43,6 +45,7 @@ namespace ASI.Basecode.Services.Services
             _claimPolicyRepository = claimPolicyRepository;
             _userRepository = userRepository;
             _adminRepository = adminRepository;
+            _overdueReminderLogRepository = overdueReminderLogRepository;
             _mapper = mapper;
         }
 
@@ -195,6 +198,7 @@ namespace ASI.Basecode.Services.Services
             ticket.Status = TicketStatus.NotYetReturned;
 
             _ticketRepository.UpdateTicket(ticket);
+            _overdueReminderLogRepository.ResolveByTicketId(ticket.Id);
         }
 
         public void ReturnBook(string referenceCode, int employeeId)
@@ -229,6 +233,7 @@ namespace ASI.Basecode.Services.Services
             _booksRepository.IncrementCopies(ticket.OrgBookId);
 
             _ticketRepository.UpdateTicket(ticket);
+            _overdueReminderLogRepository.ResolveByTicketId(ticket.Id);
         }
 
         public void CancelTicket(int ticketId, string reason)

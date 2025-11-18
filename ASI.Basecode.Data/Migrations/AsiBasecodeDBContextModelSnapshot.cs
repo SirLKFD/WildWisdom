@@ -670,6 +670,63 @@ namespace ASI.Basecode.Data.Migrations
                     b.ToTable("Organizations");
                 });
 
+            modelBuilder.Entity("ASI.Basecode.Data.Models.OverdueReminderLog", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("BorrowTicketId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<DateTime>("CreatedTime")
+                        .HasColumnType("datetime");
+
+                    b.Property<bool>("IsResolved")
+                        .HasColumnType("bit");
+
+                    b.Property<decimal>("LastFineAmount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime?>("LastSentAt")
+                        .HasColumnType("datetime");
+
+                    b.Property<DateTime>("NextSendAt")
+                        .HasColumnType("datetime");
+
+                    b.Property<int>("ReminderCount")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UpdatedBy")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<DateTime>("UpdatedTime")
+                        .HasColumnType("datetime");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BorrowTicketId")
+                        .IsUnique();
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("OverdueReminderLogs");
+                });
+
             modelBuilder.Entity("ASI.Basecode.Data.Models.PasswordResetToken", b =>
                 {
                     b.Property<int>("TokenId")
@@ -924,6 +981,11 @@ namespace ASI.Basecode.Data.Migrations
                         .HasMaxLength(500)
                         .IsUnicode(false)
                         .HasColumnType("varchar(500)");
+
+                    b.Property<bool>("ReceiveOverdueEmails")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
 
                     b.Property<int>("Role")
                         .ValueGeneratedOnAdd()
@@ -1193,6 +1255,27 @@ namespace ASI.Basecode.Data.Migrations
                         .HasForeignKey("PublisherId");
 
                     b.Navigation("Organization");
+                });
+
+            modelBuilder.Entity("ASI.Basecode.Data.Models.OverdueReminderLog", b =>
+                {
+                    b.HasOne("ASI.Basecode.Data.Models.BorrowTicket", "BorrowTicket")
+                        .WithMany()
+                        .HasForeignKey("BorrowTicketId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_OverdueReminderLog_BorrowTicket");
+
+                    b.HasOne("ASI.Basecode.Data.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_OverdueReminderLog_User");
+
+                    b.Navigation("BorrowTicket");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("ASI.Basecode.Data.Models.RenewalPolicy", b =>

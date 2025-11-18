@@ -34,6 +34,7 @@ namespace ASI.Basecode.Data
         public virtual DbSet<Wishlist> Wishlists { get; set; }
         public virtual DbSet<PendingUserRegistration> PendingUserRegistrations { get; set; }
         public virtual DbSet<PasswordResetToken> PasswordResetTokens { get; set; }
+        public virtual DbSet<OverdueReminderLog> OverdueReminderLogs { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -88,6 +89,9 @@ namespace ASI.Basecode.Data
 
                 entity.Property(e => e.IsVerified)
                     .HasDefaultValue(false);
+
+                entity.Property(e => e.ReceiveOverdueEmails)
+                    .HasDefaultValue(true);
 
                 entity.HasOne(d => d.Organization)
                     .WithMany(p => p.Users)
@@ -698,6 +702,38 @@ namespace ASI.Basecode.Data
 
                 entity.Property(e => e.CreatedTime)
                     .HasColumnType("datetime");
+            });
+
+            modelBuilder.Entity<OverdueReminderLog>(entity =>
+            {
+                entity.Property(e => e.LastSentAt).HasColumnType("datetime");
+                entity.Property(e => e.NextSendAt).HasColumnType("datetime");
+                entity.Property(e => e.CreatedTime).HasColumnType("datetime");
+                entity.Property(e => e.UpdatedTime).HasColumnType("datetime");
+                entity.Property(e => e.LastFineAmount).HasColumnType("decimal(18,2)");
+                entity.Property(e => e.CreatedBy)
+                    .IsRequired()
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+                entity.Property(e => e.UpdatedBy)
+                    .IsRequired()
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+
+                entity.HasIndex(e => e.BorrowTicketId)
+                    .IsUnique();
+
+                entity.HasOne(d => d.BorrowTicket)
+                    .WithMany()
+                    .HasForeignKey(d => d.BorrowTicketId)
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .HasConstraintName("FK_OverdueReminderLog_BorrowTicket");
+
+                entity.HasOne(d => d.User)
+                    .WithMany()
+                    .HasForeignKey(d => d.UserId)
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .HasConstraintName("FK_OverdueReminderLog_User");
             });
 
             OnModelCreatingPartial(modelBuilder);

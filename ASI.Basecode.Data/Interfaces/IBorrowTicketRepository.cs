@@ -17,6 +17,7 @@ namespace ASI.Basecode.Data.Interfaces
         IQueryable<BorrowTicket> GetTicketsByStatus(int orgId, TicketStatus status);
         BorrowTicket GetById(int id);
         IQueryable<BorrowTicket> GetAllTickets();
+        IQueryable<BorrowTicket> GetOverdueTickets();
     }
 }
 
