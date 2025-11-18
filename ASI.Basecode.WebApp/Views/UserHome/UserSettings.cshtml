@@ -1,4 +1,6 @@
 @model ASI.Basecode.Services.ServiceModels.UserSettingsViewModel
+@using System.Collections.Generic
+@using ASI.Basecode.Services.ServiceModels
 
 @{
     ViewData["Title"] = "My Profile - WildWisdom";
@@ -199,6 +201,13 @@
                         <h3><i class="fa-solid fa-clock"></i> Unreturned Books</h3>
                         <p>Books that are overdue or need to be returned soon</p>
                     </div>
+
+                    @if (!Model.ReceiveOverdueEmails)
+                    {
+                        <div class="alert alert-warning" role="alert">
+                            <i class="fas fa-bell-slash"></i> You have opted out of overdue reminder emails. Turn them back on under Account Settings to receive daily reminders.
+                        </div>
+                    }
                     
                     @if (Model.OverdueBooks.Any())
                     {
@@ -285,6 +294,28 @@
                                         <div class="fine-info">
                                             <span class="fine-amount">Fine: ₱@fineAmount.ToString("F2")</span>
                                         </div>
+                                    <div class="reminder-info">
+                                        @{
+                                            var reminderStatuses = Model.OverdueReminderStatuses ?? new Dictionary<int, OverdueReminderInfoViewModel>();
+                                            reminderStatuses.TryGetValue(book.Id, out var reminderInfo);
+                                        }
+                                        @if (reminderInfo != null && reminderInfo.LastSentAt.HasValue)
+                                        {
+                                            <div class="reminder-status">
+                                                <i class="fas fa-envelope"></i>
+                                                Last reminder: @reminderInfo.LastSentAt?.ToString("MMM dd, yyyy h:mm tt")
+                                                <br />
+                                                Next reminder: @(reminderInfo.NextSendAt?.ToString("MMM dd, yyyy h:mm tt") ?? "Queued")
+                                            </div>
+                                        }
+                                        else if (Model.ReceiveOverdueEmails)
+                                        {
+                                            <div class="reminder-status pending">
+                                                <i class="fas fa-envelope-open-text"></i>
+                                                First reminder will be sent within 24 hours.
+                                            </div>
+                                        }
+                                    </div>
                                         <div class="book-actions">
                                             <span class="urgent-return-note">
                                                 <i class="fas fa-exclamation-triangle"></i>
@@ -848,6 +879,23 @@
                                 <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
                             </div>
                         </div>
+                    </div>
+                </div>
+
+                <!-- Notification Preferences -->
+                <div class="settings-card">
+                    <div class="settings-header">
+                        <h3><i class="fas fa-bell"></i> Notifications</h3>
+                    </div>
+                    <div class="form-group">
+                        <div class="form-check form-switch">
+                            <input asp-for="ReceiveOverdueEmails" class="form-check-input" type="checkbox" id="receiveOverdueEmailsSwitch" />
+                            <label class="form-check-label" for="receiveOverdueEmailsSwitch">
+                                Receive daily overdue reminder emails
+                            </label>
+                        </div>
+                        <small class="text-muted">We'll send at most one reminder per day while a book remains overdue.</small>
+                        <span asp-validation-for="ReceiveOverdueEmails" class="text-danger"></span>
                     </div>
                 </div>
 

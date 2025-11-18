@@ -6,6 +6,7 @@ using ASI.Basecode.Services.Interfaces;
 using ASI.Basecode.Services.ServiceModels;
 using ASI.Basecode.Services.Services;
 using ASI.Basecode.WebApp.Authentication;
+using ASI.Basecode.WebApp.HostedServices;
 using ASI.Basecode.WebApp.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
@@ -51,6 +52,7 @@ namespace ASI.Basecode.WebApp
             this._services.AddScoped<IEmailService, EmailService>();
             this._services.AddScoped<IOTPService, OTPService>();
             this._services.AddScoped<IPasswordResetService, PasswordResetService>();
+            this._services.AddScoped<IOverdueReminderService, OverdueReminderService>();
 
             // Repositories
             this._services.AddScoped<IUserRepository, UserRepository>();
@@ -68,11 +70,13 @@ namespace ASI.Basecode.WebApp
             this._services.AddScoped<IWishlistRepository, WishlistRepository>();
             this._services.AddScoped<IPendingUserRegistrationRepository, PendingUserRegistrationRepository>();
             this._services.AddScoped<IPasswordResetTokenRepository, PasswordResetTokenRepository>();
+            this._services.AddScoped<IOverdueReminderLogRepository, OverdueReminderLogRepository>();
 
             // Manager Class
             this._services.AddScoped<SignInManager>();
 
             this._services.AddHttpClient();
+            this._services.AddHostedService<OverdueReminderBackgroundService>();
         }
     }
 }

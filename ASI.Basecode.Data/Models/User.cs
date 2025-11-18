@@ -18,6 +18,7 @@ namespace ASI.Basecode.Data.Models
         public string UpdatedBy { get; set; }
         public DateTime UpdatedTime { get; set; }
         public bool IsVerified { get; set; }
+        public bool ReceiveOverdueEmails { get; set; }
 
         public virtual Organization Organization { get; set; }
     }

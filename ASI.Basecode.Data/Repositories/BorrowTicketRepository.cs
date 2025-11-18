@@ -2,6 +2,7 @@ using ASI.Basecode.Data.EFCore;
 using ASI.Basecode.Data.Interfaces;
 using ASI.Basecode.Data.Models;
 using Basecode.Data.Repositories;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Linq;
 using static ASI.Basecode.Resources.Constants.Enums;
@@ -70,6 +71,18 @@ namespace ASI.Basecode.Data.Repositories
         public IQueryable<BorrowTicket> GetAllTickets()
         {
             return this.GetDbSet<BorrowTicket>();
+        }
+
+        public IQueryable<BorrowTicket> GetOverdueTickets()
+        {
+            var now = DateTime.Now;
+            return this.GetDbSet<BorrowTicket>()
+                .Include(t => t.User)
+                .Include(t => t.OrgBook)
+                    .ThenInclude(ob => ob.Organization)
+                .Where(t => t.Status == TicketStatus.NotYetReturned &&
+                            t.DueAt.HasValue &&
+                            t.DueAt.Value < now);
         }
     }
 }
