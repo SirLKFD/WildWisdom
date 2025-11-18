@@ -71,6 +71,10 @@ namespace ASI.Basecode.Services.ServiceModels
         public List<BorrowTicketViewModel> HistoryBooks { get; set; } = new List<BorrowTicketViewModel>();
         public List<BorrowTicketViewModel> PendingTickets { get; set; } = new List<BorrowTicketViewModel>();
         public List<WishlistItemViewModel> WishlistItems { get; set; } = new List<WishlistItemViewModel>();
+        public Dictionary<int, OverdueReminderInfoViewModel> OverdueReminderStatuses { get; set; } = new();
+
+        [Display(Name = "Send me overdue reminder emails")]
+        public bool ReceiveOverdueEmails { get; set; } = true;
 
         public void CreateMappings(IMapperConfigurationExpression configuration)
         {

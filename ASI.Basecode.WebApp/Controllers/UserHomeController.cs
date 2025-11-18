@@ -28,6 +28,7 @@ namespace ASI.Basecode.WebApp.Controllers
         private readonly IBookCheckoutService _bookCheckoutService;
         private readonly IWishlistService _wishlistService;
         private readonly IBookRecommendationService _recommendationService;
+        private readonly IOverdueReminderService _overdueReminderService;
         private readonly IWebHostEnvironment _webHostEnvironment;
 
         /// <summary>
@@ -53,6 +54,7 @@ namespace ASI.Basecode.WebApp.Controllers
                               IBookCheckoutService bookCheckoutService,
                               IWishlistService wishlistService,
                               IBookRecommendationService recommendationService,
+                              IOverdueReminderService overdueReminderService,
                               IWebHostEnvironment webHostEnvironment,
                               IMapper mapper = null) : base(httpContextAccessor, loggerFactory, configuration, mapper)
         {
@@ -64,6 +66,7 @@ namespace ASI.Basecode.WebApp.Controllers
             _bookCheckoutService = bookCheckoutService;
             _wishlistService = wishlistService;
             _recommendationService = recommendationService;
+            _overdueReminderService = overdueReminderService;
             _webHostEnvironment = webHostEnvironment;
         }
 
@@ -1180,7 +1183,8 @@ namespace ASI.Basecode.WebApp.Controllers
                 CreatedTime = userModel.CreatedTime,
                 UpdatedTime = userModel.UpdatedTime,
                 CreatedBy = userModel.CreatedBy,
-                UpdatedBy = userModel.UpdatedBy
+                UpdatedBy = userModel.UpdatedBy,
+                ReceiveOverdueEmails = userModel.ReceiveOverdueEmails
             };
 
             // Load tab-specific data
@@ -1191,6 +1195,11 @@ namespace ASI.Basecode.WebApp.Controllers
                     break;
                 case "unreturned-books":
                     viewModel.OverdueBooks = _borrowTicketService.GetUserOverdueBooks(userModel.Id);
+                    if (viewModel.OverdueBooks?.Any() == true)
+                    {
+                        var ticketIds = viewModel.OverdueBooks.Select(b => b.Id).ToList();
+                        viewModel.OverdueReminderStatuses = _overdueReminderService.GetReminderStatuses(ticketIds);
+                    }
                     break;
                 case "history":
                     viewModel.HistoryBooks = _borrowTicketService.GetUserBorrowHistory(userModel.Id);

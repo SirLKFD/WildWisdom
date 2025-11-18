@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Overdue Reminder</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #F5F0E8;
+        }
+
+        .email-container {
+            max-width: 600px;
+            margin: 40px auto;
+            background-color: #FFFFFF;
+            border-radius: 24px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+        }
+
+        .email-header {
+            background: linear-gradient(135deg, #A66D3F 0%, #8B5A2B 100%);
+            padding: 40px 30px;
+            text-align: center;
+            color: #FFFFFF;
+        }
+
+        .email-logo {
+            width: 180px;
+            height: auto;
+            margin-bottom: 20px;
+        }
+
+        .email-header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin: 0 0 8px;
+        }
+
+        .header-subtitle {
+            margin: 0;
+            font-size: 15px;
+            letter-spacing: 0.5px;
+        }
+
+        .email-body {
+            padding: 50px 40px;
+        }
+
+        .email-greeting {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2C2C2C;
+            margin-bottom: 20px;
+        }
+
+        .email-text {
+            font-size: 15px;
+            color: #666666;
+            line-height: 1.6;
+            margin-bottom: 25px;
+        }
+
+        .section-card {
+            background-color: #F5F0E8;
+            border: 2px solid #A66D3F;
+            border-radius: 16px;
+            padding: 30px;
+            margin: 30px 0;
+        }
+
+        .card-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: #8B5A2B;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 20px;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 15px;
+            color: #2C2C2C;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+
+        .detail-value {
+            font-weight: 600;
+            color: #1F1F1F;
+        }
+
+        .fine-value {
+            color: #A66D3F;
+        }
+
+        .late-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background-color: #FFF3CD;
+            color: #8B5A2B;
+            padding: 10px 16px;
+            border-radius: 999px;
+            font-size: 14px;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+
+        .btn-action {
+            display: inline-block;
+            padding: 16px 42px;
+            background: linear-gradient(135deg, #A66D3F 0%, #8B5A2B 100%);
+            color: #FFFFFF !important;
+            text-decoration: none;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 16px;
+            box-shadow: 0 5px 20px rgba(166, 109, 63, 0.3);
+            transition: all 0.3s ease;
+            margin: 15px 0 5px;
+        }
+
+        .btn-action:hover {
+            box-shadow: 0 8px 30px rgba(166, 109, 63, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .note-box {
+            background-color: #E3F2FD;
+            border-left: 4px solid #2196F3;
+            padding: 15px 20px;
+            border-radius: 10px;
+            font-size: 14px;
+            color: #0D47A1;
+            margin: 30px 0 15px;
+        }
+
+        .email-footer {
+            background-color: #FAFAFA;
+            padding: 30px 40px;
+            text-align: center;
+            border-top: 1px solid #E5E5E5;
+        }
+
+        .email-footer p {
+            margin: 5px 0;
+            font-size: 13px;
+            color: #999999;
+        }
+
+        .email-footer a {
+            color: #A66D3F;
+            text-decoration: none;
+        }
+
+        @media only screen and (max-width: 600px) {
+            .email-container {
+                margin: 20px;
+                border-radius: 16px;
+            }
+
+            .email-header {
+                padding: 30px 20px;
+            }
+
+            .email-body {
+                padding: 30px 25px;
+            }
+
+            .section-card {
+                padding: 24px;
+            }
+
+            .detail-row {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 6px;
+            }
+
+            .btn-action {
+                width: 100%;
+                text-align: center;
+                padding: 16px 0;
+            }
+
+            .email-footer {
+                padding: 25px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="email-header">
+            <img src="https://res.cloudinary.com/dpxgscfxx/image/upload/v1761398091/WildWisdom-white-logo_pxpnkr.png" alt="WildWisdom Logo" class="email-logo" />
+            <h1>Gentle Reminder 📚</h1>
+            <p class="header-subtitle">Your borrowed book is overdue</p>
+        </div>
+
+        <div class="email-body">
+            <p class="email-greeting">Hi {{UserName}},</p>
+            <p class="email-text">
+                This is a friendly reminder that the book listed below is overdue. Please return it to <strong>{{OrganizationName}}</strong>
+                at your earliest convenience to avoid additional fines.
+            </p>
+
+            <div class="section-card">
+                <p class="card-title">Borrowing Summary</p>
+                <div class="detail-row">
+                    <span>Book Title:</span>
+                    <span class="detail-value"> {{BookTitle}}</span>
+                </div>
+                <div class="detail-row">
+                    <span>Due Date:</span>
+                    <span class="detail-value"> {{DueDate}}</span>
+                </div>
+                <div class="detail-row">
+                    <span>Days Overdue:</span>
+                    <span class="detail-value"> {{DaysOverdue}} day(s)</span>
+                </div>
+                <div class="detail-row">
+                    <span>Current Fine:</span>
+                    <span class="detail-value fine-value"> {{FineAmount}}</span>
+                </div>
+            </div>
+
+            <div class="note-box">
+                <strong>Already returned it?</strong> Please ignore this reminder or let us know so we can update your record right away.
+            </div>
+
+            <p class="email-text" style="margin-bottom: 0;">
+                Need help? Reply to this email or reach out to your <strong>{{OrganizationName}}</strong> librarian for assistance.
+            </p>
+        </div>
+
+        <div class="email-footer">
+            <p><strong>WildWisdom</strong></p>
+            <p>Your Gateway to Knowledge</p>
+            <p style="margin-top: 15px;">Need help? <a href="mailto:support@wildwisdom.com">Contact Support</a></p>
+            <p style="margin-top: 20px; color: #BBBBBB;">© {{CurrentYear}} WildWisdom. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>
+
