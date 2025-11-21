@@ -81,7 +81,7 @@
     function createHistoryRow(item){
         const row = document.createElement('tr');
         const durationText = item.duration > 0 ? `${item.duration} days` : 'N/A';
-        const fineText = item.fineAmount > 0 ? `<span class="text-danger"><i class="fas fa-dollar-sign"></i> ${item.fineAmount.toFixed(2)}</span>` : '<span class="text-success">No fine</span>';
+        const fineText = item.fineAmount > 0 ? `<span class="text-danger"><i class="fas fa-peso-sign"></i> &#8369;${item.fineAmount.toFixed(2)}</span>` : '<span class="text-success">No fine</span>';
         const statusBadge = `<span class="badge badge-success">${item.status}</span>`;
         const notesText = item.notes ? `<span class="text-truncate d-inline-block" style="max-width: 150px;" title="${item.notes}">${item.notes}</span>` : '<span class="text-muted">-</span>';
         row.innerHTML = `
